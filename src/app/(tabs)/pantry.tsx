@@ -1,11 +1,32 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import { View, Text, SafeAreaView, FlatList } from 'react-native'
+import React, { useState } from 'react'
+import PantryDashboard from '@/components/pantry/PantryDashboard'
+import { products } from '@/data/products'
 
 const pantry = () => {
+
+  let caloriesTotal = 0;
+
+  products.forEach((product) => {
+    caloriesTotal += product.calories
+  })
+
   return (
-    <View>
+    <SafeAreaView style={{backgroundColor: 'lightgray'}}>
       <Text>pantry</Text>
-    </View>
+      <PantryDashboard caloriesTotal={caloriesTotal} />
+      <FlatList
+        data={products}
+        renderItem={({ item }) => (
+          <View>
+            <Text>Name: {item.name}</Text>
+            <Text>Calories: {item.calories}</Text>
+            <Text>Protein: {item.protein}g</Text>
+          </View>
+        )}
+      />
+      <Text>total calories: {caloriesTotal}</Text>
+    </SafeAreaView>
   )
 }
 
