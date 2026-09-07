@@ -11,6 +11,6 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="gear" md="settings" />
         <NativeTabs.Trigger.Label>Pantry</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-    </NativeTabs>
+    </NativeTabs>   
   );
 }
