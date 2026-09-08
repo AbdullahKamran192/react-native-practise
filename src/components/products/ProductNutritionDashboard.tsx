@@ -1,145 +1,359 @@
-import { View, Text, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
-type Product = {
+type NutrientValue = number | string;
+
+export type Product = {
   product_name?: string;
   brands?: string;
   quantity?: string;
+
   nutriments?: {
-    energy_kcal_100g?: number;
-    fat_100g?: number;
-    carbohydrates_100g?: number;
-    proteins_100g?: number;
-    sugars_100g?: number;
-    salt_100g?: number;
+    energy_kcal_100g?: NutrientValue;
+    fat_100g?: NutrientValue;
+    carbohydrates_100g?: NutrientValue;
+    proteins_100g?: NutrientValue;
+    sugars_100g?: NutrientValue;
+    salt_100g?: NutrientValue;
+    fiber_100g?: NutrientValue;
   };
 };
+
+type NutrimentKey =
+  keyof NonNullable<Product["nutriments"]>;
 
 type ProductNutritionDashboardProps = {
   product: Product;
   myData?: string;
+  onProductChange: (product: Product) => void;
+};
+
+type ProductTextInputProps = {
+  label: string;
+  value: string;
+  placeholder: string;
+  onChangeText: (value: string) => void;
+};
+
+type NutritionInputProps = {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  value: NutrientValue | undefined;
+  unit: string;
+  onChangeText: (value: string) => void;
+};
+
+const ProductTextInput = ({
+  label,
+  value,
+  placeholder,
+  onChangeText,
+}: ProductTextInputProps) => {
+  return (
+    <View style={styles.productField}>
+      <View style={styles.productFieldHeader}>
+        <Text style={styles.productFieldLabel}>
+          {label}
+        </Text>
+
+        <Ionicons
+          name="pencil-outline"
+          size={14}
+          color="#BDBDBD"
+        />
+      </View>
+
+      <TextInput
+        style={styles.productTextInput}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="#888"
+      />
+    </View>
+  );
+};
+
+const NutritionInput = ({
+  label,
+  icon,
+  value,
+  unit,
+  onChangeText,
+}: NutritionInputProps) => {
+  const missing =
+    value === undefined ||
+    value === null ||
+    value === "";
+
+  return (
+    <View
+      style={[
+        styles.nutritionItem,
+        missing && styles.nutritionItemWarning,
+      ]}
+    >
+      <View style={styles.nutritionHeader}>
+        <View style={styles.nutritionIcon}>
+          <Ionicons
+            name={icon}
+            size={19}
+            color="#222"
+          />
+        </View>
+
+        <Ionicons
+          name="pencil-outline"
+          size={14}
+          color="#888"
+        />
+      </View>
+
+      <Text style={styles.nutritionLabel}>
+        {label}
+      </Text>
+
+      <View style={styles.nutritionInputContainer}>
+        <TextInput
+          style={styles.nutritionInput}
+          value={
+            value === undefined || value === null
+              ? ""
+              : String(value)
+          }
+          onChangeText={onChangeText}
+          placeholder="Enter value"
+          placeholderTextColor="#999"
+          keyboardType="decimal-pad"
+          selectTextOnFocus
+        />
+
+        <Text style={styles.unitText}>{unit}</Text>
+      </View>
+    </View>
+  );
 };
 
 const ProductNutritionDashboard = ({
   product,
   myData,
+  onProductChange,
 }: ProductNutritionDashboardProps) => {
   const nutriments = product.nutriments ?? {};
 
-  const calories = nutriments.energy_kcal_100g;
-  const protein = nutriments.proteins_100g;
-  const carbs = nutriments.carbohydrates_100g;
-  const fat = nutriments.fat_100g;
-  const sugars = nutriments.sugars_100g;
-  const salt = nutriments.salt_100g;
+  function updateProductField(
+    field: "product_name" | "brands" | "quantity",
+    value: string
+  ) {
+    onProductChange({
+      ...product,
+      [field]: value,
+    });
+  }
 
-  const displayValue = (
-    value: number | undefined,
-    unit: string
-  ): string => {
-    if (value === undefined || value === null) {
-      return "Missing";
-    }
+  function updateNutriment(
+    field: NutrimentKey,
+    value: string
+  ) {
+    onProductChange({
+      ...product,
 
-    return `${value} ${unit}`;
-  };
-
-  const caloriesMissing =
-    calories === undefined || calories === null || calories === 0;
-
-  const proteinMissing =
-    protein === undefined || protein === null || protein === 0;
-
-  const carbsMissing =
-    carbs === undefined || carbs === null || carbs === 0;
-
-  const fatMissing =
-    fat === undefined || fat === null || fat === 0;
-
-  const sugarsMissing =
-    sugars === undefined || sugars === null || sugars === 0;
-
-  const saltMissing =
-    salt === undefined || salt === null || salt === 0;
+      nutriments: {
+        ...product.nutriments,
+        [field]: value,
+      },
+    });
+  }
 
   return (
     <View>
       <View style={styles.productCard}>
-        <View style={styles.productIcon}>
-          <Ionicons name="nutrition-outline" size={28} color="#fff" />
+        <View style={styles.cardHeader}>
+          <View style={styles.productIcon}>
+            <Ionicons
+              name="nutrition-outline"
+              size={27}
+              color="#fff"
+            />
+          </View>
+
+          <View style={styles.editBadge}>
+            <Ionicons
+              name="create-outline"
+              size={15}
+              color="#fff"
+            />
+
+            <Text style={styles.editBadgeText}>
+              Editable
+            </Text>
+          </View>
         </View>
 
-        <Text style={styles.productName}>
-          {product.product_name || "Unnamed product"}
+        <Text style={styles.instructions}>
+          Check the product information and correct any
+          inaccurate values.
         </Text>
 
-        {product.brands ? (
-          <Text style={styles.brand}>{product.brands}</Text>
-        ) : null}
+        <ProductTextInput
+          label="Product name"
+          value={product.product_name ?? ""}
+          placeholder="Enter product name"
+          onChangeText={(value) =>
+            updateProductField("product_name", value)
+          }
+        />
 
-        {product.quantity ? (
-          <Text style={styles.quantity}>{product.quantity}</Text>
-        ) : null}
+        <ProductTextInput
+          label="Brand"
+          value={product.brands ?? ""}
+          placeholder="Enter brand"
+          onChangeText={(value) =>
+            updateProductField("brands", value)
+          }
+        />
 
-        <View style={styles.barcodeRow}>
-          <Ionicons name="barcode-outline" size={18} color="#BDBDBD" />
+        <ProductTextInput
+          label="Package size (g)"
+          value={product.quantity ?? ""}
+          placeholder="Weight in grams, e.g. 500"
+          onChangeText={(value) =>
+            updateProductField("quantity", value)
+          }
+        />
 
-          <Text style={styles.barcodeText}>
-            Barcode: {myData || "Unavailable"}
-          </Text>
+        <View style={styles.barcodeContainer}>
+          <View style={styles.barcodeLabelRow}>
+            <Text style={styles.barcodeLabel}>
+              Barcode
+            </Text>
+
+            <View style={styles.lockedBadge}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={11}
+                color="#BDBDBD"
+              />
+
+              <Text style={styles.lockedText}>
+                Locked
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.barcodeValue}>
+            <Ionicons
+              name="barcode-outline"
+              size={20}
+              color="#BDBDBD"
+            />
+
+            <Text style={styles.barcodeText}>
+              {myData || "Unavailable"}
+            </Text>
+          </View>
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>Nutrition per 100g</Text>
+      <View style={styles.sectionHeading}>
+        <View>
+          <Text style={styles.sectionTitle}>
+            Nutrition per 100g
+          </Text>
+
+          <Text style={styles.sectionSubtitle}>
+            Tap an input to change its value
+          </Text>
+        </View>
+
+        <Ionicons
+          name="pencil-outline"
+          size={19}
+          color="#777"
+        />
+      </View>
 
       <View style={styles.nutritionGrid}>
-        <View style={[styles.nutritionItemWarning, {backgroundColor: caloriesMissing ? '#ecd09c' : "white"}]}>
-          <Ionicons name="flame-outline" size={22} color="#222" />
-          <Text style={styles.nutritionLabel}>Calories</Text>
-          <Text style={styles.nutritionValue}>
-            {displayValue(calories, "kcal")}
-          </Text>
-        </View>
+        <NutritionInput
+          label="Calories"
+          icon="flame-outline"
+          unit="kcal"
+          value={nutriments.energy_kcal_100g}
+          onChangeText={(value) =>
+            updateNutriment(
+              "energy_kcal_100g",
+              value
+            )
+          }
+        />
 
-        <View style={[styles.nutritionItem, {backgroundColor: proteinMissing ? '#ecd09c' : "white"}]}>
-          <Ionicons name="barbell-outline" size={22} color="#222" />
-          <Text style={styles.nutritionLabel}>Protein</Text>
-          <Text style={styles.nutritionValue}>
-            {displayValue(protein, "g")}
-          </Text>
-        </View>
+        <NutritionInput
+          label="Protein"
+          icon="barbell-outline"
+          unit="g"
+          value={nutriments.proteins_100g}
+          onChangeText={(value) =>
+            updateNutriment("proteins_100g", value)
+          }
+        />
 
-        <View style={[styles.nutritionItem, {backgroundColor: carbsMissing ? '#ecd09c' : "white"}]}>
-          <Ionicons name="restaurant-outline" size={22} color="#222" />
-          <Text style={styles.nutritionLabel}>Carbs</Text>
-          <Text style={styles.nutritionValue}>
-            {displayValue(carbs, "g")}
-          </Text>
-        </View>
+        <NutritionInput
+          label="Carbohydrates"
+          icon="restaurant-outline"
+          unit="g"
+          value={nutriments.carbohydrates_100g}
+          onChangeText={(value) =>
+            updateNutriment(
+              "carbohydrates_100g",
+              value
+            )
+          }
+        />
 
-        <View style={[styles.nutritionItem, {backgroundColor: fatMissing ? '#ecd09c' : "white"}]}>
-          <Ionicons name="water-outline" size={22} color="#222" />
-          <Text style={styles.nutritionLabel}>Fat</Text>
-          <Text style={styles.nutritionValue}>
-            {displayValue(fat, "g")}
-          </Text>
-        </View>
+        <NutritionInput
+          label="Fat"
+          icon="water-outline"
+          unit="g"
+          value={nutriments.fat_100g}
+          onChangeText={(value) =>
+            updateNutriment("fat_100g", value)
+          }
+        />
 
-        <View style={[styles.nutritionItem, {backgroundColor: sugarsMissing ? '#ecd09c' : "white"}]}>
-          <Ionicons name="cube-outline" size={22} color="#222" />
-          <Text style={styles.nutritionLabel}>Sugars</Text>
-          <Text style={styles.nutritionValue}>
-            {displayValue(sugars, "g")}
-          </Text>
-        </View>
+        <NutritionInput
+          label="Sugars"
+          icon="cube-outline"
+          unit="g"
+          value={nutriments.sugars_100g}
+          onChangeText={(value) =>
+            updateNutriment("sugars_100g", value)
+          }
+        />
 
-        <View style={[styles.nutritionItem, {backgroundColor: saltMissing ? '#ecd09c' : "white"}]}>
-          <Ionicons name="ellipse-outline" size={22} color="#222" />
-          <Text style={styles.nutritionLabel}>Salt</Text>
-          <Text style={styles.nutritionValue}>
-            {displayValue(salt, "g")}
-          </Text>
-        </View>
+        <NutritionInput
+          label="Salt"
+          icon="ellipse-outline"
+          unit="g"
+          value={nutriments.salt_100g}
+          onChangeText={(value) =>
+            updateNutriment("salt_100g", value)
+          }
+        />
+
+        <NutritionInput
+          label="Fibre"
+          icon="leaf-outline"
+          unit="g"
+          value={nutriments.fiber_100g}
+          onChangeText={(value) =>
+            updateNutriment("fiber_100g", value)
+          }
+        />
       </View>
     </View>
   );
@@ -151,7 +365,13 @@ const styles = StyleSheet.create({
   productCard: {
     backgroundColor: "#222",
     borderRadius: 20,
-    padding: 24,
+    padding: 22,
+  },
+
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   productIcon: {
@@ -161,65 +381,126 @@ const styles = StyleSheet.create({
     backgroundColor: "#3D3D3D",
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  editBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#474747",
+    borderRadius: 14,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+
+  editBadgeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  instructions: {
+    color: "#BDBDBD",
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 16,
     marginBottom: 18,
   },
 
-  productName: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "700",
+  productField: {
+    marginTop: 13,
   },
 
-  brand: {
-    color: "#BDBDBD",
-    fontSize: 14,
-    marginTop: 6,
-  },
-
-  quantity: {
-    color: "#BDBDBD",
-    fontSize: 14,
-    marginTop: 4,
-  },
-
-  barcodeRow: {
+  productFieldHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 7,
+    justifyContent: "space-between",
+    marginBottom: 7,
+  },
+
+  productFieldLabel: {
+    color: "#BDBDBD",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  productTextInput: {
+    minHeight: 48,
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "600",
+    backgroundColor: "#333",
+    borderWidth: 1,
+    borderColor: "#505050",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+
+  barcodeContainer: {
     borderTopWidth: 1,
     borderTopColor: "#444",
     marginTop: 20,
     paddingTop: 16,
   },
 
-  barcodeText: {
-    color: "#BDBDBD",
-    fontSize: 13,
+  barcodeLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
-  warningCard: {
-    backgroundColor: "#FFF3D6",
-    borderRadius: 14,
-    padding: 14,
-    marginTop: 14,
+  barcodeLabel: {
+    color: "#BDBDBD",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  lockedBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
+    gap: 4,
   },
 
-  warningText: {
-    flex: 1,
-    color: "#8A5A00",
-    fontSize: 13,
-    lineHeight: 19,
+  lockedText: {
+    color: "#999",
+    fontSize: 11,
+  },
+
+  barcodeValue: {
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 9,
+    backgroundColor: "#292929",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    marginTop: 7,
+  },
+
+  barcodeText: {
+    color: "#BDBDBD",
+    fontSize: 14,
+  },
+
+  sectionHeading: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 28,
+    marginBottom: 14,
   },
 
   sectionTitle: {
+    color: "#222",
     fontSize: 19,
     fontWeight: "700",
-    color: "#222",
-    marginTop: 28,
-    marginBottom: 14,
+  },
+
+  sectionSubtitle: {
+    color: "#888",
+    fontSize: 12,
+    marginTop: 3,
   },
 
   nutritionGrid: {
@@ -231,36 +512,61 @@ const styles = StyleSheet.create({
 
   nutritionItem: {
     width: "48%",
-    minHeight: 120,
+    minHeight: 145,
     backgroundColor: "#fff",
     borderRadius: 18,
-    padding: 16,
-    justifyContent: "space-between",
+    padding: 15,
   },
 
   nutritionItemWarning: {
-    width: "48%",
-    minHeight: 120,
-    backgroundColor: "#8A5A00",
-    borderRadius: 18,
-    padding: 16,
+    backgroundColor: "#FFF3D6",
+  },
+
+  nutritionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
   },
 
-  // calorieItem: {
-  //   backgroundColor: "#af2222",
-  // },
-
-  nutritionLabel: {
-    color: "#777",
-    fontSize: 13,
-    marginTop: 10,
+  nutritionIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 10,
+    backgroundColor: "#EDEDED",
+    justifyContent: "center",
+    alignItems: "center",
   },
 
-  nutritionValue: {
+  nutritionLabel: {
+    color: "#555",
+    fontSize: 13,
+    fontWeight: "600",
+    marginTop: 11,
+    marginBottom: 7,
+  },
+
+  nutritionInputContainer: {
+    minHeight: 42,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F7F7F7",
+    borderWidth: 1,
+    borderColor: "#D7D7D7",
+    borderRadius: 10,
+    paddingHorizontal: 10,
+  },
+
+  nutritionInput: {
+    flex: 1,
     color: "#222",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
-    marginTop: 4,
+    paddingVertical: 8,
+  },
+
+  unitText: {
+    color: "#777",
+    fontSize: 12,
+    marginLeft: 4,
   },
 });

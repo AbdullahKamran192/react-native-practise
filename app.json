@@ -7,11 +7,9 @@
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-
     "ios": {
       "icon": "./assets/expo.icon"
     },
-
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
@@ -21,12 +19,10 @@
       },
       "predictiveBackGestureEnabled": false
     },
-
     "web": {
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
-
     "plugins": [
       [
         "expo-camera",
@@ -45,9 +41,9 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
-
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true

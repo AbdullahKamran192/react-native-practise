@@ -11,7 +11,7 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="cooktop" md="settings" />
         <NativeTabs.Trigger.Label>Pantry</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="setting">
+      <NativeTabs.Trigger name="app">
         <NativeTabs.Trigger.Icon sf="gear" md="settings" />
         <NativeTabs.Trigger.Label>Pantry</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>

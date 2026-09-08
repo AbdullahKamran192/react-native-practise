@@ -1,0 +1,130 @@
+import { useState } from "react";
+import {
+  Alert,
+  Button,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { Link, Stack } from "expo-router";
+
+import Colors from "@/constants/Colors";
+import { supabase } from "@/lib/supabase";
+
+const SignInScreen = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  async function signInWithEmail() {
+    if (!email.trim() || !password) {
+      Alert.alert(
+        "Missing information",
+        "Enter your email and password."
+      );
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+
+      if (error) {
+        Alert.alert("Sign-in failed", error.message);
+      }
+    } catch {
+      Alert.alert(
+        "Something went wrong",
+        "Check your internet connection and try again."
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  return (
+    <View style={styles.container}>
+      <Stack.Screen options={{ title: "Sign in" }} />
+
+      <Text style={styles.label}>Email</Text>
+
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="you@example.com"
+        style={styles.input}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoComplete="email"
+        textContentType="emailAddress"
+      />
+
+      <Text style={styles.label}>Password</Text>
+
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Enter your password"
+        style={styles.input}
+        secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoComplete="password"
+        textContentType="password"
+      />
+
+      <Button
+        title={isLoading ? "Signing in..." : "Sign in"}
+        onPress={signInWithEmail}
+        disabled={isLoading}
+      />
+
+      <Link href="/(auth)/sign-up" style={styles.textButton}>
+        Create an account
+      </Link>
+    </View>
+  );
+};
+
+export default SignInScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "#F7F7F7",
+    padding: 20,
+  },
+
+  label: {
+    color: "#666",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  input: {
+    height: 52,
+    borderWidth: 1,
+    borderColor: "#D5D5D5",
+    paddingHorizontal: 14,
+    marginTop: 6,
+    marginBottom: 20,
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    fontSize: 16,
+    color: "#222",
+  },
+
+  textButton: {
+    alignSelf: "center",
+    fontWeight: "700",
+    color: Colors.light.tint,
+    marginVertical: 18,
+  },
+});
