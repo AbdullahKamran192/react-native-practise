@@ -1,12 +1,12 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 
-const apiLookup = () => {
+const setting = () => {
   return (
     <View>
-      <Text>apiLookup</Text>
+      <Text>setting</Text>
     </View>
   )
 }
 
-export default apiLookup
+export default setting

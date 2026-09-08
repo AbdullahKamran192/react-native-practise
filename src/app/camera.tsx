@@ -1,44 +1,134 @@
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
-import { Link, router } from 'expo-router';
-import { useState } from 'react';
-import { Button, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  CameraType,
+  CameraView,
+  useCameraPermissions,
+} from "expo-camera";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
-export default function App() {
-  const [facing, setFacing] = useState<CameraType>('back');
+export default function CameraScreen() {
+  const [facing, setFacing] = useState<CameraType>("back");
+  const [hasScanned, setHasScanned] = useState(false);
+  const [cameraActive, setCameraActive] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
 
-  if (!permission) {
-    // Camera permissions are still loading.
-    return <View />;
+  // This updates immediately and prevents several navigation events.
+  const scanLock = useRef(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      // Start the camera and unlock scanning when this page is focused.
+      setCameraActive(true);
+      setHasScanned(false);
+      scanLock.current = false;
+
+      return () => {
+        // Stop and unmount the camera when leaving this page.
+        setCameraActive(false);
+      };
+    }, [])
+  );
+
+  function toggleCameraFacing() {
+    setFacing((current) => (current === "back" ? "front" : "back"));
   }
 
-  if (!permission.granted) {
-    // Camera permissions are not granted yet.
+  function handleBarcodeScanned({ data }: { data: string }) {
+    // Ignore any scan events fired after the first one.
+    if (scanLock.current) {
+      return;
+    }
+
+    // A ref changes immediately, unlike React state.
+    scanLock.current = true;
+    setHasScanned(true);
+    setCameraActive(false);
+
+    router.push({
+      pathname: "/product",
+      params: { data },
+    });
+  }
+
+  if (!permission) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>We need your permission to show the camera</Text>
-        <Button onPress={requestPermission} title="grant permission" />
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#222" />
+        <Text style={styles.loadingText}>Preparing camera...</Text>
       </View>
     );
   }
 
-  function toggleCameraFacing() {
-    setFacing(current => (current === 'back' ? 'front' : 'back'));
+  if (!permission.granted) {
+    return (
+      <View style={styles.permissionContainer}>
+        <View style={styles.permissionIcon}>
+          <Ionicons name="camera-outline" size={36} color="#222" />
+        </View>
+
+        <Text style={styles.permissionTitle}>
+          Camera access required
+        </Text>
+
+        <Text style={styles.permissionMessage}>
+          Allow camera access so you can scan food barcodes and view
+          their nutritional information.
+        </Text>
+
+        <Pressable
+          style={styles.permissionButton}
+          onPress={requestPermission}
+        >
+          <Ionicons name="camera-outline" size={21} color="#fff" />
+
+          <Text style={styles.permissionButtonText}>
+            Allow Camera
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  /*
+   * CameraView is unmounted when cameraActive is false.
+   * This releases the camera while the product page is open.
+   */
+  if (!cameraActive) {
+    return null;
   }
 
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing={facing} onBarcodeScanned={({data}) => {
-        //console.log("data", data);
-        router.navigate({
-            pathname: '/product',
-            params: { data: data}
-        })
-      }}/>
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button} onPress={toggleCameraFacing}>
-          <Text style={styles.text}>Flip Camera</Text>
-        </TouchableOpacity>
+      <CameraView
+        style={styles.camera}
+        facing={facing}
+        barcodeScannerSettings={{
+          barcodeTypes: [
+            "ean13",
+            "ean8",
+            "upc_a",
+            "upc_e",
+            "code128",
+          ],
+        }}
+        onBarcodeScanned={
+          hasScanned ? undefined : handleBarcodeScanned
+        }
+      />
+
+      <View style={styles.scanFrame}>
+        <View style={[styles.corner, styles.topLeft]} />
+        <View style={[styles.corner, styles.topRight]} />
+        <View style={[styles.corner, styles.bottomLeft]} />
+        <View style={[styles.corner, styles.bottomRight]} />
       </View>
     </View>
   );
@@ -47,30 +137,159 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: "#000",
   },
-  message: {
-    textAlign: 'center',
-    paddingBottom: 10,
-  },
+
   camera: {
     flex: 1,
   },
-  buttonContainer: {
-    position: 'absolute',
-    bottom: 64,
-    flexDirection: 'row',
-    backgroundColor: 'transparent',
-    width: '100%',
-    paddingHorizontal: 64,
+
+  topContent: {
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.55)",
+    borderRadius: 18,
+    paddingHorizontal: 24,
+    paddingVertical: 14,
   },
-  button: {
+
+  title: {
+    color: "#fff",
+    fontSize: 26,
+    fontWeight: "700",
+  },
+
+  instructions: {
+    color: "#D5D5D5",
+    fontSize: 14,
+    marginTop: 5,
+  },
+
+  scanFrame: {
+    width: "88%",
+    height: 180,
+    position: "absolute",
+    top: "38%",
+    left: 20
+  },
+
+  corner: {
+    position: "absolute",
+    width: 34,
+    height: 34,
+    borderColor: "#fff",
+  },
+
+  topLeft: {
+    top: 0,
+    left: 0,
+    borderTopWidth: 4,
+    borderLeftWidth: 4,
+    borderTopLeftRadius: 12,
+  },
+
+  topRight: {
+    top: 0,
+    right: 0,
+    borderTopWidth: 4,
+    borderRightWidth: 4,
+    borderTopRightRadius: 12,
+  },
+
+  bottomLeft: {
+    bottom: 0,
+    left: 0,
+    borderBottomWidth: 4,
+    borderLeftWidth: 4,
+    borderBottomLeftRadius: 12,
+  },
+
+  bottomRight: {
+    right: 0,
+    bottom: 0,
+    borderRightWidth: 4,
+    borderBottomWidth: 4,
+    borderBottomRightRadius: 12,
+  },
+
+  flipButton: {
+    height: 54,
+    minWidth: 170,
+    borderRadius: 16,
+    backgroundColor: "#222",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 9,
+    paddingHorizontal: 22,
+  },
+
+  flipButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+
+  loadingContainer: {
     flex: 1,
-    alignItems: 'center',
+    backgroundColor: "#F7F7F7",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  text: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
+
+  loadingText: {
+    color: "#777",
+    fontSize: 14,
+    marginTop: 14,
+  },
+
+  permissionContainer: {
+    flex: 1,
+    backgroundColor: "#F7F7F7",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 30,
+  },
+
+  permissionIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: "#EDEDED",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 20,
+  },
+
+  permissionTitle: {
+    color: "#222",
+    fontSize: 22,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+
+  permissionMessage: {
+    color: "#777",
+    fontSize: 14,
+    lineHeight: 21,
+    textAlign: "center",
+    marginTop: 10,
+    marginBottom: 24,
+  },
+
+  permissionButton: {
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: "#222",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 24,
+  },
+
+  permissionButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
   },
 });

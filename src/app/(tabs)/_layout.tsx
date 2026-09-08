@@ -8,6 +8,10 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="pantry">
+        <NativeTabs.Trigger.Icon sf="cooktop" md="settings" />
+        <NativeTabs.Trigger.Label>Pantry</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="setting">
         <NativeTabs.Trigger.Icon sf="gear" md="settings" />
         <NativeTabs.Trigger.Label>Pantry</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
