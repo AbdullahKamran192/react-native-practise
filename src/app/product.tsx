@@ -1,6 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
+import {
+  useLocalSearchParams,
+} from "expo-router";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import {
   ActivityIndicator,
   Alert,
@@ -11,13 +17,42 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
-import ProductNutritionDashboard, {
-  Product,
-} from "@/components/products/ProductNutritionDashboard";
+import {
+  SafeAreaView,
+} from "react-native-safe-area-context";
 
+import {
+  useAddGenericProductToPantry,
+  useAddProductToPantry,
+} from "@/api/products";
+
+import {
+  lookupProduct,
+} from "@/api/products/productLookup";
+
+import type {
+  LookupProduct,
+  MeasurementUnit,
+} from "@/api/products/productLookup";
+
+import {
+  createEmptyProduct,
+  toNumber,
+} from "@/api/products/productLookup/utils";
+
+import ProductNutritionDashboard from "@/components/products/ProductNutritionDashboard";
 import ProductValueDashboard from "@/components/products/ProductValueDashboard";
+
+import { supabase } from "@/lib/supabase";
+
+import {
+  createProductSubmission,
+} from "@/utils/productSubmission";
+
+type ProductSource =
+  | "barcode"
+  | "generic";
 
 type LookupStatus =
   | "found"
@@ -30,145 +65,230 @@ type CalculatedValue = {
   proteinPerPound: number;
 };
 
-function createEmptyProduct(): Product {
+type GenericProductRow = {
+  id: number;
+  product_name: string;
+  default_amount: number;
+  measurement_unit: MeasurementUnit;
+  calories_per_100: number | null;
+  protein_per_100: number | null;
+  carbs_per_100: number | null;
+  fat_per_100: number | null;
+  sugars_per_100: number | null;
+  salt_per_100: number | null;
+  fibre_per_100: number | null;
+};
+
+/*
+ * Converts a nullable database number into the
+ * editable string format used by the product form.
+ */
+function numberToString(
+  value: number | null
+): string {
+  return value === null
+    ? ""
+    : String(value);
+}
+
+/*
+ * Loads a generic food using its generated database
+ * ID and converts it into LookupProduct.
+ *
+ * This allows the existing nutrition dashboard to
+ * display barcode and generic products using the
+ * same object structure.
+ */
+async function lookupGenericProduct(
+  genericProductId: string
+): Promise<LookupProduct | null> {
+  const { data, error } =
+    await supabase
+      .from("generic_products")
+      .select(`
+        id,
+        product_name,
+        default_amount,
+        measurement_unit,
+        calories_per_100,
+        protein_per_100,
+        carbs_per_100,
+        fat_per_100,
+        sugars_per_100,
+        salt_per_100,
+        fibre_per_100
+      `)
+      .eq("id", genericProductId)
+      .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const row =
+    data as GenericProductRow;
+
   return {
-    product_name: "",
+    product_name: row.product_name,
     brands: "",
-    quantity: "",
+
+    product_amount:
+      numberToString(
+        row.default_amount
+      ),
+
+    measurement_unit:
+      row.measurement_unit,
 
     nutriments: {
-      energy_kcal_100g: "",
-      proteins_100g: "",
-      carbohydrates_100g: "",
-      fat_100g: "",
-      sugars_100g: "",
-      salt_100g: "",
-      fiber_100g: "",
+      energy_kcal_100g:
+        numberToString(
+          row.calories_per_100
+        ),
+
+      proteins_100g:
+        numberToString(
+          row.protein_per_100
+        ),
+
+      carbohydrates_100g:
+        numberToString(
+          row.carbs_per_100
+        ),
+
+      fat_100g:
+        numberToString(
+          row.fat_per_100
+        ),
+
+      sugars_100g:
+        numberToString(
+          row.sugars_per_100
+        ),
+
+      salt_100g:
+        numberToString(
+          row.salt_per_100
+        ),
+
+      fiber_100g:
+        numberToString(
+          row.fibre_per_100
+        ),
     },
   };
 }
 
-function convertToNumber(
-  value: number | string | undefined
-): number | null {
-  if (
-    value === undefined ||
-    value === null ||
-    value === ""
-  ) {
-    return null;
-  }
-
-  const cleanedValue =
-    typeof value === "string"
-      ? value.trim().replace(",", ".")
-      : value;
-
-  const convertedValue = Number(cleanedValue);
-
-  return Number.isFinite(convertedValue)
-    ? convertedValue
-    : null;
-}
-
-function getProductWeightInGrams(
-  quantity: string | undefined
-): number | null {
-  if (!quantity?.trim()) {
-    return null;
-  }
-
-  const cleanedQuantity = quantity
-    .trim()
-    .toLowerCase()
-    .replace(",", ".");
-
-  /*
-   * Multipacks:
-   * 5 x 100
-   * 5 x 100g
-   * 5 × 100 grams
-   * 4 x 1kg
-   */
-  const multipackMatch = cleanedQuantity.match(
-    /(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(kilograms?|kilos?|kg|grams?|g)?/
-  );
-
-  if (multipackMatch) {
-    const quantity = Number(multipackMatch[1]);
-    const individualWeight = Number(
-      multipackMatch[2]
-    );
-
-    const unit = multipackMatch[3] ?? "g";
-
-    const totalWeight =
-      quantity * individualWeight;
-
-    const isKilograms =
-      unit === "kg" ||
-      unit.startsWith("kilogram") ||
-      unit.startsWith("kilo");
-
-    return isKilograms
-      ? totalWeight * 1000
-      : totalWeight;
-  }
-
-  /*
-   * Individual packages:
-   * 500
-   * 500g
-   * 500 grams
-   * 1.5kg
-   * 1 kilogram
-   */
-  const weightMatch = cleanedQuantity.match(
-    /(\d+(?:\.\d+)?)\s*(kilograms?|kilos?|kg|grams?|g)?/
-  );
-
-  if (!weightMatch) {
-    return null;
-  }
-
-  const weight = Number(weightMatch[1]);
-  const unit = weightMatch[2] ?? "g";
-
-  if (!Number.isFinite(weight) || weight <= 0) {
-    return null;
-  }
-
-  const isKilograms =
-    unit === "kg" ||
-    unit.startsWith("kilogram") ||
-    unit.startsWith("kilo");
-
-  return isKilograms ? weight * 1000 : weight;
-}
-
 const ProductScreen = () => {
-  const { data: barcode } =
-    useLocalSearchParams<{ data: string }>();
+  const {
+    data,
+    source,
+    productId,
+  } = useLocalSearchParams<{
+    data?: string;
+    source?: ProductSource;
+    productId?: string;
+  }>();
 
-  const [isLoading, setIsLoading] = useState(true);
+  /*
+   * Scanner:
+   * data contains the scanned barcode.
+   *
+   * Search:
+   * productId contains either the barcode or the
+   * generic-product ID.
+   */
+  const isGenericProduct =
+    source === "generic";
 
-  const [lookupStatus, setLookupStatus] =
-    useState<LookupStatus>(null);
+  const barcode =
+    source === "barcode"
+      ? productId
+      : data;
 
-  const [product, setProduct] =
-    useState<Product | null>(null);
+  const genericProductId =
+    isGenericProduct
+      ? productId
+      : undefined;
 
-  const [price, setPrice] = useState("");
+  const [
+    isLoading,
+    setIsLoading,
+  ] = useState(true);
 
-  const [calculatedValue, setCalculatedValue] =
-    useState<CalculatedValue | null>(null);
+  const [
+    lookupStatus,
+    setLookupStatus,
+  ] = useState<LookupStatus>(null);
 
+  const [
+    product,
+    setProduct,
+  ] = useState<LookupProduct | null>(
+    null
+  );
+
+  const [price, setPrice] =
+    useState("");
+
+  const [
+    calculatedValue,
+    setCalculatedValue,
+  ] = useState<CalculatedValue | null>(
+    null
+  );
+
+  const {
+    mutateAsync:
+      addBarcodeToPantry,
+
+    isPending:
+      isAddingBarcode,
+  } = useAddProductToPantry();
+
+  const {
+    mutateAsync:
+      addGenericToPantry,
+
+    isPending:
+      isAddingGeneric,
+  } =
+    useAddGenericProductToPantry();
+
+  const isAddingToPantry =
+    isAddingBarcode ||
+    isAddingGeneric;
+
+  /*
+   * Load either a generic product or barcode product
+   * depending on the route parameters.
+   */
   useEffect(() => {
+    let isCurrentLookup = true;
+
     async function getProduct() {
-      if (!barcode) {
-        setProduct(createEmptyProduct());
-        setLookupStatus("not-found");
-        setIsLoading(false);
+      const lookupId =
+        isGenericProduct
+          ? genericProductId
+          : barcode;
+
+      if (!lookupId) {
+        if (isCurrentLookup) {
+          setProduct(
+            createEmptyProduct()
+          );
+
+          setLookupStatus(
+            "not-found"
+          );
+
+          setIsLoading(false);
+        }
+
         return;
       }
 
@@ -177,70 +297,110 @@ const ProductScreen = () => {
         setLookupStatus(null);
         setCalculatedValue(null);
 
-        const response = await fetch(
-          `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(
-            barcode
-          )}.json`
-        );
+        if (isGenericProduct) {
+          const genericProduct =
+            await lookupGenericProduct(
+              lookupId
+            );
 
-        if (!response.ok) {
-          throw new Error(
-            `Request failed with status ${response.status}`
-          );
+          if (!isCurrentLookup) {
+            return;
+          }
+
+          if (genericProduct) {
+            setProduct(
+              genericProduct
+            );
+
+            setLookupStatus(
+              "found"
+            );
+          } else {
+            setProduct(
+              createEmptyProduct()
+            );
+
+            setLookupStatus(
+              "not-found"
+            );
+          }
+
+          return;
         }
 
-        const json = await response.json();
+        const result =
+          await lookupProduct(
+            lookupId
+          );
 
-        if (json.status === 1 && json.product) {
-          setProduct(json.product);
+        /*
+         * Ignore an older request if the screen or
+         * product changed before it completed.
+         */
+        if (!isCurrentLookup) {
+          return;
+        }
+
+        setProduct(result.product);
+
+        if (result.found) {
           setLookupStatus("found");
+        } else if (
+          result.hadLookupError
+        ) {
+          setLookupStatus("error");
         } else {
-          /*
-           * Product does not exist in Open Food Facts.
-           * Display the normal form with empty inputs.
-           */
-          setProduct(createEmptyProduct());
-          setLookupStatus("not-found");
+          setLookupStatus(
+            "not-found"
+          );
         }
       } catch (error) {
         console.error(
-          "Could not fetch product:",
+          "Could not look up product:",
           error
         );
 
-        /*
-         * Allow the user to enter everything manually
-         * if Open Food Facts cannot be reached.
-         */
-        setProduct(createEmptyProduct());
-        setLookupStatus("error");
+        if (isCurrentLookup) {
+          setProduct(
+            createEmptyProduct()
+          );
+
+          setLookupStatus("error");
+        }
       } finally {
-        setIsLoading(false);
+        if (isCurrentLookup) {
+          setIsLoading(false);
+        }
       }
     }
 
     getProduct();
-  }, [barcode]);
+
+    return () => {
+      isCurrentLookup = false;
+    };
+  }, [
+    barcode,
+    genericProductId,
+    isGenericProduct,
+  ]);
 
   function handleProductChange(
-    updatedProduct: Product
+    updatedProduct: LookupProduct
   ) {
     setProduct(updatedProduct);
 
     /*
-     * Hide the previous calculation because changing
-     * nutrition or weight makes it outdated.
+     * Recalculate the product value after any product
+     * information changes.
      */
     setCalculatedValue(null);
   }
 
-  function handlePriceChange(value: string) {
+  function handlePriceChange(
+    value: string
+  ) {
     setPrice(value);
-
-    /*
-     * Hide the previous calculation because changing
-     * the price makes it outdated.
-     */
     setCalculatedValue(null);
   }
 
@@ -249,7 +409,8 @@ const ProductScreen = () => {
       return;
     }
 
-    const enteredPrice = convertToNumber(price);
+    const enteredPrice =
+      toNumber(price);
 
     if (
       enteredPrice === null ||
@@ -263,132 +424,205 @@ const ProductScreen = () => {
       return;
     }
 
-    const productWeight = getProductWeightInGrams(
-      product.quantity
-    );
+    const productAmount =
+      toNumber(
+        product.product_amount
+      );
+
+    const measurementUnit =
+      product.measurement_unit;
 
     if (
-      productWeight === null ||
-      productWeight <= 0
+      productAmount === null ||
+      productAmount <= 0
     ) {
       Alert.alert(
-        "Missing product weight",
-        "Enter the product weight, for example 500g, 1kg or 5 x 100g."
+        "Missing product amount",
+        `Enter the amount in ${measurementUnit}, for example 150.`
       );
 
       return;
     }
 
-    const caloriesPer100g = convertToNumber(
-      product.nutriments?.energy_kcal_100g
-    );
+    const caloriesPer100 =
+      toNumber(
+        product.nutriments
+          .energy_kcal_100g
+      );
 
-    const proteinPer100g = convertToNumber(
-      product.nutriments?.proteins_100g
-    );
+    const proteinPer100 =
+      toNumber(
+        product.nutriments
+          .proteins_100g
+      );
 
     if (
-      caloriesPer100g === null &&
-      proteinPer100g === null
+      caloriesPer100 === null &&
+      proteinPer100 === null
     ) {
       Alert.alert(
         "Missing nutrition",
-        "Enter calories or protein per 100g before calculating the value."
+        `Enter calories or protein per 100${measurementUnit} before calculating the value.`
       );
 
       return;
     }
 
-    const packageCalories =
-      (caloriesPer100g ?? 0) *
-      (productWeight / 100);
+    /*
+     * The same calculation works for grams and
+     * millilitres:
+     *
+     * nutrient per 100 × product amount / 100
+     */
+    const totalCalories =
+      (caloriesPer100 ?? 0) *
+      (productAmount / 100);
 
-    const packageProtein =
-      (proteinPer100g ?? 0) *
-      (productWeight / 100);
+    const totalProtein =
+      (proteinPer100 ?? 0) *
+      (productAmount / 100);
 
     setCalculatedValue({
       caloriesPerPound:
-        packageCalories / enteredPrice,
+        totalCalories /
+        enteredPrice,
 
       proteinPerPound:
-        packageProtein / enteredPrice,
+        totalProtein /
+        enteredPrice,
     });
   }
 
-  function addProductToPantry() {
-    if (!product || !barcode) {
+  async function addProductToPantry() {
+    if (!product) {
       return;
     }
 
-    const productWeight = getProductWeightInGrams(
-      product.quantity
-    );
+    /*
+     * Generic products already exist in the curated
+     * generic_products table.
+     *
+     * Therefore, only the generic product's ID needs
+     * to be added to the pantry.
+     */
+    if (isGenericProduct) {
+      const parsedGenericProductId =
+        Number(genericProductId);
 
-    const productToSave = {
-      barcode_number: barcode,
+      if (
+        !Number.isInteger(
+          parsedGenericProductId
+        ) ||
+        parsedGenericProductId <= 0
+      ) {
+        Alert.alert(
+          "Invalid product",
+          "The generic product ID is missing or invalid."
+        );
 
-      product_name:
-        product.product_name?.trim() || null,
+        return;
+      }
 
-      product_weight: productWeight,
+      try {
+        const result =
+          await addGenericToPantry({
+            genericProductId:
+              parsedGenericProductId,
+          });
 
-      calories_per_100g: convertToNumber(
-        product.nutriments?.energy_kcal_100g
-      ),
+        Alert.alert(
+          "Added to pantry",
+          result.quantity === 1
+            ? "The generic product was added to your pantry."
+            : `The product quantity is now ${result.quantity}.`
+        );
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Could not add the generic product.";
 
-      protein_per_100g: convertToNumber(
-        product.nutriments?.proteins_100g
-      ),
+        Alert.alert(
+          "Could not add product",
+          message
+        );
+      }
 
-      carbs_per_100g: convertToNumber(
-        product.nutriments?.carbohydrates_100g
-      ),
-
-      fat_per_100g: convertToNumber(
-        product.nutriments?.fat_100g
-      ),
-
-      sugars_per_100g: convertToNumber(
-        product.nutriments?.sugars_100g
-      ),
-
-      salt_per_100g: convertToNumber(
-        product.nutriments?.salt_100g
-      ),
-
-      fibre_per_100g: convertToNumber(
-        product.nutriments?.fiber_100g
-      ),
-    };
-
-    const productPrice = convertToNumber(price);
-
-    console.log("Product ready to save:", {
-      product: productToSave,
-      price: productPrice,
-    });
+      return;
+    }
 
     /*
-     * Leave the button like this for now.
+     * Barcode products are first saved to
+     * product_corrections.
      *
-     * Later this function will:
-     *
-     * 1. Insert or update productToSave in products.
-     * 2. Insert or update the user's pantry row.
-     * 3. Invalidate the ["pantry"] query.
+     * The database trigger then creates or updates
+     * the shared products row before the product is
+     * added to the pantry.
      */
+    if (!barcode) {
+      Alert.alert(
+        "Invalid product",
+        "The product barcode is missing."
+      );
+
+      return;
+    }
+
+    const submissionResult =
+      createProductSubmission(
+        barcode,
+        product
+      );
+
+    if (!submissionResult.success) {
+      Alert.alert(
+        "Check product information",
+        submissionResult.error
+      );
+
+      return;
+    }
+
+    try {
+      const result =
+        await addBarcodeToPantry(
+          submissionResult.data
+        );
+
+      Alert.alert(
+        "Added to pantry",
+        result.quantity === 1
+          ? "The product was added to your pantry."
+          : `The product quantity is now ${result.quantity}.`
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Could not add the product.";
+
+      Alert.alert(
+        "Could not add product",
+        message
+      );
+    }
   }
 
   if (isLoading) {
     return (
-      <SafeAreaView style={styles.centeredContainer}>
+      <SafeAreaView
+        style={
+          styles.centeredContainer
+        }
+      >
         <ActivityIndicator
           size="large"
           color="#222"
         />
 
-        <Text style={styles.loadingText}>
+        <Text
+          style={styles.loadingText}
+        >
           Finding your product...
         </Text>
       </SafeAreaView>
@@ -396,19 +630,35 @@ const ProductScreen = () => {
   }
 
   const editableProduct =
-    product ?? createEmptyProduct();
+    product ??
+    createEmptyProduct();
+
+  const productIdentifier =
+    barcode ??
+    genericProductId ??
+    "";
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView
+      style={styles.container}
+    >
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        contentContainerStyle={
+          styles.scrollContent
+        }
+        showsVerticalScrollIndicator={
+          false
+        }
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
           <View>
-            <Text style={styles.headerLabel}>
-              Scanned product
+            <Text
+              style={styles.headerLabel}
+            >
+              {isGenericProduct
+                ? "Generic food"
+                : "Packaged product"}
             </Text>
 
             <Text style={styles.title}>
@@ -418,51 +668,78 @@ const ProductScreen = () => {
 
           <View style={styles.scanIcon}>
             <Ionicons
-              name="barcode-outline"
+              name={
+                isGenericProduct
+                  ? "nutrition-outline"
+                  : "barcode-outline"
+              }
               size={24}
               color="#222"
             />
           </View>
         </View>
 
-        {lookupStatus === "not-found" && (
-          <View style={styles.manualEntryNotice}>
+        {lookupStatus ===
+          "not-found" && (
+          <View
+            style={
+              styles.manualEntryNotice
+            }
+          >
             <Ionicons
               name="information-circle-outline"
               size={23}
               color="#7A5413"
             />
 
-            <View style={styles.noticeContent}>
-              <Text style={styles.noticeTitle}>
+            <View
+              style={styles.noticeContent}
+            >
+              <Text
+                style={styles.noticeTitle}
+              >
                 Product not found
               </Text>
 
-              <Text style={styles.noticeText}>
-                This product is not in our database yet.
-                Enter the information from its packaging
-                below.
+              <Text
+                style={styles.noticeText}
+              >
+                This product could not be
+                found. Check the selected
+                product or enter its
+                information manually.
               </Text>
             </View>
           </View>
         )}
 
         {lookupStatus === "error" && (
-          <View style={styles.manualEntryNotice}>
+          <View
+            style={
+              styles.manualEntryNotice
+            }
+          >
             <Ionicons
               name="cloud-offline-outline"
               size={23}
               color="#7A5413"
             />
 
-            <View style={styles.noticeContent}>
-              <Text style={styles.noticeTitle}>
-                Product information unavailable
+            <View
+              style={styles.noticeContent}
+            >
+              <Text
+                style={styles.noticeTitle}
+              >
+                Product information
+                unavailable
               </Text>
 
-              <Text style={styles.noticeText}>
-                We couldn't retrieve this product, but
-                you can enter its information manually.
+              <Text
+                style={styles.noticeText}
+              >
+                We couldn't retrieve this
+                product. Please try again.
               </Text>
             </View>
           </View>
@@ -470,28 +747,46 @@ const ProductScreen = () => {
 
         <ProductNutritionDashboard
           product={editableProduct}
-          myData={barcode}
-          onProductChange={handleProductChange}
+          myData={
+            productIdentifier
+          }
+          onProductChange={
+            handleProductChange
+          }
         />
 
-        <Text style={styles.sectionTitle}>
+        <Text
+          style={styles.sectionTitle}
+        >
           Product price
         </Text>
 
         <View style={styles.priceCard}>
-          <Text style={styles.priceLabel}>
+          <Text
+            style={styles.priceLabel}
+          >
             Enter the total price you paid
           </Text>
 
-          <View style={styles.inputContainer}>
-            <Text style={styles.currencySymbol}>
+          <View
+            style={
+              styles.inputContainer
+            }
+          >
+            <Text
+              style={
+                styles.currencySymbol
+              }
+            >
               £
             </Text>
 
             <TextInput
               style={styles.input}
               value={price}
-              onChangeText={handlePriceChange}
+              onChangeText={
+                handlePriceChange
+              }
               placeholder="0.00"
               placeholderTextColor="#999"
               keyboardType="decimal-pad"
@@ -506,7 +801,9 @@ const ProductScreen = () => {
             pressed &&
               styles.calculateButtonPressed,
           ]}
-          onPress={calculateProductValue}
+          onPress={
+            calculateProductValue
+          }
         >
           <Ionicons
             name="calculator-outline"
@@ -514,7 +811,11 @@ const ProductScreen = () => {
             color="#222"
           />
 
-          <Text style={styles.calculateButtonText}>
+          <Text
+            style={
+              styles.calculateButtonText
+            }
+          >
             Calculate Value
           </Text>
         </Pressable>
@@ -522,10 +823,12 @@ const ProductScreen = () => {
         {calculatedValue && (
           <ProductValueDashboard
             caloriesPerPound={
-              calculatedValue.caloriesPerPound
+              calculatedValue
+                .caloriesPerPound
             }
             proteinPerPound={
-              calculatedValue.proteinPerPound
+              calculatedValue
+                .proteinPerPound
             }
           />
         )}
@@ -533,18 +836,39 @@ const ProductScreen = () => {
         <Pressable
           style={({ pressed }) => [
             styles.addButton,
-            pressed && styles.addButtonPressed,
-          ]}
-          onPress={addProductToPantry}
-        >
-          <Ionicons
-            name="add"
-            size={24}
-            color="#fff"
-          />
 
-          <Text style={styles.addButtonText}>
-            Add to Pantry
+            (pressed ||
+              isAddingToPantry) &&
+              styles.addButtonPressed,
+          ]}
+          onPress={
+            addProductToPantry
+          }
+          disabled={
+            isAddingToPantry
+          }
+        >
+          {isAddingToPantry ? (
+            <ActivityIndicator
+              size="small"
+              color="#fff"
+            />
+          ) : (
+            <Ionicons
+              name="add"
+              size={24}
+              color="#fff"
+            />
+          )}
+
+          <Text
+            style={
+              styles.addButtonText
+            }
+          >
+            {isAddingToPantry
+              ? "Adding..."
+              : "Add to Pantry"}
           </Text>
         </Pressable>
       </ScrollView>
@@ -699,7 +1023,7 @@ const styles = StyleSheet.create({
 
   calculateButtonText: {
     color: "#222",
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: "700",
   },
 
@@ -711,11 +1035,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
-    marginTop: 20,
+    marginTop: 22,
   },
 
   addButtonPressed: {
-    opacity: 0.75,
+    opacity: 0.7,
   },
 
   addButtonText: {

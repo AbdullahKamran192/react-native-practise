@@ -1,27 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
 
-export type Product = {
-  barcode_number: string;
-  product_name: string | null;
-  created_at: string;
-  product_weight: number | null;
-  calories_per_100g: number | null;
-  protein_per_100g: number | null;
-  carbs_per_100g: number | null;
-  fat_per_100g: number | null;
-  sugars_per_100g: number | null;
-  salt_per_100g: number | null;
-  fibre_per_100g: number | null;
-};
+import {
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-export type PantryItem = {
-  created_at: string;
-  user_id: string;
-  product_barcode: string;
-  quantity: number;
-  product: Product;
-};
+import type {
+  PantryItem,
+} from "@/api/products";
 
 type ProductListItemProps = {
   pantryItem: PantryItem;
@@ -30,77 +17,175 @@ type ProductListItemProps = {
 const ProductListItem = ({
   pantryItem,
 }: ProductListItemProps) => {
-  const { product } = pantryItem;
+  /*
+   * A pantry row contains either a barcode product
+   * or a generic product.
+   */
+  const barcodeProduct =
+    pantryItem.product;
 
-  const quantity = Number(pantryItem.quantity ?? 0);
-  const weight = Number(product.product_weight ?? 0);
+  const genericProduct =
+    pantryItem.generic_product;
 
-  const caloriesPer100g = Number(
-    product.calories_per_100g ?? 0
+  /*
+   * This should not happen because the database CHECK
+   * constraint requires every pantry row to reference
+   * exactly one product type.
+   */
+  if (
+    !barcodeProduct &&
+    !genericProduct
+  ) {
+    return null;
+  }
+
+  const isGenericProduct =
+    genericProduct !== null;
+
+  const quantity = Number(
+    pantryItem.quantity ?? 0
   );
 
-  const proteinPer100g = Number(
-    product.protein_per_100g ?? 0
+  /*
+   * Barcode products store the package amount in
+   * product_amount.
+   *
+   * Generic products store the average amount of one
+   * unit in default_amount.
+   */
+  const productAmount = Number(
+    barcodeProduct?.product_amount ??
+      genericProduct?.default_amount ??
+      0
   );
 
-  const onePackageCalories =
-    caloriesPer100g * (weight / 100);
+  const measurementUnit =
+    barcodeProduct?.measurement_unit ??
+    genericProduct?.measurement_unit ??
+    "g";
 
-  const onePackageProtein =
-    proteinPer100g * (weight / 100);
+  const productName =
+    barcodeProduct?.product_name ??
+    genericProduct?.product_name ??
+    "Unknown product";
+
+  const caloriesPer100 = Number(
+    barcodeProduct?.calories_per_100 ??
+      genericProduct?.calories_per_100 ??
+      0
+  );
+
+  const proteinPer100 = Number(
+    barcodeProduct?.protein_per_100 ??
+      genericProduct?.protein_per_100 ??
+      0
+  );
+
+  /*
+   * The calculation is identical for both grams and
+   * millilitres:
+   *
+   * nutrient per 100 × item amount / 100
+   */
+  const oneItemCalories =
+    caloriesPer100 *
+    (productAmount / 100);
+
+  const oneItemProtein =
+    proteinPer100 *
+    (productAmount / 100);
 
   const totalCalories =
-    onePackageCalories * quantity;
+    oneItemCalories * quantity;
 
   const totalProtein =
-    onePackageProtein * quantity;
+    oneItemProtein * quantity;
+
+  const itemWord =
+    quantity === 1
+      ? "item"
+      : "items";
 
   return (
     <View style={styles.productCard}>
       <View style={styles.productIcon}>
         <Ionicons
-          name="nutrition-outline"
+          name={
+            isGenericProduct
+              ? "nutrition-outline"
+              : "barcode-outline"
+          }
           size={23}
           color="#222"
         />
       </View>
 
-      <View style={styles.productInformation}>
+      <View
+        style={
+          styles.productInformation
+        }
+      >
         <View style={styles.nameRow}>
           <Text
             style={styles.productName}
             numberOfLines={1}
           >
-            {product.product_name || "Unknown product"}
+            {productName}
           </Text>
 
-          <View style={styles.quantityBadge}>
-            <Text style={styles.quantityText}>
+          <View
+            style={
+              styles.quantityBadge
+            }
+          >
+            <Text
+              style={
+                styles.quantityText
+              }
+            >
               ×{quantity}
             </Text>
           </View>
         </View>
 
-        <View style={styles.nutritionRow}>
-          <Text style={styles.nutritionText}>
-            {Math.round(totalCalories)} kcal
+        <View
+          style={styles.nutritionRow}
+        >
+          <Text
+            style={
+              styles.nutritionText
+            }
+          >
+            {Math.round(
+              totalCalories
+            )}{" "}
+            kcal
           </Text>
 
           <View style={styles.dot} />
 
-          <Text style={styles.nutritionText}>
-            {Math.round(totalProtein * 10) / 10}g protein
+          <Text
+            style={
+              styles.nutritionText
+            }
+          >
+            {Math.round(
+              totalProtein * 10
+            ) / 10}
+            g protein
           </Text>
         </View>
 
-        <Text style={styles.weightText}>
-          {weight > 0
-            ? `${weight}g each • ${quantity} ${
-                quantity === 1 ? "item" : "items"
-              }`
-            : `${quantity} ${
-                quantity === 1 ? "item" : "items"
-              } • weight unavailable`}
+        <Text style={styles.amountText}>
+          {productAmount > 0
+            ? `${productAmount}${measurementUnit} each • ${quantity} ${itemWord}`
+            : `${quantity} ${itemWord} • amount unavailable`}
+        </Text>
+
+        <Text style={styles.productType}>
+          {isGenericProduct
+            ? "Generic food"
+            : "Packaged product"}
         </Text>
       </View>
 
@@ -177,10 +262,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
 
-  weightText: {
+  amountText: {
     color: "#999",
     fontSize: 11,
     marginTop: 4,
+  },
+
+  productType: {
+    color: "#999",
+    fontSize: 10,
+    fontWeight: "600",
+    marginTop: 3,
   },
 
   dot: {

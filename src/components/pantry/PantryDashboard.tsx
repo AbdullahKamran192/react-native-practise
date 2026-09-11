@@ -1,20 +1,181 @@
-import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+import { UserSettings } from "@/api/user-settings";
+
+export type PantryNutritionTotals = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  sugars: number;
+  salt: number;
+  fibre: number;
+};
 
 type PantryDashboardProps = {
-  caloriesTotal: number;
-  proteinTotal: number;
+  totals: PantryNutritionTotals;
+  userSettings: UserSettings | null;
+};
+
+type NutritionCard = {
+  key: keyof PantryNutritionTotals;
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  total: number;
+  dailyTarget: number;
+};
+
+/*
+ * These values match the defaults configured in the
+ * user_settings table.
+ *
+ * They are used only when the user does not yet have
+ * a settings row.
+ */
+const DEFAULT_DAILY_TARGETS = {
+  calories: 2000,
+  protein: 100,
+  carbs: 350,
+  fat: 70,
+  sugars: 90,
+  salt: 6,
+  fibre: 30,
 };
 
 const PantryDashboard = ({
-  caloriesTotal,
-  proteinTotal,
+  totals,
+  userSettings,
 }: PantryDashboardProps) => {
-  const dailyCalorieGoal = 2200;
-  const dailyProteinGoal = 150;
+  /*
+   * Use the signed-in user's saved daily targets.
+   *
+   * Database defaults are used only when no settings
+   * row exists yet.
+   */
+  const dailyTargets = {
+    calories:
+      userSettings
+        ?.calories_target_per_day ??
+      DEFAULT_DAILY_TARGETS.calories,
 
-  const calorieDays = caloriesTotal / dailyCalorieGoal;
-  const proteinDays = proteinTotal / dailyProteinGoal;
+    protein:
+      userSettings
+        ?.protein_target_per_day ??
+      DEFAULT_DAILY_TARGETS.protein,
+
+    carbs:
+      userSettings
+        ?.carbs_target_per_day ??
+      DEFAULT_DAILY_TARGETS.carbs,
+
+    fat:
+      userSettings
+        ?.fat_target_per_day ??
+      DEFAULT_DAILY_TARGETS.fat,
+
+    sugars:
+      userSettings
+        ?.sugars_target_per_day ??
+      DEFAULT_DAILY_TARGETS.sugars,
+
+    salt:
+      userSettings
+        ?.salt_target_per_day ??
+      DEFAULT_DAILY_TARGETS.salt,
+
+    fibre:
+      userSettings
+        ?.fibre_target_per_day ??
+      DEFAULT_DAILY_TARGETS.fibre,
+  };
+
+  /*
+   * Calories and protein are shown first because they
+   * are the main values. The remaining cards can be
+   * reached by scrolling horizontally.
+   */
+  const nutritionCards: NutritionCard[] = [
+    {
+      key: "calories",
+      label: "calories",
+      icon: "flame-outline",
+      total: totals.calories,
+      dailyTarget:
+        dailyTargets.calories,
+    },
+    {
+      key: "protein",
+      label: "protein",
+      icon: "barbell-outline",
+      total: totals.protein,
+      dailyTarget:
+        dailyTargets.protein,
+    },
+    {
+      key: "carbs",
+      label: "carbohydrates",
+      icon: "restaurant-outline",
+      total: totals.carbs,
+      dailyTarget:
+        dailyTargets.carbs,
+    },
+    {
+      key: "fat",
+      label: "fat",
+      icon: "water-outline",
+      total: totals.fat,
+      dailyTarget:
+        dailyTargets.fat,
+    },
+    {
+      key: "fibre",
+      label: "fibre",
+      icon: "leaf-outline",
+      total: totals.fibre,
+      dailyTarget:
+        dailyTargets.fibre,
+    },
+    {
+      key: "sugars",
+      label: "sugars",
+      icon: "cube-outline",
+      total: totals.sugars,
+      dailyTarget:
+        dailyTargets.sugars,
+    },
+    {
+      key: "salt",
+      label: "salt",
+      icon: "ellipse-outline",
+      total: totals.salt,
+      dailyTarget:
+        dailyTargets.salt,
+    },
+  ];
+
+  /*
+   * Converts the nutrition total into the number of
+   * days supported by the user's daily target.
+   */
+  function calculateDays(
+    total: number,
+    dailyTarget: number
+  ) {
+    if (
+      total <= 0 ||
+      dailyTarget <= 0
+    ) {
+      return 0;
+    }
+
+    return total / dailyTarget;
+  }
 
   function formatDays(days: number) {
     if (days === 0) {
@@ -31,56 +192,94 @@ const PantryDashboard = ({
   return (
     <View>
       <View style={styles.dashboard}>
-        <Text style={styles.dashboardLabel}>Nutrition available</Text>
+        <Text style={styles.dashboardLabel}>
+          Nutrition available
+        </Text>
 
         <View style={styles.totalRow}>
           <View style={styles.totalItem}>
-            <Ionicons name="flame-outline" size={22} color="#fff" />
+            <Ionicons
+              name="flame-outline"
+              size={22}
+              color="#fff"
+            />
 
             <Text style={styles.totalValue}>
-              {caloriesTotal.toLocaleString()}
+              {totals.calories.toLocaleString()}
             </Text>
 
-            <Text style={styles.totalLabel}>total kcal</Text>
+            <Text style={styles.totalLabel}>
+              total kcal
+            </Text>
           </View>
 
           <View style={styles.divider} />
 
           <View style={styles.totalItem}>
-            <Ionicons name="barbell-outline" size={22} color="#fff" />
+            <Ionicons
+              name="barbell-outline"
+              size={22}
+              color="#fff"
+            />
 
-            <Text style={styles.totalValue}>{proteinTotal}g</Text>
+            <Text style={styles.totalValue}>
+              {totals.protein.toLocaleString()}
+              g
+            </Text>
 
-            <Text style={styles.totalLabel}>total protein</Text>
+            <Text style={styles.totalLabel}>
+              total protein
+            </Text>
           </View>
         </View>
       </View>
 
-      <View style={styles.daysRow}>
-        <View style={styles.daysCard}>
-          <View style={styles.daysIcon}>
-            <Ionicons name="flame-outline" size={21} color="#222" />
-          </View>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        nestedScrollEnabled
+        contentContainerStyle={
+          styles.daysContent
+        }
+      >
+        {nutritionCards.map((nutrition) => {
+          const days = calculateDays(
+            nutrition.total,
+            nutrition.dailyTarget
+          );
 
-          <Text style={styles.daysValue}>
-            {formatDays(calorieDays)} days
-          </Text>
+          return (
+            <View
+              key={nutrition.key}
+              style={styles.daysCard}
+            >
+              <View style={styles.daysIcon}>
+                <Ionicons
+                  name={nutrition.icon}
+                  size={21}
+                  color="#222"
+                />
+              </View>
 
-          <Text style={styles.daysLabel}>of calories remaining</Text>
-        </View>
+              <Text style={styles.daysValue}>
+                {formatDays(days)} days
+              </Text>
 
-        <View style={styles.daysCard}>
-          <View style={styles.daysIcon}>
-            <Ionicons name="barbell-outline" size={21} color="#222" />
-          </View>
+              <Text style={styles.daysLabel}>
+                of {nutrition.label} remaining
+              </Text>
 
-          <Text style={styles.daysValue}>
-            {formatDays(proteinDays)} days
-          </Text>
-
-          <Text style={styles.daysLabel}>of protein remaining</Text>
-        </View>
-      </View>
+              <Text style={styles.targetLabel}>
+                Daily target:{" "}
+                {nutrition.dailyTarget}
+                {nutrition.key === "calories"
+                  ? " kcal"
+                  : "g"}
+              </Text>
+            </View>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 };
@@ -129,15 +328,15 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  daysRow: {
-    flexDirection: "row",
+  daysContent: {
     gap: 12,
-    marginTop: 12,
+    paddingTop: 12,
+    paddingRight: 20,
   },
 
   daysCard: {
-    flex: 1,
-    minHeight: 145,
+    width: 160,
+    minHeight: 158,
     backgroundColor: "#fff",
     borderRadius: 18,
     padding: 16,
@@ -164,5 +363,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 17,
     marginTop: 4,
+  },
+
+  targetLabel: {
+    color: "#999",
+    fontSize: 10,
+    marginTop: 8,
   },
 });

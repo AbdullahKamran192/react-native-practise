@@ -1,59 +1,99 @@
 import { Ionicons } from "@expo/vector-icons";
 import {
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 
-type NutrientValue = number | string;
+import type {
+  LookupProduct,
+  MeasurementUnit,
+} from "@/api/products/productLookup";
 
-export type Product = {
-  product_name?: string;
-  brands?: string;
-  quantity?: string;
-
-  nutriments?: {
-    energy_kcal_100g?: NutrientValue;
-    fat_100g?: NutrientValue;
-    carbohydrates_100g?: NutrientValue;
-    proteins_100g?: NutrientValue;
-    sugars_100g?: NutrientValue;
-    salt_100g?: NutrientValue;
-    fiber_100g?: NutrientValue;
-  };
-};
+/*
+ * Re-export these types to avoid breaking any other
+ * existing imports while the product files are being
+ * migrated to the shared lookup type.
+ */
+export type {
+  LookupProduct as Product,
+  MeasurementUnit,
+} from "@/api/products/productLookup";
 
 type NutrimentKey =
-  keyof NonNullable<Product["nutriments"]>;
+  keyof LookupProduct["nutriments"];
 
 type ProductNutritionDashboardProps = {
-  product: Product;
+  product: LookupProduct;
   myData?: string;
-  onProductChange: (product: Product) => void;
+
+  onProductChange: (
+    product: LookupProduct
+  ) => void;
 };
 
 type ProductTextInputProps = {
   label: string;
   value: string;
   placeholder: string;
+  numeric?: boolean;
   onChangeText: (value: string) => void;
 };
 
 type NutritionInputProps = {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
-  value: NutrientValue | undefined;
+  value: string;
   unit: string;
   onChangeText: (value: string) => void;
 };
+
+/*
+ * Allows only positive numeric text and one decimal
+ * point.
+ *
+ * Validation of the final value remains in
+ * productSubmission.ts and the database constraints.
+ */
+function cleanNumericInput(
+  value: string
+): string | null {
+  const normalisedValue =
+    value.replace(",", ".");
+
+  if (
+    normalisedValue === "" ||
+    /^\d*\.?\d*$/.test(normalisedValue)
+  ) {
+    return normalisedValue;
+  }
+
+  return null;
+}
 
 const ProductTextInput = ({
   label,
   value,
   placeholder,
+  numeric = false,
   onChangeText,
 }: ProductTextInputProps) => {
+  function handleChange(value: string) {
+    if (!numeric) {
+      onChangeText(value);
+      return;
+    }
+
+    const cleanedValue =
+      cleanNumericInput(value);
+
+    if (cleanedValue !== null) {
+      onChangeText(cleanedValue);
+    }
+  }
+
   return (
     <View style={styles.productField}>
       <View style={styles.productFieldHeader}>
@@ -71,9 +111,14 @@ const ProductTextInput = ({
       <TextInput
         style={styles.productTextInput}
         value={value}
-        onChangeText={onChangeText}
+        onChangeText={handleChange}
         placeholder={placeholder}
         placeholderTextColor="#888"
+        keyboardType={
+          numeric
+            ? "decimal-pad"
+            : "default"
+        }
       />
     </View>
   );
@@ -86,16 +131,24 @@ const NutritionInput = ({
   unit,
   onChangeText,
 }: NutritionInputProps) => {
-  const missing =
-    value === undefined ||
-    value === null ||
-    value === "";
+  const missing = value === "";
+
+  function handleChange(value: string) {
+    const cleanedValue =
+      cleanNumericInput(value);
+
+    if (cleanedValue !== null) {
+      onChangeText(cleanedValue);
+    }
+  }
 
   return (
     <View
       style={[
         styles.nutritionItem,
-        missing && styles.nutritionItemWarning,
+
+        missing &&
+          styles.nutritionItemWarning,
       ]}
     >
       <View style={styles.nutritionHeader}>
@@ -118,22 +171,24 @@ const NutritionInput = ({
         {label}
       </Text>
 
-      <View style={styles.nutritionInputContainer}>
+      <View
+        style={
+          styles.nutritionInputContainer
+        }
+      >
         <TextInput
           style={styles.nutritionInput}
-          value={
-            value === undefined || value === null
-              ? ""
-              : String(value)
-          }
-          onChangeText={onChangeText}
+          value={value}
+          onChangeText={handleChange}
           placeholder="Enter value"
           placeholderTextColor="#999"
           keyboardType="decimal-pad"
           selectTextOnFocus
         />
 
-        <Text style={styles.unitText}>{unit}</Text>
+        <Text style={styles.unitText}>
+          {unit}
+        </Text>
       </View>
     </View>
   );
@@ -144,15 +199,31 @@ const ProductNutritionDashboard = ({
   myData,
   onProductChange,
 }: ProductNutritionDashboardProps) => {
-  const nutriments = product.nutriments ?? {};
+  const nutriments = product.nutriments;
+
+  const measurementUnit =
+    product.measurement_unit;
 
   function updateProductField(
-    field: "product_name" | "brands" | "quantity",
+    field:
+      | "product_name"
+      | "brands"
+      | "product_amount",
+
     value: string
   ) {
     onProductChange({
       ...product,
       [field]: value,
+    });
+  }
+
+  function updateMeasurementUnit(
+    unit: MeasurementUnit
+  ) {
+    onProductChange({
+      ...product,
+      measurement_unit: unit,
     });
   }
 
@@ -196,34 +267,104 @@ const ProductNutritionDashboard = ({
         </View>
 
         <Text style={styles.instructions}>
-          Check the product information and correct any
-          inaccurate values.
+          Check the product information and
+          correct any inaccurate values.
         </Text>
 
         <ProductTextInput
           label="Product name"
-          value={product.product_name ?? ""}
+          value={product.product_name}
           placeholder="Enter product name"
           onChangeText={(value) =>
-            updateProductField("product_name", value)
+            updateProductField(
+              "product_name",
+              value
+            )
           }
         />
 
         <ProductTextInput
           label="Brand"
-          value={product.brands ?? ""}
+          value={product.brands}
           placeholder="Enter brand"
           onChangeText={(value) =>
-            updateProductField("brands", value)
+            updateProductField(
+              "brands",
+              value
+            )
           }
         />
 
+        <View style={styles.productField}>
+          <Text style={styles.productFieldLabel}>
+            Measurement unit
+          </Text>
+
+          <View style={styles.unitSelector}>
+            <Pressable
+              style={[
+                styles.unitOption,
+
+                measurementUnit === "g" &&
+                  styles.unitOptionSelected,
+              ]}
+              onPress={() =>
+                updateMeasurementUnit("g")
+              }
+            >
+              <Text
+                style={[
+                  styles.unitOptionText,
+
+                  measurementUnit === "g" &&
+                    styles.unitOptionTextSelected,
+                ]}
+              >
+                Grams (g)
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[
+                styles.unitOption,
+
+                measurementUnit === "ml" &&
+                  styles.unitOptionSelected,
+              ]}
+              onPress={() =>
+                updateMeasurementUnit("ml")
+              }
+            >
+              <Text
+                style={[
+                  styles.unitOptionText,
+
+                  measurementUnit === "ml" &&
+                    styles.unitOptionTextSelected,
+                ]}
+              >
+                Millilitres (ml)
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
         <ProductTextInput
-          label="Package size (g)"
-          value={product.quantity ?? ""}
-          placeholder="Weight in grams, e.g. 500"
+          label={
+            `Package amount ` +
+            `(${measurementUnit})`
+          }
+          value={product.product_amount}
+          placeholder={
+            `Amount in ${measurementUnit}, ` +
+            "e.g. 500"
+          }
+          numeric
           onChangeText={(value) =>
-            updateProductField("quantity", value)
+            updateProductField(
+              "product_amount",
+              value
+            )
           }
         />
 
@@ -263,7 +404,8 @@ const ProductNutritionDashboard = ({
       <View style={styles.sectionHeading}>
         <View>
           <Text style={styles.sectionTitle}>
-            Nutrition per 100g
+            Nutrition per 100
+            {measurementUnit}
           </Text>
 
           <Text style={styles.sectionSubtitle}>
@@ -283,7 +425,9 @@ const ProductNutritionDashboard = ({
           label="Calories"
           icon="flame-outline"
           unit="kcal"
-          value={nutriments.energy_kcal_100g}
+          value={
+            nutriments.energy_kcal_100g
+          }
           onChangeText={(value) =>
             updateNutriment(
               "energy_kcal_100g",
@@ -296,9 +440,14 @@ const ProductNutritionDashboard = ({
           label="Protein"
           icon="barbell-outline"
           unit="g"
-          value={nutriments.proteins_100g}
+          value={
+            nutriments.proteins_100g
+          }
           onChangeText={(value) =>
-            updateNutriment("proteins_100g", value)
+            updateNutriment(
+              "proteins_100g",
+              value
+            )
           }
         />
 
@@ -306,7 +455,10 @@ const ProductNutritionDashboard = ({
           label="Carbohydrates"
           icon="restaurant-outline"
           unit="g"
-          value={nutriments.carbohydrates_100g}
+          value={
+            nutriments
+              .carbohydrates_100g
+          }
           onChangeText={(value) =>
             updateNutriment(
               "carbohydrates_100g",
@@ -321,7 +473,10 @@ const ProductNutritionDashboard = ({
           unit="g"
           value={nutriments.fat_100g}
           onChangeText={(value) =>
-            updateNutriment("fat_100g", value)
+            updateNutriment(
+              "fat_100g",
+              value
+            )
           }
         />
 
@@ -331,7 +486,10 @@ const ProductNutritionDashboard = ({
           unit="g"
           value={nutriments.sugars_100g}
           onChangeText={(value) =>
-            updateNutriment("sugars_100g", value)
+            updateNutriment(
+              "sugars_100g",
+              value
+            )
           }
         />
 
@@ -341,7 +499,10 @@ const ProductNutritionDashboard = ({
           unit="g"
           value={nutriments.salt_100g}
           onChangeText={(value) =>
-            updateNutriment("salt_100g", value)
+            updateNutriment(
+              "salt_100g",
+              value
+            )
           }
         />
 
@@ -351,7 +512,10 @@ const ProductNutritionDashboard = ({
           unit="g"
           value={nutriments.fiber_100g}
           onChangeText={(value) =>
-            updateNutriment("fiber_100g", value)
+            updateNutriment(
+              "fiber_100g",
+              value
+            )
           }
         />
       </View>
@@ -422,6 +586,7 @@ const styles = StyleSheet.create({
     color: "#BDBDBD",
     fontSize: 12,
     fontWeight: "600",
+    marginBottom: 7,
   },
 
   productTextInput: {
@@ -435,6 +600,37 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
+  },
+
+  unitSelector: {
+    flexDirection: "row",
+    gap: 10,
+  },
+
+  unitOption: {
+    flex: 1,
+    minHeight: 46,
+    borderWidth: 1,
+    borderColor: "#505050",
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#333",
+  },
+
+  unitOptionSelected: {
+    backgroundColor: "#fff",
+    borderColor: "#fff",
+  },
+
+  unitOptionText: {
+    color: "#BDBDBD",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  unitOptionTextSelected: {
+    color: "#222",
   },
 
   barcodeContainer: {
