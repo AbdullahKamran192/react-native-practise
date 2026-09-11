@@ -1,19 +1,26 @@
+import type { Session } from "@supabase/supabase-js";
 import { Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
+
 import {
   ActivityIndicator,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import type { Session } from "@supabase/supabase-js";
 
 import { supabase } from "@/lib/supabase";
 import QueryProvider from "@/providers/QueryProvider";
 
 export default function RootLayout() {
-  const [session, setSession] = useState<Session | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [session, setSession] =
+    useState<Session | null>(null);
+
+  const [isLoading, setIsLoading] =
+    useState(true);
 
   useEffect(() => {
     async function loadSession() {
@@ -52,7 +59,10 @@ export default function RootLayout() {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#222" />
+        <ActivityIndicator
+          size="large"
+          color="#222"
+        />
 
         <Text style={styles.loadingText}>
           Loading your account...
@@ -91,6 +101,28 @@ export default function RootLayout() {
             }}
           />
 
+          <Stack.Screen
+            name="productPantry"
+            options={{
+              title: "Product Details",
+              headerBackTitle: "Back",
+            }}
+          />
+
+          <Stack.Screen
+            name="productConsume"
+            options={{
+              title: "Consume Food",
+              headerBackTitle: "Back",
+            }}
+          />
+
+          {/*
+           * Keep the old product route temporarily
+           * while productPantry is being tested.
+           * Remove this screen after all old route
+           * references have been replaced.
+           */}
           <Stack.Screen
             name="product"
             options={{

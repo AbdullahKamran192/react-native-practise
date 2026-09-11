@@ -1,10 +1,20 @@
+import { Ionicons } from "@expo/vector-icons";
 import {
   CameraType,
   CameraView,
   useCameraPermissions,
 } from "expo-camera";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import {
+  router,
+  useFocusEffect,
+  useLocalSearchParams,
+} from "expo-router";
+import {
+  useCallback,
+  useRef,
+  useState,
+} from "react";
+
 import {
   ActivityIndicator,
   Pressable,
@@ -12,48 +22,91 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+
+type CameraIntent =
+  | "pantry"
+  | "consume";
 
 export default function CameraScreen() {
-  const [facing, setFacing] = useState<CameraType>("back");
-  const [hasScanned, setHasScanned] = useState(false);
-  const [cameraActive, setCameraActive] = useState(false);
-  const [permission, requestPermission] = useCameraPermissions();
+  const { intent } =
+    useLocalSearchParams<{
+      intent?: CameraIntent;
+    }>();
 
-  // This updates immediately and prevents several navigation events.
+  const [facing, setFacing] =
+    useState<CameraType>("back");
+
+  const [hasScanned, setHasScanned] =
+    useState(false);
+
+  const [cameraActive, setCameraActive] =
+    useState(false);
+
+  const [permission, requestPermission] =
+    useCameraPermissions();
+
+  /*
+   * This updates immediately and prevents several
+   * navigation events from one barcode scan.
+   */
   const scanLock = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
-      // Start the camera and unlock scanning when this page is focused.
+      /*
+       * Start the camera and unlock scanning whenever
+       * this page receives focus.
+       */
       setCameraActive(true);
       setHasScanned(false);
       scanLock.current = false;
 
       return () => {
-        // Stop and unmount the camera when leaving this page.
+        /*
+         * Stop and unmount the camera when leaving
+         * this page.
+         */
         setCameraActive(false);
       };
     }, [])
   );
 
   function toggleCameraFacing() {
-    setFacing((current) => (current === "back" ? "front" : "back"));
+    setFacing((current) =>
+      current === "back" ? "front" : "back"
+    );
   }
 
-  function handleBarcodeScanned({ data }: { data: string }) {
-    // Ignore any scan events fired after the first one.
+  function handleBarcodeScanned({
+    data,
+  }: {
+    data: string;
+  }) {
+    /*
+     * Ignore scan events fired after the first one.
+     */
     if (scanLock.current) {
       return;
     }
 
-    // A ref changes immediately, unlike React state.
+    /*
+     * A ref changes immediately, unlike React state.
+     */
     scanLock.current = true;
     setHasScanned(true);
     setCameraActive(false);
 
+    const destination =
+      intent === "consume"
+        ? "/productConsume"
+        : "/productPantry";
+
+    /*
+     * Missing or invalid intent values safely fall
+     * back to the existing add-to-pantry flow.
+     */
     router.push({
-      pathname: "/product",
+      pathname: destination,
       params: { data },
     });
   }
@@ -61,8 +114,14 @@ export default function CameraScreen() {
   if (!permission) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#222" />
-        <Text style={styles.loadingText}>Preparing camera...</Text>
+        <ActivityIndicator
+          size="large"
+          color="#222"
+        />
+
+        <Text style={styles.loadingText}>
+          Preparing camera...
+        </Text>
       </View>
     );
   }
@@ -71,7 +130,11 @@ export default function CameraScreen() {
     return (
       <View style={styles.permissionContainer}>
         <View style={styles.permissionIcon}>
-          <Ionicons name="camera-outline" size={36} color="#222" />
+          <Ionicons
+            name="camera-outline"
+            size={36}
+            color="#222"
+          />
         </View>
 
         <Text style={styles.permissionTitle}>
@@ -79,15 +142,20 @@ export default function CameraScreen() {
         </Text>
 
         <Text style={styles.permissionMessage}>
-          Allow camera access so you can scan food barcodes and view
-          their nutritional information.
+          Allow camera access so you can scan food
+          barcodes and view their nutritional
+          information.
         </Text>
 
         <Pressable
           style={styles.permissionButton}
           onPress={requestPermission}
         >
-          <Ionicons name="camera-outline" size={21} color="#fff" />
+          <Ionicons
+            name="camera-outline"
+            size={21}
+            color="#fff"
+          />
 
           <Text style={styles.permissionButtonText}>
             Allow Camera
@@ -98,8 +166,9 @@ export default function CameraScreen() {
   }
 
   /*
-   * CameraView is unmounted when cameraActive is false.
-   * This releases the camera while the product page is open.
+   * CameraView is unmounted when cameraActive is
+   * false. This releases the camera while the
+   * selected product page is open.
    */
   if (!cameraActive) {
     return null;
@@ -120,15 +189,40 @@ export default function CameraScreen() {
           ],
         }}
         onBarcodeScanned={
-          hasScanned ? undefined : handleBarcodeScanned
+          hasScanned
+            ? undefined
+            : handleBarcodeScanned
         }
       />
 
       <View style={styles.scanFrame}>
-        <View style={[styles.corner, styles.topLeft]} />
-        <View style={[styles.corner, styles.topRight]} />
-        <View style={[styles.corner, styles.bottomLeft]} />
-        <View style={[styles.corner, styles.bottomRight]} />
+        <View
+          style={[
+            styles.corner,
+            styles.topLeft,
+          ]}
+        />
+
+        <View
+          style={[
+            styles.corner,
+            styles.topRight,
+          ]}
+        />
+
+        <View
+          style={[
+            styles.corner,
+            styles.bottomLeft,
+          ]}
+        />
+
+        <View
+          style={[
+            styles.corner,
+            styles.bottomRight,
+          ]}
+        />
       </View>
     </View>
   );
@@ -169,7 +263,7 @@ const styles = StyleSheet.create({
     height: 180,
     position: "absolute",
     top: "38%",
-    left: 20
+    left: 20,
   },
 
   corner: {

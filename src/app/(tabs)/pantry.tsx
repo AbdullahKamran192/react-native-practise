@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 import {
   ActivityIndicator,
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   View,
@@ -328,17 +330,27 @@ const Pantry = () => {
                 </Text>
               </View>
 
-              <View
+              <Pressable
                 style={
                   styles.headerIcon
                 }
+                onPress={() => {
+                  router.push({
+                    pathname: "/camera",
+                    params: {
+                      intent: "pantry",
+                    },
+                  });
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Add food to pantry"
               >
                 <Ionicons
                   name="add"
                   size={23}
                   color="#fff"
                 />
-              </View>
+              </Pressable>
             </View>
 
             <PantryDashboard

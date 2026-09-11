@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   FlatList,
   Keyboard,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -17,30 +18,26 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { searchProducts } from "@/api/products/search/searchProducts";
-
 import type { ProductSearchResult } from "@/api/products/search/types";
 
 const Search = () => {
   const router = useRouter();
 
-  const [searchInput, setSearchInput] =
-    useState("");
-
+  const [searchInput, setSearchInput] = useState("");
   const [submittedSearch, setSubmittedSearch] =
     useState("");
+
+  const [selectedProduct, setSelectedProduct] =
+    useState<ProductSearchResult | null>(null);
 
   const {
     data: searchResults = [],
     error,
     isFetching,
   } = useQuery({
-    queryKey: [
-      "product-search",
-      submittedSearch,
-    ],
+    queryKey: ["product-search", submittedSearch],
 
-    queryFn: () =>
-      searchProducts(submittedSearch),
+    queryFn: () => searchProducts(submittedSearch),
 
     /*
      * Do not query the database until the user
@@ -55,8 +52,7 @@ const Search = () => {
    * keyboard.
    */
   const handleSearch = () => {
-    const cleanedSearch =
-      searchInput.trim();
+    const cleanedSearch = searchInput.trim();
 
     if (!cleanedSearch) {
       setSubmittedSearch("");
@@ -67,19 +63,38 @@ const Search = () => {
     setSubmittedSearch(cleanedSearch);
   };
 
-  /*
-   * Both product types open the product-details
-   * page.
-   *
-   * product.tsx will use source to determine whether
-   * productId contains a barcode or a generic-product
-   * database ID.
-   */
   const handleProductPress = (
     product: ProductSearchResult
   ) => {
+    Keyboard.dismiss();
+    setSelectedProduct(product);
+  };
+
+  const closeActionModal = () => {
+    setSelectedProduct(null);
+  };
+
+  /*
+   * Search is shared by both food flows. The selected
+   * intent determines which details page opens, while
+   * both pages receive the same product lookup params.
+   */
+  const openSelectedProduct = (
+    intent: "consume" | "pantry"
+  ) => {
+    if (!selectedProduct) {
+      return;
+    }
+
+    const product = selectedProduct;
+
+    closeActionModal();
+
     router.push({
-      pathname: "/product",
+      pathname:
+        intent === "consume"
+          ? "/productConsume"
+          : "/productPantry",
 
       params: {
         source: product.source,
@@ -111,9 +126,7 @@ const Search = () => {
     return (
       <Pressable
         style={styles.productCard}
-        onPress={() =>
-          handleProductPress(item)
-        }
+        onPress={() => handleProductPress(item)}
       >
         <View style={styles.productIcon}>
           <Ionicons
@@ -198,12 +211,10 @@ const Search = () => {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerLabel}>
-          Find something to add
+          Find a food
         </Text>
 
-        <Text style={styles.title}>
-          Search
-        </Text>
+        <Text style={styles.title}>Search</Text>
       </View>
 
       <View style={styles.searchRow}>
@@ -285,9 +296,7 @@ const Search = () => {
           renderItem={renderProduct}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={
-            styles.listContent
-          }
+          contentContainerStyle={styles.listContent}
           ListHeaderComponent={
             submittedSearch &&
             searchResults.length > 0 ? (
@@ -296,11 +305,121 @@ const Search = () => {
               </Text>
             ) : null
           }
-          ListEmptyComponent={
-            renderEmptyComponent
-          }
+          ListEmptyComponent={renderEmptyComponent}
         />
       )}
+
+      <Modal
+        visible={selectedProduct !== null}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={closeActionModal}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={closeActionModal}
+            accessibilityRole="button"
+            accessibilityLabel="Close food action menu"
+          />
+
+          <View
+            style={styles.modalCard}
+            accessibilityViewIsModal
+          >
+            <View style={styles.modalHandle} />
+
+            <Text style={styles.modalTitle}>
+              What would you like to do?
+            </Text>
+
+            <Text
+              style={styles.modalProductName}
+              numberOfLines={2}
+            >
+              {selectedProduct?.product_name}
+            </Text>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalPrimaryButton,
+                pressed && styles.modalButtonPressed,
+              ]}
+              onPress={() =>
+                openSelectedProduct("consume")
+              }
+            >
+              <View style={styles.modalPrimaryIcon}>
+                <Ionicons
+                  name="restaurant-outline"
+                  size={21}
+                  color="#fff"
+                />
+              </View>
+
+              <View style={styles.modalButtonInformation}>
+                <Text style={styles.modalPrimaryTitle}>
+                  Consume Food
+                </Text>
+
+                <Text style={styles.modalPrimaryDescription}>
+                  Record an amount in today&apos;s nutrition
+                </Text>
+              </View>
+
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color="#fff"
+              />
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.modalSecondaryButton,
+                pressed && styles.modalButtonPressed,
+              ]}
+              onPress={() =>
+                openSelectedProduct("pantry")
+              }
+            >
+              <View style={styles.modalSecondaryIcon}>
+                <Ionicons
+                  name="basket-outline"
+                  size={21}
+                  color="#222"
+                />
+              </View>
+
+              <View style={styles.modalButtonInformation}>
+                <Text style={styles.modalSecondaryTitle}>
+                  Add to Pantry
+                </Text>
+
+                <Text style={styles.modalSecondaryDescription}>
+                  Save this food to your pantry
+                </Text>
+              </View>
+
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color="#777"
+              />
+            </Pressable>
+
+            <Pressable
+              style={styles.modalCancelButton}
+              onPress={closeActionModal}
+            >
+              <Text style={styles.modalCancelText}>
+                Cancel
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -446,5 +565,132 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "700",
     marginTop: 12,
+  },
+
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    justifyContent: "flex-end",
+    padding: 16,
+  },
+
+  modalCard: {
+    width: "100%",
+    backgroundColor: "#F7F7F7",
+    borderRadius: 24,
+    paddingHorizontal: 18,
+    paddingTop: 10,
+    paddingBottom: 12,
+  },
+
+  modalHandle: {
+    width: 42,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "#D0D0D0",
+    alignSelf: "center",
+    marginBottom: 18,
+  },
+
+  modalTitle: {
+    color: "#222",
+    fontSize: 21,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+
+  modalProductName: {
+    color: "#777",
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: "center",
+    marginTop: 7,
+    marginBottom: 20,
+    paddingHorizontal: 12,
+  },
+
+  modalPrimaryButton: {
+    minHeight: 76,
+    borderRadius: 18,
+    backgroundColor: "#222",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+    marginBottom: 10,
+  },
+
+  modalSecondaryButton: {
+    minHeight: 76,
+    borderRadius: 18,
+    backgroundColor: "#fff",
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 14,
+  },
+
+  modalButtonPressed: {
+    opacity: 0.78,
+  },
+
+  modalPrimaryIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#3B3B3B",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalSecondaryIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: "#EDEDED",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalButtonInformation: {
+    flex: 1,
+    marginHorizontal: 13,
+  },
+
+  modalPrimaryTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  modalPrimaryDescription: {
+    color: "#C7C7C7",
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 3,
+  },
+
+  modalSecondaryTitle: {
+    color: "#222",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  modalSecondaryDescription: {
+    color: "#777",
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 3,
+  },
+
+  modalCancelButton: {
+    height: 48,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 4,
+  },
+
+  modalCancelText: {
+    color: "#666",
+    fontSize: 15,
+    fontWeight: "600",
   },
 });

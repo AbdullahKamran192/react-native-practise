@@ -1,24 +1,27 @@
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  SafeAreaView,
-} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import NutritionCard from "@/components/NutritionCard";
-import MealCard from "@/components/MealCard";
 import { useRouter } from "expo-router";
 
-const Index = () => {
+import {
+  Pressable,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
+import MealCard from "@/components/MealCard";
+import NutritionCard from "@/components/NutritionCard";
+
+const Index = () => {
   const router = useRouter();
 
   const caloriesConsumed = 1250;
   const calorieGoal = 2200;
-  const caloriesRemaining = calorieGoal - caloriesConsumed;
-  const progress = caloriesConsumed / calorieGoal;
+  const caloriesRemaining =
+    calorieGoal - caloriesConsumed;
+  const progress =
+    caloriesConsumed / calorieGoal;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -29,18 +32,29 @@ const Index = () => {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good morning 👋</Text>
-            <Text style={styles.title}>Today's Calories</Text>
+            <Text style={styles.greeting}>
+              Good morning 👋
+            </Text>
+
+            <Text style={styles.title}>
+              Today's Calories
+            </Text>
           </View>
 
           <Pressable style={styles.profileButton}>
-            <Ionicons name="person-outline" size={22} color="#222" />
+            <Ionicons
+              name="person-outline"
+              size={22}
+              color="#222"
+            />
           </Pressable>
         </View>
 
         {/* Calorie Summary */}
         <View style={styles.calorieCard}>
-          <Text style={styles.cardLabel}>Calories remaining</Text>
+          <Text style={styles.cardLabel}>
+            Calories remaining
+          </Text>
 
           <Text style={styles.caloriesRemaining}>
             {caloriesRemaining}
@@ -55,7 +69,9 @@ const Index = () => {
             <View
               style={[
                 styles.progressFill,
-                { width: `${progress * 100}%` },
+                {
+                  width: `${progress * 100}%`,
+                },
               ]}
             />
           </View>
@@ -73,10 +89,14 @@ const Index = () => {
 
         {/* Today's Nutrition */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Nutrition</Text>
+          <Text style={styles.sectionTitle}>
+            Today's Nutrition
+          </Text>
 
           <Pressable>
-            <Text style={styles.seeAll}>Details</Text>
+            <Text style={styles.seeAll}>
+              Details
+            </Text>
           </Pressable>
         </View>
 
@@ -105,10 +125,14 @@ const Index = () => {
 
         {/* Meals */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Meals</Text>
+          <Text style={styles.sectionTitle}>
+            Today's Meals
+          </Text>
 
           <Pressable>
-            <Text style={styles.seeAll}>See all</Text>
+            <Text style={styles.seeAll}>
+              See all
+            </Text>
           </Pressable>
         </View>
 
@@ -126,12 +150,62 @@ const Index = () => {
           icon="restaurant-outline"
         />
 
-        {/* Add Food Button */}
-        <Pressable style={styles.addFoodButton} onPress={() => router.push('/camera')}>
-          <Ionicons name="add" size={24} color="#fff" />
+        {/* Food actions */}
+        <View style={styles.foodActions}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.consumeFoodButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/camera",
+                params: {
+                  intent: "consume",
+                },
+              })
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Consume food"
+          >
+            <Ionicons
+              name="restaurant-outline"
+              size={22}
+              color="#fff"
+            />
 
-          <Text style={styles.addFoodText}>Add Food</Text>
-        </Pressable>
+            <Text style={styles.consumeFoodText}>
+              Consume Food
+            </Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.addFoodButton,
+              pressed && styles.buttonPressed,
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/camera",
+                params: {
+                  intent: "pantry",
+                },
+              })
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Add food to pantry"
+          >
+            <Ionicons
+              name="basket-outline"
+              size={22}
+              color="#222"
+            />
+
+            <Text style={styles.addFoodText}>
+              Add Food to Pantry
+            </Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -156,7 +230,7 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
 
-  // Header
+  /* Header */
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -185,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  // Calorie card
+  /* Calorie card */
   calorieCard: {
     backgroundColor: "#222",
     borderRadius: 20,
@@ -236,7 +310,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
 
-  // Sections
+  /* Sections */
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -256,8 +330,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Add food
-  addFoodButton: {
+  /* Food actions */
+  foodActions: {
+    gap: 12,
+    marginTop: 14,
+  },
+
+  consumeFoodButton: {
     height: 54,
     borderRadius: 16,
     backgroundColor: "#222",
@@ -265,12 +344,33 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
-    marginTop: 14,
   },
 
-  addFoodText: {
+  consumeFoodText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
+  },
+
+  addFoodButton: {
+    height: 54,
+    borderRadius: 16,
+    backgroundColor: "#E7E7E7",
+    borderWidth: 1,
+    borderColor: "#D4D4D4",
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  addFoodText: {
+    color: "#222",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+
+  buttonPressed: {
+    opacity: 0.7,
   },
 });
