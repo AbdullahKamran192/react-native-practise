@@ -14,6 +14,7 @@ import {
 
 import { supabase } from "@/lib/supabase";
 import QueryProvider from "@/providers/QueryProvider";
+import SettingsButton from "@/components/SettingsButton";
 
 export default function RootLayout() {
   const [session, setSession] =
@@ -73,7 +74,7 @@ export default function RootLayout() {
 
   return (
     <QueryProvider>
-      <Stack>
+      <Stack screenOptions={{ headerRight: () => session ? <SettingsButton /> : null }}>
         {/* Available only when signed out */}
         <Stack.Protected guard={!session}>
           <Stack.Screen
@@ -97,6 +98,7 @@ export default function RootLayout() {
             name="settings"
             options={{
               title: "Settings",
+              headerRight: () => null,
               headerBackTitle: "Back",
             }}
           />

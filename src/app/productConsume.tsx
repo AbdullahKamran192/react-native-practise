@@ -30,6 +30,9 @@ import useSelectedProduct from "@/hooks/products/useSelectedProduct";
 import type { ProductSource } from "@/hooks/products/useSelectedProduct";
 
 import { productScreenStyles as styles } from "@/styles/productScreen/styles";
+import { localDate } from "@/api/consumption";
+import { useConsumptionLog } from "@/hooks/useConsumptionLog";
+import { createProductSubmission } from "@/utils/productSubmission";
 
 type ConsumedNutrition = {
   calories: number;
@@ -92,6 +95,8 @@ const ProductConsumeScreen = () => {
 
   const [isEditingProduct, setIsEditingProduct] =
     useState(false);
+
+  const log = useConsumptionLog("product:" + (isGenericProduct ? "generic:" : "barcode:") + productIdentifier);
 
   const consumedNutrition = useMemo(() => {
     if (!product) {
@@ -183,7 +188,13 @@ const ProductConsumeScreen = () => {
     }
   }
 
-  function handleLogConsumption() {
+  async function handleLogConsumption() {
+    if (log.saving || log.checking || log.storageError) return;
+    if (log.pending) {
+      const rows = await log.submit();
+      if (rows) Alert.alert("Food logged", rows[0].product_name_snapshot + " saved for " + rows[0].consumed_on + ".");
+      return;
+    }
     if (!product) {
       return;
     }
@@ -222,16 +233,30 @@ const ProductConsumeScreen = () => {
       return;
     }
 
-    /*
-     * The screen is ready, but consumption must not
-     * be presented as saved until the Supabase
-     * consumption table and atomic pantry-reduction
-     * transaction have been defined.
-     */
-    Alert.alert(
-      "Consumption saving not connected",
-      "The product and amount are valid. The next step is connecting this screen to the consumption database operation."
-    );
+    const common = { amount, unit: measurementUnit, consumedOn: localDate(consumedAt), removeFromPantry };
+    let rows;
+    if (isGenericProduct) {
+      if (lookupStatus !== "found") {
+        Alert.alert("Food unavailable", "Choose an available generic food.");
+        return;
+      }
+      rows = await log.submit({ ...common, genericProductId: productIdentifier });
+    } else {
+      const submission = createProductSubmission(productIdentifier, product);
+      if (!submission.success) {
+        Alert.alert("Check product details", submission.error);
+        return;
+      }
+      if (!submission.data.product_name) {
+        Alert.alert("Missing product name", "Enter the product name before logging.");
+        return;
+      }
+      rows = await log.submit({ ...common, barcode: productIdentifier, submission: submission.data, brand: product.brands });
+    }
+    if (rows) {
+      setConsumedAmount("");
+      Alert.alert("Food logged", rows[0].product_name_snapshot + " saved for " + rows[0].consumed_on + ".");
+    }
   }
 
   if (isLoading) {
@@ -259,6 +284,7 @@ const ProductConsumeScreen = () => {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        <View pointerEvents={log.saving || log.pending ? "none" : "auto"}>
         <View style={styles.header}>
           <View style={styles.headerContent}>
             <Text style={styles.headerLabel}>
@@ -689,12 +715,19 @@ const ProductConsumeScreen = () => {
           </View>
         </View>
 
+        </View>
+        {log.pending && <Text style={styles.inputHelpText}>
+          A previous log for {log.pending.input.consumedOn} needs confirmation. Retry uses its original amount and pantry choice.
+        </Text>}
+        {!!log.error && <Text>{log.error}</Text>}
+        {!!log.storageError && <Pressable onPress={log.refresh}><Text>{log.storageError} Tap to check again.</Text></Pressable>}
         <Pressable
           style={({ pressed }) => [
             styles.primaryButton,
             pressed && styles.primaryButtonPressed,
           ]}
           onPress={handleLogConsumption}
+          disabled={log.saving || log.checking || !!log.storageError || (isEditingProduct && !log.pending)}
         >
           <Ionicons
             name="checkmark-circle-outline"
@@ -703,7 +736,7 @@ const ProductConsumeScreen = () => {
           />
 
           <Text style={styles.primaryButtonText}>
-            Log Food
+            {log.saving ? "Logging…" : log.checking ? "Checking…" : log.pending ? "Retry previous log" : "Log Food"}
           </Text>
         </Pressable>
       </ScrollView>

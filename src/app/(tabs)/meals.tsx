@@ -4,6 +4,7 @@ import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useMeals } from "@/api/meals";
 import { MAX_MEALS } from "@/api/meals/validation";
+import SettingsButton from "@/components/SettingsButton";
 import { MealButton, MealStatus, mealStyles as s } from "@/components/meals/ui";
 
 export default function MealsScreen() {
@@ -15,7 +16,10 @@ export default function MealsScreen() {
     <FlatList data={meals} keyExtractor={(meal) => String(meal.id)} contentContainerStyle={s.content}
       refreshing={query.isRefetching} onRefresh={() => query.refetch()}
       ListHeaderComponent={<View style={{ gap: 12 }}>
-        <Text style={s.title}>Meals</Text>
+        <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between"}}>
+          <Text style={s.title}>Meals</Text>
+          <SettingsButton />
+        </View>
         <Text style={s.muted}>{meals.length} / {MAX_MEALS} meals</Text>
         <MealButton title="Create meal" disabled={meals.length >= MAX_MEALS} onPress={() => router.push("/createMeal")} />
         {meals.length >= MAX_MEALS && <Text style={s.muted}>You have 10 meals. Delete one to make room for another.</Text>}

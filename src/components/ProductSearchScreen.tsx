@@ -19,6 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { searchProducts } from "@/api/products/search/searchProducts";
 import type { ProductSearchResult } from "@/api/products/search/types";
+import SettingsButton from "@/components/SettingsButton";
 
 const Search = ({ mealId }: { mealId?: string }) => {
   const router = useRouter();
@@ -216,12 +217,15 @@ const Search = ({ mealId }: { mealId?: string }) => {
 
   return (
     <SafeAreaView style={styles.container} edges={mealId ? ["left", "right", "bottom"] : ["top", "left", "right", "bottom"]}>
-      <View style={styles.header}>
+      <View style={[styles.header, {flexDirection:"row",alignItems:"center",justifyContent:"space-between"}]}>
+        <View>
         <Text style={styles.headerLabel}>
           {mealId ? "Choose an ingredient" : "Find a food"}
         </Text>
 
         <Text style={styles.title}>Search</Text>
+        </View>
+        {!mealId && <SettingsButton />}
       </View>
 
       <View style={styles.searchRow}>

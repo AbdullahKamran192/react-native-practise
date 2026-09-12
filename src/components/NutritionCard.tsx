@@ -1,12 +1,16 @@
 import { View, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet } from 'react-native';
+import ProgressRing from './ProgressRing';
 
 type NutritionCardProps = {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value: string;
   goal: string;
+  progress: number;
+  animationKey: string;
+  colour?: string;
 };
 
 const NutritionCard = ({
@@ -14,10 +18,16 @@ const NutritionCard = ({
   label,
   value,
   goal,
+  progress,
+  animationKey,
+  colour = "#5A9D79",
 }: NutritionCardProps) => {
   return (
     <View style={styles.nutritionCard}>
-      <Ionicons name={icon} size={22} color="#555" />
+      <ProgressRing progress={progress} animationKey={animationKey} colour={colour}
+        label={label + ": " + value + " of " + goal}>
+        <Ionicons name={icon} size={22} color={colour} />
+      </ProgressRing>
 
       <Text style={styles.nutritionLabel}>{label}</Text>
 
