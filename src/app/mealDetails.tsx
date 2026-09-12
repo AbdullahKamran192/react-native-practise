@@ -1,3 +1,4 @@
+import ConsumeMeal from "@/components/meals/ConsumeMeal";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState } from "react";
 import { Alert, ScrollView, Text, TextInput, View } from "react-native";
@@ -63,8 +64,7 @@ export default function MealDetailsScreen() {
       {nutrientKeys.map((key) => <Text key={key} style={s.text}>{key[0].toUpperCase() + key.slice(1)}: {Number(nutrition.totals[key].toFixed(key === "calories" ? 0 : 1))}{key === "calories" ? " kcal" : "g"}</Text>)}
       {nutrition.incomplete && <Text style={s.muted}>Some ingredient nutrition is missing. Totals include known values only.</Text>}
     </View>
-    <MealButton title="Consume meal — coming soon" disabled onPress={() => {}} />
-    <Text style={s.muted}>You can save recipes now. Meal consumption and pantry deductions will be available in a later update.</Text>
+    <ConsumeMeal key={mealId} mealId={mealId} disabled={meal.items.length === 0 || editing || update.isPending || remove.isPending} />
     {remove.error && <Text style={s.error}>{remove.error.message}</Text>}
     <MealButton secondary disabled={remove.isPending} title={remove.isPending ? "Deleting…" : "Delete meal"} onPress={() => Alert.alert("Delete meal?", `Delete ${meal.meal_name} and its ingredient list?`, [
       { text: "Cancel", style: "cancel" },

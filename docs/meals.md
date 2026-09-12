@@ -14,4 +14,4 @@ This is a schema contract from their supplied SQL, not a live database verificat
 
 React Native flow: Meals list → create metadata → details → search/scan → review ingredient amount → add to meal. Metadata and each ingredient save individually; errors keep the editor open for retry. Generic products remain read-only. Barcode corrections use the same shared catalogue submission as pantry entry, without adding pantry stock.
 
-Consumption is a later database task: log nutrition for the selected date, deduct available ingredients from `pantry.amount_remaining`, and delete exhausted rows. Missing pantry ingredients must not prevent nutrition logging. The supplied setup does not include a consumption table/RPC. Partial stock, date/time-zone handling, and transaction/idempotency rules must be settled before connecting Consume Meal.
+Consume meal only deducts available ingredient amounts from the pantry and deletes exhausted rows. Dates, nutrition logging and home screen integration are deferred. A prepared pantry-only RPC still needs applying to the hosted Supabase project. See [meal-consumption.md](meal-consumption.md) for setup and validation.
