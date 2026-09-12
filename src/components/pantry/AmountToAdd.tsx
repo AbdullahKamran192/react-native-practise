@@ -11,9 +11,11 @@ type Props = {
   packageSize: number | null;
   unit: "g" | "ml";
   disabled: boolean;
+  purpose?: "add" | "remaining";
 };
 
-export default function AmountToAdd({ selection, onChange, packageSize, unit, disabled }: Props) {
+export default function AmountToAdd({ selection, onChange, packageSize, unit, disabled, purpose = "add" }: Props) {
+  const amountLabel = purpose === "remaining" ? "Amount remaining" : "Amount to add";
   const [editing, setEditing] = useState(false);
   const total = resolvePantryAddition(selection, packageSize);
   const quantity = selection.mode === "quantity"
@@ -29,7 +31,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
     <View style={styles.card}>
       <View style={styles.row}>
         <View style={styles.summary}>
-          <Text style={styles.heading}>Amount to add</Text>
+          <Text style={styles.heading}>{amountLabel}</Text>
           <Text style={styles.summaryText}>
             Quantity {quantity !== null && quantity > 0 ? formatPantryQuantity(quantity) : "—"}
             {" · "}{total === null ? "Enter amount" : `${total}${unit}`}
@@ -40,7 +42,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
           disabled={disabled}
           style={({ pressed }) => [styles.edit, (pressed || disabled) && styles.dimmed]}
           accessibilityRole="button"
-          accessibilityLabel={editing ? "Close amount editor" : "Edit amount to add"}
+          accessibilityLabel={editing ? "Close amount editor" : `Edit ${amountLabel.toLowerCase()}`}
           accessibilityState={{ expanded: editing, disabled }}
         >
           <Ionicons name={editing ? "checkmark-outline" : "create-outline"} size={20} color="#222" />
@@ -58,7 +60,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
                 onChangeText={(value) => onChange({ mode: "quantity", value })}
                 editable={!disabled && packageSize !== null && packageSize > 0}
                 keyboardType="decimal-pad"
-                accessibilityLabel="Quantity to add"
+                accessibilityLabel={purpose === "remaining" ? "Quantity remaining" : "Quantity to add"}
                 placeholder="1"
               />
             </View>
@@ -70,7 +72,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
                 onChangeText={(value) => onChange({ mode: "amount", value })}
                 editable={!disabled}
                 keyboardType="decimal-pad"
-                accessibilityLabel={`Total amount to add in ${unit}`}
+                accessibilityLabel={`${amountLabel} in ${unit}`}
                 placeholder="0"
               />
             </View>
@@ -78,7 +80,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
           <Text style={styles.help}>
             {packageSize !== null && packageSize > 0
               ? `1 item = ${packageSize}${unit}. Edit either field.`
-              : `Item size unavailable. Enter the total ${unit} to add.`}
+              : `Item size unavailable. Enter the total ${unit}${purpose === "remaining" ? " remaining" : " to add"}.`}
           </Text>
           {total === null && <Text style={styles.error}>Enter a valid amount greater than zero.</Text>}
         </View>

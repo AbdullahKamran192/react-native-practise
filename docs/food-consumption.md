@@ -4,6 +4,11 @@
 
 1. Run `supabase/migrations/20260912_food_consumption.sql` once if the table is not already installed.
 2. Run `supabase/migrations/20260912_log_food_consumption.sql` to install the logging RPC.
+3. For home-page Edit mode, run `supabase/migrations/20260912_remove_consumption_entry.sql`. This installs an owner-scoped function that physically deletes the whole consumption group and does not change pantry stock. No new columns or tables are added.
+
+If the abandoned soft-deletion migration was installed, run `20260912_undo_delete_food_consumption.sql` BEFORE the new removal migration to remove the old function and deleted_at column. Do not run the undo script afterward, as it drops the deletion function.
+
+Edit beside Today's Meals reveals red bin buttons. Each asks for confirmation. The cross exits Edit mode. Successful deletion removes the group from cached history and refetches it, recalculating daily totals and date colours. It never deletes catalogue products or saved recipes.
 
 The hosted SQL has not been executed by Codex. The new function expects the existing products, product_corrections, generic_products, meals, meal_items and pantry schema. The old pantry-only function remains installed for compatibility, but the current meal screen uses the new logging function.
 
@@ -34,7 +39,7 @@ The logging RPC derives user ownership from auth.uid(), validates meal ownership
 
 Before sending a log, the app persists the group UUID, original choices and time zone in AsyncStorage under the current user and food/meal. A failed or interrupted response leaves a Retry previous log action. Retrying reuses the saved payload, including after reopening that product or meal screen. The RPC serializes this user's requests and returns existing rows for an already-saved group without deducting again. A successful new intentional log receives a new UUID.
 
-This uses the existing consumption rows, with no separate request table. Do not delete those rows while relying on them for deduplication. If the recipe is deleted before an uncertain request is resolved, the RPC can still replay a saved group, but navigating to the deleted recipe to retry is not currently supported.
+This uses the existing consumption rows, with no separate request table. Physically deleting a consumption group also removes its deduplication record: an old pending logging request replayed afterward can log again. There is no server-side deletion ledger, as requested. If the recipe is deleted before an uncertain request is resolved, the RPC can still replay a saved group, but navigating to the deleted recipe to retry is not currently supported.
 
 ## Verification
 

@@ -100,8 +100,7 @@ export default function PreferenceSection({
         </Text>
 
         <Text style={styles.sectionDescription}>
-          Set the daily goals used by your pantry
-          dashboard.
+          Set the daily nutrition goals you aim to achieve.
         </Text>
       </View>
 

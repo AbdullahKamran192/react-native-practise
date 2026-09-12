@@ -10,6 +10,7 @@ import HistoryDates from "@/components/HistoryDates";
 import NutritionCard from "@/components/NutritionCard";
 import ProgressRing from "@/components/ProgressRing";
 import SettingsButton from "@/components/SettingsButton";
+import DeleteFoodLogButton from "@/components/DeleteFoodLogButton";
 import { dateKey, parseDay, recentDates, nutrients, summarize, groupConsumptions, dayScore } from "@/utils/consumptionHistory";
 import type { HistoryRow, Nutrient } from "@/utils/consumptionHistory";
 
@@ -26,6 +27,7 @@ export default function Home() {
   const [today,setToday]=useState(()=>dateKey(new Date()));
   const [selected,setSelected]=useState(today);
   const [expanded,setExpanded]=useState<string|null>(null);
+  const [editing,setEditing]=useState(false);
   const dates=useMemo(()=>recentDates(today),[today]);
   const history=useQuery({
     queryKey:["food-consumption","history",dates[29],today],
@@ -115,7 +117,15 @@ export default function Home() {
         <Text style={s.addFoodText}>Add Food to Pantry</Text>
       </Pressable>
     </View>
-    <Text style={s.sectionTitle}>{isToday?"Today's Meals":"Food & meals · "+selectedLabel}</Text>
+    <View style={s.mealsHeading}>
+      <Text style={[s.sectionTitle,{flex:1,marginBottom:0}]}>{isToday?"Today's Meals":"Food & meals · "+selectedLabel}</Text>
+      <Pressable onPress={()=>setEditing(value=>!value)} style={s.editButton}
+        accessibilityRole="button" accessibilityLabel={editing?"Stop editing food logs":"Edit food logs"}
+        accessibilityState={{selected:editing}}>
+        <Ionicons name={editing?"close":"create-outline"} size={21} color="#fff"/>
+        <Text style={{fontWeight:"700",color:"#fff"}}>{editing?"Done":"Edit"}</Text>
+      </Pressable>
+    </View>
   </View>;
   return <SafeAreaView style={s.container} edges={["top","left","right"]}>
     <FlatList data={ready?events:[]} keyExtractor={item=>item.id} ListHeaderComponent={header}
@@ -123,10 +133,9 @@ export default function Home() {
       refreshing={history.isRefetching||settings.isRefetching} onRefresh={refresh}
       ListEmptyComponent={ready?<Text style={s.empty}>No food logged for {isToday?"today":selectedLabel} yet.</Text>:null}
       renderItem={({item})=><View style={s.eventCard}>
-        <Pressable disabled={!item.isMeal} accessibilityRole={item.isMeal?"button":undefined}
-          accessibilityState={item.isMeal?{expanded:expanded===item.id}:undefined}
-          accessibilityLabel={item.isMeal?item.name+", show ingredients":undefined}
-          style={s.eventRow} onPress={()=>setExpanded(expanded===item.id?null:item.id)}>
+        <View style={{flexDirection:"row",alignItems:"center",gap:10}}>
+        <Pressable accessibilityRole="button" accessibilityLabel={"View consumed "+item.name}
+          style={[s.eventRow,{flex:1}]} onPress={()=>router.push({pathname:"/consumptionDetails",params:{groupId:item.items[0].consumption_group_id}})}>
           <View style={s.eventIcon}><Ionicons name={item.isMeal?"restaurant-outline":"nutrition-outline"} size={23} color="#444"/></View>
           <View style={{flex:1}}>
             <Text style={s.eventName}>{item.name}</Text>
@@ -135,8 +144,14 @@ export default function Home() {
               (item.items[0].brand_snapshot?" · "+item.items[0].brand_snapshot:"")}</Text>
           </View>
           <Text style={s.eventCalories}>{Math.round(item.totals.calories)} kcal{item.missing.calories?"*":""}</Text>
-          {item.isMeal&&<Ionicons name={expanded===item.id?"chevron-up":"chevron-down"} size={16} color="#777"/>}
         </Pressable>
+        {item.isMeal&&<Pressable onPress={()=>setExpanded(expanded===item.id?null:item.id)}
+          accessibilityRole="button" accessibilityLabel={(expanded===item.id?"Hide":"Show")+" ingredients for "+item.name}
+          accessibilityState={{expanded:expanded===item.id}} style={{width:44,height:44,alignItems:"center",justifyContent:"center"}}>
+          <Ionicons name={expanded===item.id?"chevron-up":"chevron-down"} size={20} color="#555"/>
+        </Pressable>}
+        {editing&&<DeleteFoodLogButton groupId={item.items[0].consumption_group_id} name={item.name}/>}
+        </View>
         {item.isMeal&&expanded===item.id&&item.items.map(ingredient=><View key={ingredient.id} style={s.ingredient}>
           <Text style={{flex:1,color:"#555"}}>{ingredient.product_name_snapshot}</Text>
           <Text style={{color:"#555"}}>{format(Number(ingredient.amount_consumed))}{ingredient.measurement_unit}</Text>
@@ -145,6 +160,8 @@ export default function Home() {
   </SafeAreaView>;
 }
 const s=StyleSheet.create({
+  mealsHeading:{flexDirection:"row",alignItems:"center",gap:12,marginBottom:14},
+  editButton:{minWidth:84,minHeight:44,paddingHorizontal:14,borderRadius:12,backgroundColor:"#222",flexDirection:"row",gap:7,alignItems:"center",justifyContent:"center"},
   container:{flex:1,backgroundColor:"#F7F7F7"},scrollContent:{padding:20,paddingBottom:40},
   header:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:16,gap:12},
   greeting:{fontSize:14,color:"#777",marginBottom:4},title:{fontSize:26,fontWeight:"700",color:"#222"},

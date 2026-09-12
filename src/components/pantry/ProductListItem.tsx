@@ -1,8 +1,10 @@
 import { getPantryAmounts, formatPantryQuantity } from "@/utils/pantryAmounts";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 
 import {
   StyleSheet,
+  Pressable,
   Text,
   View,
 } from "react-native";
@@ -71,7 +73,9 @@ const ProductListItem = ({
   const totalProtein = proteinPer100 * amountRemaining / 100;
 
   return (
-    <View style={styles.productCard}>
+    <Pressable style={({ pressed }) => [styles.productCard, pressed && { opacity: 0.7 }]}
+      accessibilityRole="button" accessibilityLabel={`View ${productName}, edit amount remaining`}
+      onPress={() => router.push({ pathname: "/pantryDetails", params: { pantryId: String(pantryItem.id) } })}>
       <View style={styles.productIcon}>
         <Ionicons
           name={
@@ -153,7 +157,7 @@ const ProductListItem = ({
         size={20}
         color="#999"
       />
-    </View>
+    </Pressable>
   );
 };
 

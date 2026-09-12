@@ -1,6 +1,19 @@
 import { supabase } from "@/lib/supabase";
 import type { HistoryRow } from "@/utils/consumptionHistory";
 
+export async function getConsumptionDetails(groupId: string): Promise<HistoryRow[]> {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId)) {
+    throw new Error("Choose a valid consumption entry.");
+  }
+  const {data:{user},error:authError} = await supabase.auth.getUser();
+  if (authError) throw new Error(authError.message);
+  if (!user) throw new Error("Sign in to view this food log.");
+  const {data,error} = await supabase.from("food_consumption").select("*")
+    .eq("user_id",user.id).eq("consumption_group_id",groupId).order("id",{ascending:true});
+  if (error) throw new Error(error.message);
+  return data as HistoryRow[];
+}
+
 export async function getConsumptionHistory(firstDate: string, lastDate: string): Promise<HistoryRow[]> {
   const { data: {user}, error: authError } = await supabase.auth.getUser();
   if (authError) throw new Error(authError.message);

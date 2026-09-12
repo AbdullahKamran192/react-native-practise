@@ -37,7 +37,7 @@ test("logging RPC: food, meals, optional pantry, snapshots, retries and rollback
       insert into public.pantry values (1,'${owner}','123',null,150),(2,'${owner}',null,1,20),(3,'${other}','123',null,500);
       select set_config('request.jwt.claim.sub','${owner}',false);
     `);
-    for (const file of ["20260912_food_consumption.sql", "20260912_log_food_consumption.sql"])
+    for (const file of ["20260912_food_consumption.sql", "20260912_log_food_consumption.sql", "20260912_remove_consumption_entry.sql"])
       await db.exec(fs.readFileSync(path.join(__dirname, "../supabase/migrations", file), "utf8"));
 
     await t.test("unchecked meal logs all ingredients with no pantry change", async () => {
@@ -111,10 +111,28 @@ test("logging RPC: food, meals, optional pantry, snapshots, retries and rollback
       assert.equal((await db.query("select * from public.food_consumption where consumption_group_id=$1", [id])).rows.length, 0);
       assert.equal(Number((await db.query("select amount_remaining from public.pantry where id=4")).rows[0].amount_remaining), 100);
     });
+    await t.test("hard deletion removes exactly the owned meal group and leaves pantry unchanged", async () => {
+      const stock = (await db.query("select * from public.pantry order by id")).rows;
+      const before = (await db.query("select * from public.food_consumption")).rows.length;
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)", [other]);
+      await db.exec("set role authenticated");
+      assert.equal((await db.query("select public.delete_food_consumption($1) as n",[savedGroup])).rows[0].n,0);
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)", [owner]);
+      assert.equal((await db.query("select public.delete_food_consumption($1) as n",[savedGroup])).rows[0].n,3);
+      assert.equal((await db.query("select public.delete_food_consumption($1) as n",[savedGroup])).rows[0].n,0);
+      await db.exec("reset role");
+      assert.equal((await db.query("select * from public.food_consumption where consumption_group_id=$1",[savedGroup])).rows.length,0);
+      assert.equal((await db.query("select * from public.food_consumption")).rows.length,before-3);
+      const single = (await db.query("select consumption_group_id from public.food_consumption where meal_name_snapshot is null limit 1")).rows[0];
+      assert.equal((await db.query("select public.delete_food_consumption($1) as n",[single.consumption_group_id])).rows[0].n,1);
+      assert.deepEqual((await db.query("select * from public.pantry order by id")).rows,stock);
+    });
     await t.test("anonymous and signed-out callers are rejected", async () => {
       await db.exec("set role anon");
+      await assert.rejects(db.query("select public.delete_food_consumption($1)",[savedGroup]),/permission denied/);
       await assert.rejects(log({ generic: 2, amount: 1, unit: "g" }), /permission denied/);
       await db.exec("reset role; select set_config('request.jwt.claim.sub','',false)");
+      await assert.rejects(db.query("select public.delete_food_consumption($1)",[savedGroup]),/Sign in/);
       await assert.rejects(log({ generic: 2, amount: 1, unit: "g" }), /Sign in/);
     });
   } finally { await db.close(); }
