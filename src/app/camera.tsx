@@ -25,12 +25,14 @@ import {
 
 type CameraIntent =
   | "pantry"
+  | "meal"
   | "consume";
 
 export default function CameraScreen() {
-  const { intent } =
+  const { intent, mealId } =
     useLocalSearchParams<{
       intent?: CameraIntent;
+      mealId?: string;
     }>();
 
   const [facing, setFacing] =
@@ -106,8 +108,8 @@ export default function CameraScreen() {
      * back to the existing add-to-pantry flow.
      */
     router.push({
-      pathname: destination,
-      params: { data },
+      pathname: intent === "meal" ? "/mealIngredient" : destination,
+      params: { data, ...(intent === "meal" ? { mealId } : {}) },
     });
   }
 

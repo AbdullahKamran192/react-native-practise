@@ -78,6 +78,9 @@ const ProductConsumeScreen = () => {
   const [consumedAmount, setConsumedAmount] =
     useState("");
 
+  const [showQuantityPicker, setShowQuantityPicker] =
+    useState(false);
+
   const [consumedAt, setConsumedAt] =
     useState(new Date());
 
@@ -143,6 +146,10 @@ const ProductConsumeScreen = () => {
 
   const measurementUnit =
     product?.measurement_unit ?? "g";
+
+  const servingAmount = toNumber(product?.product_amount);
+  const hasServingAmount =
+    servingAmount !== null && servingAmount > 0;
 
   const formattedDate = consumedAt.toLocaleDateString(
     "en-GB",
@@ -393,6 +400,121 @@ const ProductConsumeScreen = () => {
           <Text style={styles.fieldLabel}>
             How much did you consume?
           </Text>
+
+          <View style={styles.amountPresetRow}>
+            <Pressable
+              style={({ pressed }) => [
+                styles.amountPresetButton,
+                !hasServingAmount && styles.amountPresetDisabled,
+                pressed && styles.secondaryButtonPressed,
+              ]}
+              onPress={() => {
+                if (hasServingAmount) {
+                  setConsumedAmount(String(servingAmount));
+                }
+              }}
+              disabled={!hasServingAmount}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !hasServingAmount }}
+              accessibilityLabel={
+                hasServingAmount
+                  ? `Use one whole product, ${servingAmount}${measurementUnit}`
+                  : "One serving unavailable: product amount missing"
+              }
+            >
+              <Text style={styles.amountPresetText}>
+                {hasServingAmount
+                  ? `1× serving (${servingAmount}${measurementUnit})`
+                  : "1× serving (unavailable)"}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={({ pressed }) => [
+                styles.amountPresetButton,
+                pressed && styles.secondaryButtonPressed,
+              ]}
+              onPress={() => setConsumedAmount("100")}
+              accessibilityRole="button"
+              accessibilityLabel={`Use 100${measurementUnit}`}
+            >
+              <Text style={styles.amountPresetText}>
+                100{measurementUnit}
+              </Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [
+                styles.amountPresetButton,
+                styles.quantityPresetButton,
+                !hasServingAmount && styles.amountPresetDisabled,
+                pressed && styles.secondaryButtonPressed,
+              ]}
+              onPress={() => setShowQuantityPicker((current) => !current)}
+              disabled={!hasServingAmount}
+              accessibilityRole="button"
+              accessibilityLabel="Choose quantity from 1 to 50 servings"
+              accessibilityState={{
+                disabled: !hasServingAmount,
+                expanded: showQuantityPicker,
+              }}
+            >
+              <Ionicons name="options-outline" size={20} color="#222" />
+              <Text style={styles.amountPresetText}></Text>
+            </Pressable>
+          </View>
+
+          {showQuantityPicker && hasServingAmount && (
+            <View style={styles.quantityPicker}>
+              <Text style={styles.quantityPickerLabel}>
+                Swipe to choose servings (1–50)
+              </Text>
+              <Text style={styles.inputHelpText}>
+                1 serving = {servingAmount}{measurementUnit}
+              </Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.quantityOptions}
+              >
+                {Array.from({ length: 50 }, (_, index) => {
+                  const quantity = index + 1;
+                  // Avoid floating-point tails such as 0.1 × 3 = 0.30000000000000004.
+                  const totalAmount = Number(
+                    (servingAmount * quantity).toPrecision(15)
+                  );
+                  const isSelected = toNumber(consumedAmount) === totalAmount;
+
+                  return (
+                    <Pressable
+                      key={quantity}
+                      style={({ pressed }) => [
+                        styles.quantityOption,
+                        isSelected && styles.quantityOptionSelected,
+                        pressed && styles.secondaryButtonPressed,
+                      ]}
+                      onPress={() => setConsumedAmount(String(totalAmount))}
+                      accessibilityRole="button"
+                      accessibilityLabel={
+                        `${quantity} ${quantity === 1 ? "serving" : "servings"}, ` +
+                        `${totalAmount}${measurementUnit}`
+                      }
+                      accessibilityState={{ selected: isSelected }}
+                    >
+                      <Text
+                        style={[
+                          styles.amountPresetText,
+                          isSelected && styles.quantityOptionTextSelected,
+                        ]}
+                      >
+                        {quantity}×
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
 
           <View style={styles.amountRow}>
             <View style={styles.amountInputContainer}>

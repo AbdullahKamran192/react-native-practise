@@ -5,6 +5,8 @@ import {
 } from "@tanstack/react-query";
 
 import { supabase } from "@/lib/supabase";
+import { addPantryAmount } from "./addPantryAmount";
+import { validatePantryAddition } from "@/utils/pantryAmounts";
 
 import type {
   ProductSubmission,
@@ -48,7 +50,7 @@ export type PantryItem = {
   id: number;
   user_id: string;
   created_at: string;
-  quantity: number;
+  amount_remaining: number;
 
   /*
    * Exactly one of these identifiers will contain
@@ -82,17 +84,22 @@ type ProductCorrectionRow = {
 
 export type AddProductToPantryResult = {
   barcode: string;
-  quantity: number;
+  amount_remaining: number;
+  measurement_unit: MeasurementUnit;
   productWasCreated: boolean;
 };
 
 export type AddGenericProductToPantryInput = {
   genericProductId: number;
+  amountToAdd?: number;
 };
+
+export type AddProductToPantryInput = ProductSubmission & { amountToAdd?: number };
 
 export type AddGenericProductToPantryResult = {
   genericProductId: number;
-  quantity: number;
+  amount_remaining: number;
+  measurement_unit: MeasurementUnit;
 };
 
 /*
@@ -133,7 +140,7 @@ export const useProductList = () => {
  */
 export const usePantryList = () => {
   return useQuery<PantryItem[]>({
-    queryKey: ["pantry"],
+    queryKey: ["pantry", "amount-remaining"],
 
     queryFn: async () => {
       const {
@@ -162,7 +169,7 @@ export const usePantryList = () => {
             user_id,
             product_barcode,
             generic_product_id,
-            quantity,
+            amount_remaining,
             product:products (
               *
             ),
@@ -185,14 +192,283 @@ export const usePantryList = () => {
 };
 
 /*
- * Submits barcode-product information and adds the
- * product to the signed-in user's pantry.
+ * Submits barcode-product information without changing pantry stock.
+ * Shared by pantry entry and meal ingredient entry.
  *
  * The app does not write directly to products.
  * The submission is saved in product_corrections,
  * and the database trigger creates or updates the
  * shared products row.
  */
+export async function saveBarcodeProduct(productSubmission: ProductSubmission) {
+  const {
+    data: { user },
+    error: userError,
+  } =
+    await supabase.auth.getUser();
+
+  if (userError) {
+    throw new Error(
+      userError.message
+    );
+  }
+
+  if (!user) {
+    throw new Error(
+      "User is not signed in."
+    );
+  }
+
+  const barcode =
+    productSubmission
+      .barcode_number
+      .trim();
+
+  /*
+   * Check the shared unit before submitting corrections, and
+   * report whether the trigger creates a new shared product.
+   */
+  const {
+    data: existingProduct,
+    error: productLookupError,
+  } = await supabase
+    .from("products")
+    .select("barcode_number, measurement_unit")
+    .eq(
+      "barcode_number",
+      barcode
+    )
+    .maybeSingle();
+
+  if (productLookupError) {
+    throw new Error(
+      productLookupError.message
+    );
+  }
+
+  if (existingProduct && existingProduct.measurement_unit !== productSubmission.measurement_unit) {
+    throw new Error("The unit differs from the shared product. Reload the product before adding it; pantry amounts cannot be mixed between g and ml.");
+  }
+
+  const productWasCreated =
+    existingProduct === null;
+
+  /*
+   * Retrieve the current user's previous
+   * contribution for this barcode.
+   *
+   * Empty fields in a later submission should
+   * not remove their existing non-null values.
+   */
+  const {
+    data:
+      existingCorrectionData,
+
+    error:
+      correctionLookupError,
+  } = await supabase
+    .from(
+      "product_corrections"
+    )
+    .select(`
+      product_barcode,
+      user_id,
+      product_name,
+      product_amount,
+      measurement_unit,
+      calories_per_100,
+      protein_per_100,
+      carbs_per_100,
+      fat_per_100,
+      sugars_per_100,
+      salt_per_100,
+      fibre_per_100
+    `)
+    .eq("user_id", user.id)
+    .eq(
+      "product_barcode",
+      barcode
+    )
+    .maybeSingle();
+
+  if (correctionLookupError) {
+    throw new Error(
+      correctionLookupError.message
+    );
+  }
+
+  const existingCorrection =
+    existingCorrectionData as
+      | ProductCorrectionRow
+      | null;
+
+  const unitChanged =
+    existingCorrection !== null &&
+    existingCorrection
+      .measurement_unit !==
+      productSubmission
+        .measurement_unit;
+
+  /*
+   * Preserve a previous numeric value when the
+   * newly submitted value is null.
+   *
+   * If the unit changes, old values must not be
+   * retained because a value per 100g cannot be
+   * treated as a value per 100ml.
+   */
+  const previousValue = (
+    value: number | null,
+    existingValue:
+      | number
+      | null
+      | undefined
+  ) => {
+    if (value !== null) {
+      return value;
+    }
+
+    if (unitChanged) {
+      return null;
+    }
+
+    return (
+      existingValue ?? null
+    );
+  };
+
+  const correctionToSave:
+    ProductCorrectionRow = {
+    user_id: user.id,
+    product_barcode:
+      barcode,
+
+    product_name:
+      productSubmission
+        .product_name ??
+      existingCorrection
+        ?.product_name ??
+      null,
+
+    measurement_unit:
+      productSubmission
+        .measurement_unit,
+
+    product_amount:
+      previousValue(
+        productSubmission
+          .product_amount,
+
+        existingCorrection
+          ?.product_amount
+      ),
+
+    calories_per_100:
+      previousValue(
+        productSubmission
+          .calories_per_100,
+
+        existingCorrection
+          ?.calories_per_100
+      ),
+
+    protein_per_100:
+      previousValue(
+        productSubmission
+          .protein_per_100,
+
+        existingCorrection
+          ?.protein_per_100
+      ),
+
+    carbs_per_100:
+      previousValue(
+        productSubmission
+          .carbs_per_100,
+
+        existingCorrection
+          ?.carbs_per_100
+      ),
+
+    fat_per_100:
+      previousValue(
+        productSubmission
+          .fat_per_100,
+
+        existingCorrection
+          ?.fat_per_100
+      ),
+
+    sugars_per_100:
+      previousValue(
+        productSubmission
+          .sugars_per_100,
+
+        existingCorrection
+          ?.sugars_per_100
+      ),
+
+    salt_per_100:
+      previousValue(
+        productSubmission
+          .salt_per_100,
+
+        existingCorrection
+          ?.salt_per_100
+      ),
+
+    fibre_per_100:
+      previousValue(
+        productSubmission
+          .fibre_per_100,
+
+        existingCorrection
+          ?.fibre_per_100
+      ),
+  };
+
+  /*
+   * product_corrections still uses:
+   *
+   * user_id + product_barcode
+   *
+   * as its composite primary key.
+   */
+  const {
+    error:
+      correctionUpsertError,
+  } = await supabase
+    .from(
+      "product_corrections"
+    )
+    .upsert(
+      correctionToSave,
+      {
+        onConflict:
+          "user_id,product_barcode",
+      }
+    );
+
+  if (correctionUpsertError) {
+    throw new Error(
+      correctionUpsertError.message
+    );
+  }
+
+  // The trigger may choose a different unit from other users' corrections.
+  const { data: sharedProduct, error: sharedError } = await supabase
+    .from("products")
+    .select("measurement_unit")
+    .eq("barcode_number", barcode)
+    .single();
+  if (sharedError) throw new Error(sharedError.message);
+  if (sharedProduct.measurement_unit !== productSubmission.measurement_unit) {
+    throw new Error("The shared product unit changed. Reload the product before adding it to your pantry.");
+  }
+
+  return { userId: user.id, barcode, productWasCreated };
+}
+
 export const useAddProductToPantry =
   () => {
     const queryClient =
@@ -201,329 +477,26 @@ export const useAddProductToPantry =
     return useMutation<
       AddProductToPantryResult,
       Error,
-      ProductSubmission
+      AddProductToPantryInput
     >({
       mutationFn: async (
         productSubmission
       ) => {
-        const {
-          data: { user },
-          error: userError,
-        } =
-          await supabase.auth.getUser();
+        const amountToAdd = validatePantryAddition(
+          productSubmission.amountToAdd ?? Number(productSubmission.product_amount)
+        );
+        const { userId, barcode, productWasCreated } = await saveBarcodeProduct(productSubmission);
 
-        if (userError) {
-          throw new Error(
-            userError.message
-          );
-        }
-
-        if (!user) {
-          throw new Error(
-            "User is not signed in."
-          );
-        }
-
-        const barcode =
-          productSubmission
-            .barcode_number
-            .trim();
-
-        /*
-         * This lookup is used only to report whether
-         * the database trigger created a new shared
-         * product.
-         */
-        const {
-          data: existingProduct,
-          error: productLookupError,
-        } = await supabase
-          .from("products")
-          .select("barcode_number")
-          .eq(
-            "barcode_number",
-            barcode
-          )
-          .maybeSingle();
-
-        if (productLookupError) {
-          throw new Error(
-            productLookupError.message
-          );
-        }
-
-        const productWasCreated =
-          existingProduct === null;
-
-        /*
-         * Retrieve the current user's previous
-         * contribution for this barcode.
-         *
-         * Empty fields in a later submission should
-         * not remove their existing non-null values.
-         */
-        const {
-          data:
-            existingCorrectionData,
-
-          error:
-            correctionLookupError,
-        } = await supabase
-          .from(
-            "product_corrections"
-          )
-          .select(`
-            product_barcode,
-            user_id,
-            product_name,
-            product_amount,
-            measurement_unit,
-            calories_per_100,
-            protein_per_100,
-            carbs_per_100,
-            fat_per_100,
-            sugars_per_100,
-            salt_per_100,
-            fibre_per_100
-          `)
-          .eq("user_id", user.id)
-          .eq(
-            "product_barcode",
-            barcode
-          )
-          .maybeSingle();
-
-        if (correctionLookupError) {
-          throw new Error(
-            correctionLookupError.message
-          );
-        }
-
-        const existingCorrection =
-          existingCorrectionData as
-            | ProductCorrectionRow
-            | null;
-
-        const unitChanged =
-          existingCorrection !== null &&
-          existingCorrection
-            .measurement_unit !==
-            productSubmission
-              .measurement_unit;
-
-        /*
-         * Preserve a previous numeric value when the
-         * newly submitted value is null.
-         *
-         * If the unit changes, old values must not be
-         * retained because a value per 100g cannot be
-         * treated as a value per 100ml.
-         */
-        const previousValue = (
-          value: number | null,
-          existingValue:
-            | number
-            | null
-            | undefined
-        ) => {
-          if (value !== null) {
-            return value;
-          }
-
-          if (unitChanged) {
-            return null;
-          }
-
-          return (
-            existingValue ?? null
-          );
-        };
-
-        const correctionToSave:
-          ProductCorrectionRow = {
-          user_id: user.id,
-          product_barcode:
-            barcode,
-
-          product_name:
-            productSubmission
-              .product_name ??
-            existingCorrection
-              ?.product_name ??
-            null,
-
-          measurement_unit:
-            productSubmission
-              .measurement_unit,
-
-          product_amount:
-            previousValue(
-              productSubmission
-                .product_amount,
-
-              existingCorrection
-                ?.product_amount
-            ),
-
-          calories_per_100:
-            previousValue(
-              productSubmission
-                .calories_per_100,
-
-              existingCorrection
-                ?.calories_per_100
-            ),
-
-          protein_per_100:
-            previousValue(
-              productSubmission
-                .protein_per_100,
-
-              existingCorrection
-                ?.protein_per_100
-            ),
-
-          carbs_per_100:
-            previousValue(
-              productSubmission
-                .carbs_per_100,
-
-              existingCorrection
-                ?.carbs_per_100
-            ),
-
-          fat_per_100:
-            previousValue(
-              productSubmission
-                .fat_per_100,
-
-              existingCorrection
-                ?.fat_per_100
-            ),
-
-          sugars_per_100:
-            previousValue(
-              productSubmission
-                .sugars_per_100,
-
-              existingCorrection
-                ?.sugars_per_100
-            ),
-
-          salt_per_100:
-            previousValue(
-              productSubmission
-                .salt_per_100,
-
-              existingCorrection
-                ?.salt_per_100
-            ),
-
-          fibre_per_100:
-            previousValue(
-              productSubmission
-                .fibre_per_100,
-
-              existingCorrection
-                ?.fibre_per_100
-            ),
-        };
-
-        /*
-         * product_corrections still uses:
-         *
-         * user_id + product_barcode
-         *
-         * as its composite primary key.
-         */
-        const {
-          error:
-            correctionUpsertError,
-        } = await supabase
-          .from(
-            "product_corrections"
-          )
-          .upsert(
-            correctionToSave,
-            {
-              onConflict:
-                "user_id,product_barcode",
-            }
-          );
-
-        if (correctionUpsertError) {
-          throw new Error(
-            correctionUpsertError.message
-          );
-        }
-
-        /*
-         * The product-corrections trigger has now
-         * created or updated the matching products
-         * row, so it is safe to add the pantry row.
-         */
-        const {
-          data: existingPantryItem,
-          error:
-            pantryLookupError,
-        } = await supabase
-          .from("pantry")
-          .select("quantity")
-          .eq("user_id", user.id)
-          .eq(
-            "product_barcode",
-            barcode
-          )
-          .maybeSingle();
-
-        if (pantryLookupError) {
-          throw new Error(
-            pantryLookupError.message
-          );
-        }
-
-        const newQuantity =
-          Number(
-            existingPantryItem
-              ?.quantity ?? 0
-          ) + 1;
-
-        /*
-         * Setting generic_product_id to null makes
-         * the selected product type explicit and
-         * satisfies the pantry CHECK constraint.
-         */
-        const {
-          error: pantryUpsertError,
-        } = await supabase
-          .from("pantry")
-          .upsert(
-            {
-              user_id: user.id,
-              product_barcode:
-                barcode,
-
-              generic_product_id:
-                null,
-
-              quantity:
-                newQuantity,
-            },
-            {
-              onConflict:
-                "user_id,product_barcode",
-            }
-          );
-
-        if (pantryUpsertError) {
-          throw new Error(
-            pantryUpsertError.message
-          );
-        }
+        const amountRemaining = await addPantryAmount(
+          userId,
+          { product_barcode: barcode, generic_product_id: null },
+          amountToAdd
+        );
 
         return {
           barcode,
-          quantity: newQuantity,
+          amount_remaining: amountRemaining,
+          measurement_unit: productSubmission.measurement_unit,
           productWasCreated,
         };
       },
@@ -568,6 +541,7 @@ export const useAddGenericProductToPantry =
     >({
       mutationFn: async ({
         genericProductId,
+        amountToAdd,
       }) => {
         const {
           data: { user },
@@ -599,7 +573,7 @@ export const useAddGenericProductToPantry =
           .from(
             "generic_products"
           )
-          .select("id")
+          .select("id, default_amount, measurement_unit")
           .eq(
             "id",
             genericProductId
@@ -618,72 +592,16 @@ export const useAddGenericProductToPantry =
           );
         }
 
-        /*
-         * Find the user's existing pantry row so its
-         * quantity can be increased.
-         */
-        const {
-          data: existingPantryItem,
-          error:
-            pantryLookupError,
-        } = await supabase
-          .from("pantry")
-          .select("quantity")
-          .eq("user_id", user.id)
-          .eq(
-            "generic_product_id",
-            genericProductId
-          )
-          .maybeSingle();
-
-        if (pantryLookupError) {
-          throw new Error(
-            pantryLookupError.message
-          );
-        }
-
-        const newQuantity =
-          Number(
-            existingPantryItem
-              ?.quantity ?? 0
-          ) + 1;
-
-        /*
-         * product_barcode must be null for a generic
-         * product pantry row.
-         */
-        const {
-          error: pantryUpsertError,
-        } = await supabase
-          .from("pantry")
-          .upsert(
-            {
-              user_id: user.id,
-
-              product_barcode:
-                null,
-
-              generic_product_id:
-                genericProductId,
-
-              quantity:
-                newQuantity,
-            },
-            {
-              onConflict:
-                "user_id,generic_product_id",
-            }
-          );
-
-        if (pantryUpsertError) {
-          throw new Error(
-            pantryUpsertError.message
-          );
-        }
+        const amountRemaining = await addPantryAmount(
+          user.id,
+          { product_barcode: null, generic_product_id: genericProductId },
+          amountToAdd ?? Number(genericProduct.default_amount)
+        );
 
         return {
           genericProductId,
-          quantity: newQuantity,
+          amount_remaining: amountRemaining,
+          measurement_unit: genericProduct.measurement_unit as MeasurementUnit,
         };
       },
 

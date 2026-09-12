@@ -35,6 +35,9 @@ import useSelectedProduct from "@/hooks/products/useSelectedProduct";
 import type { ProductSource } from "@/hooks/products/useSelectedProduct";
 
 import { createProductSubmission } from "@/utils/productSubmission";
+import AmountToAdd from "@/components/pantry/AmountToAdd";
+import { resolvePantryAddition } from "@/utils/pantryAmounts";
+import type { PantryAmountSelection } from "@/utils/pantryAmounts";
 
 type CalculatedValue = {
   caloriesPerPound: number;
@@ -68,6 +71,16 @@ const ProductPantryScreen = () => {
   });
 
   const [price, setPrice] = useState("");
+  const [amountSelection, setAmountSelection] = useState<PantryAmountSelection>({
+    mode: "quantity", value: "1",
+  });
+  const packageSize = toNumber(product?.product_amount);
+  const amountToAdd = resolvePantryAddition(amountSelection, packageSize);
+
+  function handleAmountChange(selection: PantryAmountSelection) {
+    setAmountSelection(selection);
+    setCalculatedValue(null);
+  }
 
   const [
     calculatedValue,
@@ -90,6 +103,9 @@ const ProductPantryScreen = () => {
   function handleProductChange(
     updatedProduct: LookupProduct
   ) {
+    if (product?.measurement_unit !== updatedProduct.measurement_unit) {
+      setAmountSelection({ mode: "quantity", value: "1" });
+    }
     setProduct(updatedProduct);
 
     /*
@@ -123,9 +139,7 @@ const ProductPantryScreen = () => {
       return;
     }
 
-    const productAmount = toNumber(
-      product.product_amount
-    );
+    const productAmount = amountToAdd;
 
     const measurementUnit =
       product.measurement_unit;
@@ -135,8 +149,8 @@ const ProductPantryScreen = () => {
       productAmount <= 0
     ) {
       Alert.alert(
-        "Missing product amount",
-        `Enter the amount in ${measurementUnit}, for example 150.`
+        "Invalid amount to add",
+        `Enter the total amount to add in ${measurementUnit}.`
       );
 
       return;
@@ -189,10 +203,14 @@ const ProductPantryScreen = () => {
       return;
     }
 
+    if (amountToAdd === null) {
+      Alert.alert("Invalid amount to add", "Edit the amount to add and enter a valid quantity or total amount.");
+      return;
+    }
+
     /*
-     * Generic products already exist in the curated
-     * generic_products table. Only their ID needs to
-     * be added to the pantry.
+     * Generic products stay curated. The selected amount changes
+     * only the user's pantry, not the default item size.
      */
     if (isGenericProduct) {
       const parsedGenericProductId = Number(
@@ -214,13 +232,12 @@ const ProductPantryScreen = () => {
       try {
         const result = await addGenericToPantry({
           genericProductId: parsedGenericProductId,
+          amountToAdd,
         });
 
         Alert.alert(
           "Added to pantry",
-          result.quantity === 1
-            ? "The generic product was added to your pantry."
-            : `The product quantity is now ${result.quantity}.`
+          `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
         );
       } catch (error) {
         const message =
@@ -265,15 +282,14 @@ const ProductPantryScreen = () => {
     }
 
     try {
-      const result = await addBarcodeToPantry(
-        submissionResult.data
-      );
+      const result = await addBarcodeToPantry({
+        ...submissionResult.data,
+        amountToAdd,
+      });
 
       Alert.alert(
         "Added to pantry",
-        result.quantity === 1
-          ? "The product was added to your pantry."
-          : `The product quantity is now ${result.quantity}.`
+        `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
       );
     } catch (error) {
       const message =
@@ -416,13 +432,21 @@ const ProductPantryScreen = () => {
           />
         )}
 
+        <AmountToAdd
+          selection={amountSelection}
+          onChange={handleAmountChange}
+          packageSize={packageSize}
+          unit={product?.measurement_unit ?? "g"}
+          disabled={isAddingToPantry}
+        />
+
         <Text style={styles.sectionTitle}>
           Product price
         </Text>
 
         <View style={styles.priceCard}>
           <Text style={styles.priceLabel}>
-            Enter the total price you paid
+            Enter the total price for the amount above
           </Text>
 
           <View style={styles.inputContainer}>

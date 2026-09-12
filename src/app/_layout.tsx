@@ -94,6 +94,19 @@ export default function RootLayout() {
           />
 
           <Stack.Screen
+            name="settings"
+            options={{
+              title: "Settings",
+              headerBackTitle: "Back",
+            }}
+          />
+
+          <Stack.Screen name="createMeal" options={{ title: "Create meal", headerBackTitle: "Back" }} />
+          <Stack.Screen name="mealDetails" options={{ title: "Meal details", headerBackTitle: "Back" }} />
+          <Stack.Screen name="mealSearch" options={{ title: "Find ingredient", headerBackTitle: "Back" }} />
+          <Stack.Screen name="mealIngredient" options={{ title: "Add ingredient", headerBackTitle: "Back" }} />
+
+          <Stack.Screen
             name="camera"
             options={{
               title: "Scan Food",

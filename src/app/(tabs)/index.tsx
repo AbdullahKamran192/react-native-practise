@@ -41,7 +41,12 @@ const Index = () => {
             </Text>
           </View>
 
-          <Pressable style={styles.profileButton}>
+          <Pressable
+            style={styles.profileButton}
+            onPress={() => router.push("/settings")}
+            accessibilityRole="button"
+            accessibilityLabel="Open settings"
+          >
             <Ionicons
               name="person-outline"
               size={22}

@@ -15,9 +15,9 @@ export default function TabLayout() {
         <NativeTabs.Trigger.Icon sf="skateboard" md="settings" />
         <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="app">
-        <NativeTabs.Trigger.Icon sf="gear" md="settings" />
-        <NativeTabs.Trigger.Label>Pantry</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="meals">
+        <NativeTabs.Trigger.Icon sf="fork.knife" md="restaurant" />
+        <NativeTabs.Trigger.Label>Meals</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>   
   );

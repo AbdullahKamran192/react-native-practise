@@ -1,3 +1,4 @@
+import { getPantryAmounts, formatPantryQuantity } from "@/utils/pantryAmounts";
 import { Ionicons } from "@expo/vector-icons";
 
 import {
@@ -42,22 +43,7 @@ const ProductListItem = ({
   const isGenericProduct =
     genericProduct !== null;
 
-  const quantity = Number(
-    pantryItem.quantity ?? 0
-  );
-
-  /*
-   * Barcode products store the package amount in
-   * product_amount.
-   *
-   * Generic products store the average amount of one
-   * unit in default_amount.
-   */
-  const productAmount = Number(
-    barcodeProduct?.product_amount ??
-      genericProduct?.default_amount ??
-      0
-  );
+  const { amountRemaining, productAmount, quantity } = getPantryAmounts(pantryItem);
 
   const measurementUnit =
     barcodeProduct?.measurement_unit ??
@@ -81,30 +67,8 @@ const ProductListItem = ({
       0
   );
 
-  /*
-   * The calculation is identical for both grams and
-   * millilitres:
-   *
-   * nutrient per 100 × item amount / 100
-   */
-  const oneItemCalories =
-    caloriesPer100 *
-    (productAmount / 100);
-
-  const oneItemProtein =
-    proteinPer100 *
-    (productAmount / 100);
-
-  const totalCalories =
-    oneItemCalories * quantity;
-
-  const totalProtein =
-    oneItemProtein * quantity;
-
-  const itemWord =
-    quantity === 1
-      ? "item"
-      : "items";
+  const totalCalories = caloriesPer100 * amountRemaining / 100;
+  const totalProtein = proteinPer100 * amountRemaining / 100;
 
   return (
     <View style={styles.productCard}>
@@ -133,19 +97,13 @@ const ProductListItem = ({
             {productName}
           </Text>
 
-          <View
-            style={
-              styles.quantityBadge
-            }
-          >
-            <Text
-              style={
-                styles.quantityText
-              }
-            >
-              ×{quantity}
-            </Text>
-          </View>
+          {quantity !== null && (
+            <View style={styles.quantityBadge}>
+              <Text style={styles.quantityText}>
+                ×{formatPantryQuantity(quantity)}
+              </Text>
+            </View>
+          )}
         </View>
 
         <View
@@ -177,9 +135,10 @@ const ProductListItem = ({
         </View>
 
         <Text style={styles.amountText}>
-          {productAmount > 0
-            ? `${productAmount}${measurementUnit} each • ${quantity} ${itemWord}`
-            : `${quantity} ${itemWord} • amount unavailable`}
+          {amountRemaining}{measurementUnit} remaining
+          {quantity !== null
+            ? ` • ${productAmount}${measurementUnit} each`
+            : " • item size unavailable"}
         </Text>
 
         <Text style={styles.productType}>

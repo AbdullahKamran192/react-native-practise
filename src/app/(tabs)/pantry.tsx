@@ -33,6 +33,7 @@ import type {
 } from "@/components/pantry/PantryDashboard";
 
 import ProductListItem from "@/components/pantry/ProductListItem";
+import { getPantryAmounts, formatPantryQuantity } from "@/utils/pantryAmounts";
 
 const Pantry = () => {
   const {
@@ -107,20 +108,7 @@ const Pantry = () => {
     );
   }
 
-  /*
-   * Every pantry row references either:
-   *
-   * - a barcode product, or
-   * - a generic product.
-   *
-   * Barcode products use product_amount.
-   * Generic products use default_amount.
-   *
-   * Both product types store nutrition per 100g or
-   * per 100ml, so the calculation remains identical:
-   *
-   * nutrient per 100 × amount / 100 × quantity
-   */
+  // Nutrition comes directly from the remaining g/ml, independent of package size.
   const totals = pantryItems.reduce(
     (
       currentTotals,
@@ -144,23 +132,8 @@ const Pantry = () => {
         return currentTotals;
       }
 
-      const pantryQuantity =
-        Number(
-          pantryItem.quantity ?? 0
-        );
-
-      const productAmount =
-        Number(
-          barcodeProduct
-            ?.product_amount ??
-          genericProduct
-            ?.default_amount ??
-          0
-        );
-
-      const amountMultiplier =
-        (productAmount / 100) *
-        pantryQuantity;
+      const { amountRemaining, quantity } = getPantryAmounts(pantryItem);
+      const amountMultiplier = amountRemaining / 100;
 
       currentTotals.calories +=
         Number(
@@ -227,10 +200,10 @@ const Pantry = () => {
 
       /*
        * itemCount represents the combined number of
-       * packaged and generic items in the pantry.
+       * package/item equivalents calculated from remaining amounts.
        */
       currentTotals.itemCount +=
-        pantryQuantity;
+        quantity ?? 0;
 
       return currentTotals;
     },
@@ -380,7 +353,7 @@ const Pantry = () => {
                   styles.productCount
                 }
               >
-                {totals.itemCount}{" "}
+                {formatPantryQuantity(totals.itemCount)}{" "}
                 {totals.itemCount === 1
                   ? "item"
                   : "items"}

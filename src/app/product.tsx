@@ -532,9 +532,7 @@ const ProductScreen = () => {
 
         Alert.alert(
           "Added to pantry",
-          result.quantity === 1
-            ? "The generic product was added to your pantry."
-            : `The product quantity is now ${result.quantity}.`
+          `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
         );
       } catch (error) {
         const message =
@@ -591,9 +589,7 @@ const ProductScreen = () => {
 
       Alert.alert(
         "Added to pantry",
-        result.quantity === 1
-          ? "The product was added to your pantry."
-          : `The product quantity is now ${result.quantity}.`
+        `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
       );
     } catch (error) {
       const message =

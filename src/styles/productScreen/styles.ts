@@ -399,6 +399,78 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   /* Consume amount and measurement unit */
+  amountPresetRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginBottom: 12,
+  },
+
+  amountPresetButton: {
+    minHeight: 44,
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#D4D4D4",
+    borderRadius: 12,
+    backgroundColor: "#E7E7E7",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+
+  amountPresetText: {
+    color: "#222",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  quantityPresetButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+
+  quantityPicker: {
+    marginBottom: 14,
+  },
+
+  quantityPickerLabel: {
+    color: "#222",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  quantityOptions: {
+    gap: 8,
+    paddingTop: 10,
+    paddingBottom: 8,
+  },
+
+  quantityOption: {
+    minWidth: 48,
+    minHeight: 44,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#D4D4D4",
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  quantityOptionSelected: {
+    backgroundColor: "#222",
+    borderColor: "#222",
+  },
+
+  quantityOptionTextSelected: {
+    color: "#fff",
+  },
+
+  amountPresetDisabled: {
+    opacity: 0.45,
+  },
+
+
   amountRow: {
     flexDirection: "row",
     alignItems: "center",

@@ -310,7 +310,7 @@ export default function SettingsScreen() {
 
   if (isSettingsLoading || isUserLoading) {
     return (
-      <SafeAreaView style={styles.centeredContainer}>
+      <SafeAreaView edges={["left", "right", "bottom"]} style={styles.centeredContainer}>
         <ActivityIndicator
           size="large"
           color="#222"
@@ -325,7 +325,7 @@ export default function SettingsScreen() {
 
   if (settingsError) {
     return (
-      <SafeAreaView style={styles.centeredContainer}>
+      <SafeAreaView edges={["left", "right", "bottom"]} style={styles.centeredContainer}>
         <Ionicons
           name="alert-circle-outline"
           size={44}
@@ -356,7 +356,7 @@ export default function SettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
