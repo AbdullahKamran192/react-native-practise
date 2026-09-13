@@ -1,3 +1,4 @@
+import ConsumptionImage from "@/components/ConsumptionImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -136,7 +137,7 @@ export default function Home() {
         <View style={{flexDirection:"row",alignItems:"center",gap:10}}>
         <Pressable accessibilityRole="button" accessibilityLabel={"View consumed "+item.name}
           style={[s.eventRow,{flex:1}]} onPress={()=>router.push({pathname:"/consumptionDetails",params:{groupId:item.items[0].consumption_group_id}})}>
-          <View style={s.eventIcon}><Ionicons name={item.isMeal?"restaurant-outline":"nutrition-outline"} size={23} color="#444"/></View>
+          <ConsumptionImage row={item.items[0]} thumbnail />
           <View style={{flex:1}}>
             <Text style={s.eventName}>{item.name}</Text>
             <Text style={s.eventSubtitle}>{item.isMeal?item.items.length+" ingredients":

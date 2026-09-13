@@ -1,3 +1,4 @@
+import MealPhoto from "@/components/meals/MealPhoto";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -27,7 +28,7 @@ export default function MealsScreen() {
       ListEmptyComponent={<View style={s.card}><Text style={s.heading}>Your recipes start here</Text><Text style={s.text}>Create a meal, then add ingredients by searching or scanning food.</Text></View>}
       renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.meal_name}`}
         style={s.card} onPress={() => router.push({ pathname: "/mealDetails", params: { mealId: String(item.id) } })}>
-        <View style={s.row}><Text style={[s.heading, { flex: 1 }]}>{item.meal_name}</Text><Ionicons name="chevron-forward" size={20} color="#777" /></View>
+        <View style={s.row}><MealPhoto meal={item} /><Text style={[s.heading, { flex: 1 }]}>{item.meal_name}</Text><Ionicons name="chevron-forward" size={20} color="#777" /></View>
         {item.description && <Text numberOfLines={2} style={s.muted}>{item.description}</Text>}
       </Pressable>} />
   </SafeAreaView>;

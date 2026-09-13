@@ -1,3 +1,4 @@
+import { genericProductImageUrl } from "@/utils/productImage";
 import { supabase } from "@/lib/supabase";
 
 import type {
@@ -11,6 +12,7 @@ import {
 
 type GenericProductRow = {
   id: number;
+  image_path: string | null;
   product_name: string;
   default_amount: number;
   measurement_unit: MeasurementUnit;
@@ -52,6 +54,7 @@ export async function lookupGenericProduct(
       .from("generic_products")
       .select(`
         id,
+        image_path,
         product_name,
         default_amount,
         measurement_unit,
@@ -90,6 +93,7 @@ export async function lookupGenericProduct(
    * per 100ml.
    */
   return {
+    image_url: genericProductImageUrl(product.image_path),
     product_name:
       product.product_name,
 

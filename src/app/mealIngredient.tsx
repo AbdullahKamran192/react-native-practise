@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
-import { ScrollView, Text, TextInput, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMeal, useMealActions } from "@/api/meals";
 import type { MealProduct } from "@/api/meals";
@@ -13,6 +13,9 @@ import { createProductSubmission } from "@/utils/productSubmission";
 import ProductReadOnlyDashboard from "@/components/products/ProductReadOnlyDashboard";
 import ProductNutritionDashboard from "@/components/products/ProductNutritionDashboard";
 import { MealButton, MealStatus, mealStyles as s } from "@/components/meals/ui";
+import AmountToAdd from "@/components/pantry/AmountToAdd";
+import { resolvePantryAddition } from "@/utils/pantryAmounts";
+import type { PantryAmountSelection } from "@/utils/pantryAmounts";
 
 export default function MealIngredientScreen() {
   const { mealId = "", data, source, productId } = useLocalSearchParams<{
@@ -22,13 +25,17 @@ export default function MealIngredientScreen() {
   const meal = useMeal(mealId);
   const { addItem } = useMealActions();
   const client = useQueryClient();
-  const [amount, setAmount] = useState<string | null>(null);
+  const [amountSelection, setAmountSelection] = useState<PantryAmountSelection | null>(null);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const saveLock = useRef(false);
   const { product, isGenericProduct } = selected;
-  const amountText = amount ?? product?.product_amount ?? "";
+  const packageSize = toNumber(product?.product_amount);
+  const selection: PantryAmountSelection = amountSelection ?? (packageSize !== null && packageSize > 0
+    ? { mode: "quantity", value: "1" }
+    : { mode: "amount", value: "" });
+  const resolvedAmount = resolvePantryAddition(selection, packageSize);
 
   async function save() {
     if (!product || saveLock.current) return;
@@ -37,7 +44,7 @@ export default function MealIngredientScreen() {
     setError("");
     try {
       validateMealId(mealId);
-      const ingredientAmount = validateMealAmount(toNumber(amountText) ?? 0);
+      const ingredientAmount = validateMealAmount(resolvedAmount ?? 0);
       const existing = meal.data?.items.find((item) => isGenericProduct
         ? item.generic_product_id === Number(selected.genericProductId)
         : item.product_barcode === selected.barcode);
@@ -85,16 +92,14 @@ export default function MealIngredientScreen() {
     {selected.lookupStatus !== "found" && <Text style={s.muted}>Some product details could not be found. Review the information before adding it.</Text>}
     {!isGenericProduct && editing ? <View pointerEvents={saving ? "none" : "auto"}>
       <ProductNutritionDashboard product={product} myData={selected.productIdentifier} onProductChange={(updated) => {
-        if (updated.measurement_unit !== product.measurement_unit) setAmount(null);
+        if (updated.measurement_unit !== product.measurement_unit) setAmountSelection(null);
         selected.setProduct(updated);
       }} />
       <MealButton title="Done editing product" secondary disabled={saving} onPress={() => setEditing(false)} />
     </View> : <ProductReadOnlyDashboard product={product} isGenericProduct={isGenericProduct} onEdit={isGenericProduct || saving ? undefined : () => setEditing(true)} />}
-    <View style={s.card}>
-      <Text style={s.heading}>Amount in this recipe ({unit})</Text>
-      <TextInput style={s.input} accessibilityLabel={`Ingredient amount in ${unit}`} value={amountText} onChangeText={setAmount} keyboardType="decimal-pad" editable={!saving} placeholder="0" />
-      <Text style={s.muted}>Adding a product already in this meal increases its existing amount.</Text>
-    </View>
+    <AmountToAdd purpose="recipe" selection={selection} onChange={setAmountSelection}
+      packageSize={packageSize} unit={unit} disabled={saving} />
+    <Text style={s.muted}>Adding a product already in this meal increases its existing amount.</Text>
     {error !== "" && <Text style={s.error}>{error}</Text>}
     <MealButton title={saving ? "Adding…" : "Add to meal"} disabled={saving} onPress={save} />
   </ScrollView>;

@@ -1,3 +1,4 @@
+import ConsumptionImage from "@/components/ConsumptionImage";
 import { useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
@@ -39,6 +40,7 @@ export default function ConsumptionDetails(){
   const isMeal=first.meal_name_snapshot!==null;
   return <SafeAreaView style={s.screen} edges={["left","right","bottom"]}>
     <ScrollView contentContainerStyle={s.content}>
+      <ConsumptionImage row={first} />
       <View>
         <Text style={s.caption}>{isMeal?"Consumed meal":"Consumed food"}</Text>
         <Text style={s.title}>{first.meal_name_snapshot??first.product_name_snapshot}</Text>
@@ -57,6 +59,7 @@ export default function ConsumptionDetails(){
       {isMeal&&<>
         <Text style={s.heading}>Ingredients · {rows.length}</Text>
         {rows.map(row=><View key={row.id} style={s.card}>
+          <ConsumptionImage row={row} ingredient />
           <Text style={s.heading}>{row.product_name_snapshot}</Text>
           {!!row.brand_snapshot&&<Text style={s.subtitle}>{row.brand_snapshot}</Text>}
           <Text style={s.amount}>{format(Number(row.amount_consumed))} {row.measurement_unit} consumed</Text>

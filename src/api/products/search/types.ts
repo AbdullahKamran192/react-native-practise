@@ -10,6 +10,7 @@ import type {
  * For generic products, id is the generated database ID.
  */
 export type ProductSearchResult = {
+  image_url: string | null;
   id: string;
   source: "barcode" | "generic";
   product_name: string;

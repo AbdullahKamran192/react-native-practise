@@ -1,3 +1,4 @@
+import ProductImage from "@/components/products/ProductImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
@@ -397,6 +398,8 @@ const ProductPantryScreen = () => {
             </View>
           </View>
         )}
+
+        <ProductImage uri={editableProduct.image_url} name={editableProduct.product_name} />
 
         {isGenericProduct && (
           <View style={styles.genericProductNotice}>

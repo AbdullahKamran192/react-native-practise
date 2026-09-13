@@ -1,3 +1,4 @@
+import { normaliseImageUrl } from "./productImage";
 export type MeasurementUnit = "g" | "ml";
 
 export type EditableValue =
@@ -7,6 +8,7 @@ export type EditableValue =
   | undefined;
 
 export type EditableProduct = {
+  image_url?: string | null;
   product_name?: string | null;
 
   /*
@@ -29,6 +31,7 @@ export type EditableProduct = {
 };
 
 export type ProductSubmission = {
+  image_url?: string | null;
   barcode_number: string;
   product_name: string | null;
   product_amount: number | null;
@@ -305,6 +308,7 @@ export function createProductSubmission(
        * is preserved.
        */
       barcode_number: barcode.trim(),
+      image_url: normaliseImageUrl(product.image_url),
 
       product_name:
         product.product_name?.trim() ||

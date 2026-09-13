@@ -17,6 +17,7 @@ export type MeasurementUnit =
   | "ml";
 
 export type ProductRow = {
+  image_url?: string | null;
   barcode_number: string;
   product_name: string | null;
   created_at: string;
@@ -32,6 +33,7 @@ export type ProductRow = {
 };
 
 export type GenericProductRow = {
+  image_path?: string | null;
   id: number;
   product_name: string;
   created_at: string;
@@ -68,6 +70,7 @@ export type PantryItem = {
 };
 
 type ProductCorrectionRow = {
+  image_url?: string | null;
   product_barcode: string;
   user_id: string;
   product_name: string | null;
@@ -272,6 +275,7 @@ export async function saveBarcodeProduct(productSubmission: ProductSubmission) {
     )
     .select(`
       product_barcode,
+      image_url,
       user_id,
       product_name,
       product_amount,
@@ -339,6 +343,7 @@ export async function saveBarcodeProduct(productSubmission: ProductSubmission) {
 
   const correctionToSave:
     ProductCorrectionRow = {
+    image_url: productSubmission.image_url ?? existingCorrection?.image_url ?? null,
     user_id: user.id,
     product_barcode:
       barcode,

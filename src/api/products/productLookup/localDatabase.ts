@@ -1,3 +1,4 @@
+import { normaliseImageUrl } from "@/utils/productImage";
 import { supabase } from "@/lib/supabase";
 
 import {
@@ -17,6 +18,7 @@ import {
  * editable product form.
  */
 type DatabaseProductValues = {
+  image_url: string | null;
   product_name: string | null;
   product_amount: number | null;
   measurement_unit: MeasurementUnit;
@@ -51,6 +53,7 @@ function mapDatabaseProduct(
   product: DatabaseProductValues
 ): LookupProduct {
   return {
+    image_url: normaliseImageUrl(product.image_url),
     product_name:
       toEditableValue(product.product_name),
 
@@ -119,6 +122,7 @@ async function getSharedProduct(
     .from("products")
     .select(`
       barcode_number,
+      image_url,
       product_name,
       product_amount,
       measurement_unit,
@@ -182,6 +186,7 @@ async function getUserCorrection(
     .select(`
       product_barcode,
       user_id,
+      image_url,
       product_name,
       product_amount,
       measurement_unit,

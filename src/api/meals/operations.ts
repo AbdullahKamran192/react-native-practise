@@ -1,3 +1,4 @@
+import { mealImageRequest } from "./images";
 import { supabase } from "@/lib/supabase";
 import type { AddMealItemInput, Meal, MealInput, MealWithItems } from "./types";
 import { MAX_MEALS, MAX_MEAL_ITEMS, validateMeal, validateMealAmount, validateMealId } from "./validation";
@@ -58,9 +59,7 @@ export async function updateMeal(id: string, input: MealInput): Promise<Meal> {
 
 export async function deleteMeal(id: string) {
   validateMealId(id);
-  const user = await userId();
-  const { error } = await supabase.from("meals").delete().eq("id", id).eq("user_id", user);
-  if (error) fail(error);
+  await mealImageRequest("delete-meal", id);
 }
 
 export async function addMealItem(input: AddMealItemInput) {

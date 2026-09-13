@@ -1,3 +1,5 @@
+import ProductImage from "@/components/products/ProductImage";
+import { genericProductImageUrl } from "@/utils/productImage";
 import { getPantryAmounts, formatPantryQuantity } from "@/utils/pantryAmounts";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -76,17 +78,8 @@ const ProductListItem = ({
     <Pressable style={({ pressed }) => [styles.productCard, pressed && { opacity: 0.7 }]}
       accessibilityRole="button" accessibilityLabel={`View ${productName}, edit amount remaining`}
       onPress={() => router.push({ pathname: "/pantryDetails", params: { pantryId: String(pantryItem.id) } })}>
-      <View style={styles.productIcon}>
-        <Ionicons
-          name={
-            isGenericProduct
-              ? "nutrition-outline"
-              : "barcode-outline"
-          }
-          size={23}
-          color="#222"
-        />
-      </View>
+      <ProductImage thumbnail name={productName} uri={genericProduct
+        ? genericProductImageUrl(genericProduct.image_path) : barcodeProduct?.image_url} />
 
       <View
         style={

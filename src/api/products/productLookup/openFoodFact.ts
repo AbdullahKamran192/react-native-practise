@@ -1,3 +1,4 @@
+import { normaliseImageUrl } from "@/utils/productImage";
 import {
   LookupProduct,
   createEmptyProduct,
@@ -25,6 +26,9 @@ type OpenFoodFactsNutriments = {
 };
 
 type OpenFoodFactsProduct = {
+  image_front_small_url?: unknown;
+  image_front_url?: unknown;
+  image_url?: unknown;
   product_name?: unknown;
   brands?: unknown;
 
@@ -87,6 +91,7 @@ function mapOpenFoodFactsProduct(
     product.nutriments ?? {};
 
   return {
+    image_url: normaliseImageUrl(product.image_front_small_url) ?? normaliseImageUrl(product.image_front_url) ?? normaliseImageUrl(product.image_url),
     product_name:
       toEditableValue(product.product_name),
 
@@ -166,6 +171,9 @@ export async function lookupOpenFoodFactsProduct(
    * Open Food Facts product object.
    */
   const requestedFields = [
+    "image_front_url",
+    "image_front_small_url",
+    "image_url",
     "product_name",
     "brands",
     "product_quantity",

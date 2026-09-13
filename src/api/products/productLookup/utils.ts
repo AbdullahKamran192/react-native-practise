@@ -7,6 +7,7 @@ export type EditableValue =
   | undefined;
 
 export type LookupProduct = {
+  image_url?: string | null;
   product_name: string;
   brands: string;
   product_amount: string;
@@ -40,6 +41,7 @@ export type PackageDetails = {
  */
 export function createEmptyProduct(): LookupProduct {
   return {
+    image_url: null,
     product_name: "",
     brands: "",
     product_amount: "",
@@ -311,6 +313,7 @@ export function mergeMissingProductValues(
       incoming.measurement_unit;
 
   return {
+    image_url: current.image_url || incoming.image_url || null,
     product_name:
       current.product_name ||
       incoming.product_name,

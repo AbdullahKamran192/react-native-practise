@@ -92,7 +92,7 @@ export async function lookupProduct(
    * Any local values already found keep priority.
    * Open Food Facts can only fill missing fields.
    */
-  if (!isProductComplete(product)) {
+  if (!isProductComplete(product) || !product.image_url) {
     try {
       const openFoodFactsProduct =
         await lookupOpenFoodFactsProduct(

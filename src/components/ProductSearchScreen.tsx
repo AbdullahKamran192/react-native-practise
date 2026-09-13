@@ -20,6 +20,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { searchProducts } from "@/api/products/search/searchProducts";
 import type { ProductSearchResult } from "@/api/products/search/types";
 import SettingsButton from "@/components/SettingsButton";
+import ProductImage from "@/components/products/ProductImage";
 
 const Search = ({ mealId }: { mealId?: string }) => {
   const router = useRouter();
@@ -133,25 +134,17 @@ const Search = ({ mealId }: { mealId?: string }) => {
 
     return (
       <Pressable
-        style={styles.productCard}
+        style={({ pressed }) => [styles.productCard, pressed && styles.modalButtonPressed]}
         onPress={() => handleProductPress(item)}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.product_name}, ${productType}, ${amountText}`}
       >
-        <View style={styles.productIcon}>
-          <Ionicons
-            name={
-              item.source === "barcode"
-                ? "barcode-outline"
-                : "nutrition-outline"
-            }
-            size={23}
-            color="#222"
-          />
-        </View>
+        <ProductImage uri={item.image_url} name={item.product_name} compact />
 
         <View style={styles.productInformation}>
           <Text
             style={styles.productName}
-            numberOfLines={1}
+            numberOfLines={2}
           >
             {item.product_name}
           </Text>
@@ -165,11 +158,6 @@ const Search = ({ mealId }: { mealId?: string }) => {
           </Text>
         </View>
 
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color="#999"
-        />
       </Pressable>
     );
   };
@@ -300,6 +288,8 @@ const Search = ({ mealId }: { mealId?: string }) => {
         </View>
       ) : (
         <FlatList
+          numColumns={2}
+          columnWrapperStyle={styles.productRow}
           data={searchResults}
           keyExtractor={(item) =>
             `${item.source}-${item.id}`
@@ -506,27 +496,21 @@ const styles = StyleSheet.create({
   },
 
   productCard: {
-    minHeight: 90,
-    flexDirection: "row",
-    alignItems: "center",
+    width: "48%",
     backgroundColor: "#fff",
     borderRadius: 18,
-    padding: 15,
-    marginBottom: 11,
+    overflow: "hidden",
+    marginBottom: 14,
   },
 
-  productIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 15,
-    backgroundColor: "#EDEDED",
-    justifyContent: "center",
-    alignItems: "center",
+  productRow: {
+    justifyContent: "space-between",
+    alignItems: "stretch",
   },
 
   productInformation: {
     flex: 1,
-    marginHorizontal: 14,
+    padding: 12,
   },
 
   productName: {

@@ -1,3 +1,4 @@
+import MealPhoto from "@/components/meals/MealPhoto";
 import ConsumeMeal from "@/components/meals/ConsumeMeal";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState } from "react";
@@ -43,7 +44,8 @@ export default function MealDetailsScreen() {
   if (query.error || !query.data) return <MealStatus error={query.error?.message ?? "Meal not found."} retry={() => query.refetch()} />;
   const meal = query.data;
   const nutrition = getMealNutrition(meal.items);
-  return <ScrollView style={s.screen} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+  return <ScrollView key={mealId} style={s.screen} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    <MealPhoto meal={meal} editable />
     {editing ? <MealForm initial={meal} saving={update.isPending} error={update.error?.message}
       onCancel={() => setEditing(false)} onSave={(values) => update.mutate({ id: mealId, values }, { onSuccess: () => setEditing(false) })} /> : <View style={s.card}>
       <Text style={s.title}>{meal.meal_name}</Text>
@@ -64,7 +66,7 @@ export default function MealDetailsScreen() {
       {nutrientKeys.map((key) => <Text key={key} style={s.text}>{key[0].toUpperCase() + key.slice(1)}: {Number(nutrition.totals[key].toFixed(key === "calories" ? 0 : 1))}{key === "calories" ? " kcal" : "g"}</Text>)}
       {nutrition.incomplete && <Text style={s.muted}>Some ingredient nutrition is missing. Totals include known values only.</Text>}
     </View>
-    <ConsumeMeal key={mealId} mealId={mealId} disabled={meal.items.length === 0 || editing || update.isPending || remove.isPending} />
+    <ConsumeMeal mealId={mealId} disabled={meal.items.length === 0 || editing || update.isPending || remove.isPending} />
     {remove.error && <Text style={s.error}>{remove.error.message}</Text>}
     <MealButton secondary disabled={remove.isPending} title={remove.isPending ? "Deleting…" : "Delete meal"} onPress={() => Alert.alert("Delete meal?", `Delete ${meal.meal_name} and its ingredient list?`, [
       { text: "Cancel", style: "cancel" },

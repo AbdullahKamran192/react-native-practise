@@ -11,12 +11,12 @@ type Props = {
   packageSize: number | null;
   unit: "g" | "ml";
   disabled: boolean;
-  purpose?: "add" | "remaining";
+  purpose?: "add" | "remaining" | "recipe";
 };
 
 export default function AmountToAdd({ selection, onChange, packageSize, unit, disabled, purpose = "add" }: Props) {
-  const amountLabel = purpose === "remaining" ? "Amount remaining" : "Amount to add";
-  const [editing, setEditing] = useState(false);
+  const amountLabel = purpose === "recipe" ? "Amount in this recipe" : purpose === "remaining" ? "Amount remaining" : "Amount to add";
+  const [editing, setEditing] = useState(purpose === "recipe");
   const total = resolvePantryAddition(selection, packageSize);
   const quantity = selection.mode === "quantity"
     ? toNumber(selection.value)
@@ -60,7 +60,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
                 onChangeText={(value) => onChange({ mode: "quantity", value })}
                 editable={!disabled && packageSize !== null && packageSize > 0}
                 keyboardType="decimal-pad"
-                accessibilityLabel={purpose === "remaining" ? "Quantity remaining" : "Quantity to add"}
+                accessibilityLabel={purpose === "recipe" ? "Quantity in this recipe" : purpose === "remaining" ? "Quantity remaining" : "Quantity to add"}
                 placeholder="1"
               />
             </View>

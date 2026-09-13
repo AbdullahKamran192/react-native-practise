@@ -1,6 +1,7 @@
 import type { ProductRow, GenericProductRow } from "@/api/products";
 
 export type Meal = {
+  image_path?: string | null;
   id: number;
   user_id: string;
   meal_name: string;

@@ -1,3 +1,4 @@
+import ProductImage from "@/components/products/ProductImage";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
@@ -357,6 +358,8 @@ const ProductConsumeScreen = () => {
             </View>
           </View>
         )}
+
+        <ProductImage uri={editableProduct.image_url} name={editableProduct.product_name} />
 
         {isGenericProduct && (
           <View style={styles.genericProductNotice}>
