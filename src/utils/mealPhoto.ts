@@ -3,8 +3,8 @@ import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { File } from "expo-file-system";
 import { Platform } from "react-native";
 
-export async function chooseMealPhoto(camera: boolean): Promise<string | null> {
-  if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) throw new Error("Allow camera access to take a meal photo.");
+export async function chooseMealPhoto(camera: boolean, kind = "meal"): Promise<string | null> {
+  if (camera && !(await ImagePicker.requestCameraPermissionsAsync()).granted) throw new Error(`Allow camera access to take a ${kind} photo.`);
   const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], quality: 1 };
   const result = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
   if (result.canceled) return null;

@@ -103,6 +103,7 @@ export default function RootLayout() {
             }}
           />
 
+          <Stack.Screen name="admin/productImages" options={{ title: "Product image reviews", headerBackTitle: "Back" }} />
           <Stack.Screen name="createMeal" options={{ title: "Create meal", headerBackTitle: "Back" }} />
           <Stack.Screen name="mealDetails" options={{ title: "Meal details", headerBackTitle: "Back" }} />
           <Stack.Screen name="consumptionDetails" options={{ title: "Consumption details", headerBackTitle: "Back" }} />

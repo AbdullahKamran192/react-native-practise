@@ -1,4 +1,6 @@
 import MealPhoto from "@/components/meals/MealPhoto";
+import ProductImage from "@/components/products/ProductImage";
+import { barcodeProductImageUrl, genericProductImageUrl } from "@/utils/productImage";
 import ConsumeMeal from "@/components/meals/ConsumeMeal";
 import { useLocalSearchParams, router } from "expo-router";
 import { useState } from "react";
@@ -15,10 +17,18 @@ function Ingredient({ item, mealId }: { item: MealItem; mealId: string }) {
   const [amount, setAmount] = useState(String(item.amount));
   const { updateItem, removeItem } = useMealActions();
   const product = item.product ?? item.generic_product;
+  const imageUri = item.product
+    ? barcodeProductImageUrl(item.product)
+    : genericProductImageUrl(item.generic_product?.image_path);
   const busy = updateItem.isPending || removeItem.isPending;
   return <View style={s.card}>
-    <Text style={s.heading}>{product?.product_name ?? "Unavailable product"}</Text>
-    <Text style={s.text}>{item.amount}{product?.measurement_unit ?? ""}</Text>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+      <ProductImage thumbnail uri={imageUri} name={product?.product_name ?? "Ingredient"} />
+      <View style={{ flex: 1, gap: 4 }}>
+        <Text style={s.heading}>{product?.product_name ?? "Unavailable product"}</Text>
+        <Text style={s.text}>{item.amount}{product?.measurement_unit ?? ""}</Text>
+      </View>
+    </View>
     {editing && <TextInput accessibilityLabel={`Amount of ${product?.product_name ?? "ingredient"}`} style={s.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" editable={!busy} />}
     <View style={s.row}>
       <MealButton secondary disabled={busy} title={editing ? "Save amount" : "Edit amount"} onPress={() => {

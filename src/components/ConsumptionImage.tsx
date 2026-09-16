@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { mealImageRequest } from "@/api/meals/images";
 import type { HistoryRow } from "@/utils/consumptionHistory";
-import { genericProductImageUrl } from "@/utils/productImage";
+import { genericProductImageUrl, barcodeProductImageUrl } from "@/utils/productImage";
 import ProductImage from "@/components/products/ProductImage";
 
 export default function ConsumptionImage({ row, thumbnail = false, ingredient = false }: {
@@ -17,6 +17,6 @@ export default function ConsumptionImage({ row, thumbnail = false, ingredient = 
     retry: false,
   });
   const uri = isMeal ? (meal?.image_path ? query.data?.url : null)
-    : row.generic_product ? genericProductImageUrl(row.generic_product.image_path) : row.product?.image_url;
+    : row.generic_product ? genericProductImageUrl(row.generic_product.image_path) : barcodeProductImageUrl(row.product);
   return <ProductImage uri={uri} name={isMeal ? row.meal_name_snapshot! : row.product_name_snapshot} thumbnail={thumbnail} privateImage={isMeal} />;
 }

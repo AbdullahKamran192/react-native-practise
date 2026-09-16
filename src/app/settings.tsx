@@ -1,3 +1,4 @@
+import ProductImageReviewsLink from "@/components/settings/ProductImageReviewsLink";
 import { Ionicons } from "@expo/vector-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -378,6 +379,8 @@ export default function SettingsScreen() {
           onSave={handleSavePreferences}
           isSaving={isSaving}
         />
+
+        <ProductImageReviewsLink />
 
         <PolicySection />
 

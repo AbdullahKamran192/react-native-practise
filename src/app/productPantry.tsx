@@ -1,3 +1,4 @@
+import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission";
 import ProductImage from "@/components/products/ProductImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
@@ -399,7 +400,8 @@ const ProductPantryScreen = () => {
           </View>
         )}
 
-        <ProductImage uri={editableProduct.image_url} name={editableProduct.product_name} />
+        {isGenericProduct ? <ProductImage uri={editableProduct.image_url} name={editableProduct.product_name} />
+          : <ProductPhotoSubmission key={productIdentifier} barcode={productIdentifier} product={editableProduct} />}
 
         {isGenericProduct && (
           <View style={styles.genericProductNotice}>

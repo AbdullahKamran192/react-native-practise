@@ -17,6 +17,7 @@ export type MeasurementUnit =
   | "ml";
 
 export type ProductRow = {
+  image_path?: string | null;
   image_url?: string | null;
   barcode_number: string;
   product_name: string | null;
@@ -343,7 +344,8 @@ export async function saveBarcodeProduct(productSubmission: ProductSubmission) {
 
   const correctionToSave:
     ProductCorrectionRow = {
-    image_url: productSubmission.image_url ?? existingCorrection?.image_url ?? null,
+    image_url: productSubmission.image_url?.startsWith("https://images.openfoodfacts.org/")
+      ? productSubmission.image_url : existingCorrection?.image_url ?? null,
     user_id: user.id,
     product_barcode:
       barcode,

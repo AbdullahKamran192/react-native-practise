@@ -1,11 +1,12 @@
 import { supabase } from "@/lib/supabase";
-import { genericProductImageUrl } from "@/utils/productImage";
+import { genericProductImageUrl, barcodeProductImageUrl } from "@/utils/productImage";
 
 import type {
   ProductSearchResult,
 } from "./types";
 
 type BarcodeProductSearchRow = {
+  image_path: string | null;
   image_url: string | null;
   barcode_number: string;
   product_name: string | null;
@@ -49,6 +50,7 @@ export async function searchProducts(
       .from("products")
       .select(`
         barcode_number,
+        image_path,
         image_url,
         product_name,
         product_amount,
@@ -111,7 +113,7 @@ export async function searchProducts(
     barcodeProducts.map((product) => ({
       id: product.barcode_number,
       source: "barcode",
-      image_url: product.image_url ?? null,
+      image_url: barcodeProductImageUrl(product),
       product_name:
         product.product_name ??
         "Unknown product",

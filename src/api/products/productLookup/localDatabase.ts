@@ -1,3 +1,4 @@
+import { barcodeProductImageUrl } from "@/utils/productImage";
 import { normaliseImageUrl } from "@/utils/productImage";
 import { supabase } from "@/lib/supabase";
 
@@ -33,6 +34,7 @@ type DatabaseProductValues = {
 
 type SharedProductRow =
   DatabaseProductValues & {
+    image_path?: string | null;
     barcode_number: string;
   };
 
@@ -122,6 +124,7 @@ async function getSharedProduct(
     .from("products")
     .select(`
       barcode_number,
+      image_path,
       image_url,
       product_name,
       product_amount,
@@ -148,9 +151,7 @@ async function getSharedProduct(
   const sharedProduct =
     data as SharedProductRow;
 
-  return mapDatabaseProduct(
-    sharedProduct
-  );
+  return { ...mapDatabaseProduct(sharedProduct), image_url: barcodeProductImageUrl(sharedProduct) };
 }
 
 /*
@@ -264,8 +265,6 @@ export async function lookupLocalProduct(
    * Shared product values fill fields that the user
    * left empty.
    */
-  return mergeMissingProductValues(
-    userCorrection,
-    sharedProduct ?? createEmptyProduct()
-  );
+  return { ...mergeMissingProductValues(userCorrection, sharedProduct ?? createEmptyProduct()),
+    image_url: sharedProduct?.image_url || userCorrection.image_url || null };
 }

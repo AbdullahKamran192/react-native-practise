@@ -1,7 +1,7 @@
 export const nutrients = ["calories", "protein", "carbs", "fat", "sugars", "salt", "fibre"] as const;
 export type Nutrient = typeof nutrients[number];
 export type HistoryRow = {
-  product?: { image_url: string | null } | null;
+  product?: { image_url: string | null; image_path?: string | null } | null;
   generic_product?: { image_path: string | null } | null;
   meal?: { id: number; user_id: string; image_path: string | null } | null;
   id: number; consumption_group_id: string; consumed_on: string; created_at: string;

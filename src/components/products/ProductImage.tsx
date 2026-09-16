@@ -2,7 +2,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { normaliseImageUrl } from "@/utils/productImage";
+import { normaliseImageUrl, genericProductImageUrl } from "@/utils/productImage";
 
 export default function ProductImage({ uri, name, compact = false, thumbnail = false, privateImage = false }: { uri?: string | null; name: string; compact?: boolean; thumbnail?: boolean; privateImage?: boolean }) {
   const url = normaliseImageUrl(uri);
@@ -10,7 +10,7 @@ export default function ProductImage({ uri, name, compact = false, thumbnail = f
   return <View style={[styles.card, compact && styles.compactCard, thumbnail && styles.thumbnail]}>
     {url && failedUrl !== url ? <Image
       key={url} source={{ uri: url }} style={[styles.image, compact && styles.compactImage, thumbnail && styles.thumbnailImage]} contentFit="contain"
-      cachePolicy={privateImage ? "none" : "disk"}
+      cachePolicy={privateImage || url?.startsWith(genericProductImageUrl("products/")!) ? "none" : "disk"}
       transition={200} accessibilityLabel={`Photo of ${name || "product"}`}
       onError={() => setFailedUrl(url)}
     /> : <View style={[styles.placeholder, compact && styles.compactImage, thumbnail && styles.thumbnailImage]} accessibilityLabel="No product image available">

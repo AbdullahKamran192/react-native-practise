@@ -14,3 +14,7 @@ export function normaliseImageUrl(value: unknown): string | null {
     return url.href;
   } catch { return null; }
 }
+
+export function barcodeProductImageUrl(product: { image_path?: string | null; image_url?: string | null } | null | undefined): string | null {
+  return genericProductImageUrl(product?.image_path) ?? normaliseImageUrl(product?.image_url);
+}

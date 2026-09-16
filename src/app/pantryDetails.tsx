@@ -1,5 +1,5 @@
 import ProductImage from "@/components/products/ProductImage";
-import { genericProductImageUrl } from "@/utils/productImage";
+import { genericProductImageUrl, barcodeProductImageUrl } from "@/utils/productImage";
 import { useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
@@ -73,7 +73,7 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
   return <SafeAreaView style={s.screen} edges={["left", "right", "bottom"]}>
     <ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets>
       <ProductImage name={product?.product_name ?? "Product"} uri={item.generic_product
-        ? genericProductImageUrl(item.generic_product.image_path) : item.product?.image_url} />
+        ? genericProductImageUrl(item.generic_product.image_path) : barcodeProductImageUrl(item.product)} />
       <Text style={s.caption}>{item.generic_product ? "Generic food" : "Packaged product"}</Text>
       <Text style={s.title}>{product?.product_name ?? "Unknown product"}</Text>
       <Text style={s.note}>{packageSize === null ? "Item size unavailable" : `1 item = ${format(packageSize)} ${unit}`}</Text>

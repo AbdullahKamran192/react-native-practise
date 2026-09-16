@@ -1,3 +1,4 @@
+import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission";
 import { router, useLocalSearchParams } from "expo-router";
 import { useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -88,6 +89,7 @@ export default function MealIngredientScreen() {
   if (!product) return <MealStatus error="Product details are unavailable. Go back and choose a product again." />;
   const unit = product.measurement_unit;
   return <ScrollView style={s.screen} contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">
+    {!isGenericProduct && <ProductPhotoSubmission key={selected.productIdentifier} barcode={selected.productIdentifier} product={product} disabled={saving} />}
     <Text style={s.heading}>Add to {meal.data.meal_name}</Text>
     {selected.lookupStatus !== "found" && <Text style={s.muted}>Some product details could not be found. Review the information before adding it.</Text>}
     {!isGenericProduct && editing ? <View pointerEvents={saving ? "none" : "auto"}>

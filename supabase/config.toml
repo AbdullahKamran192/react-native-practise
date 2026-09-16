@@ -1,2 +1,5 @@
 [functions.meal-images]
 verify_jwt = false
+
+[functions.product-images]
+verify_jwt = false
