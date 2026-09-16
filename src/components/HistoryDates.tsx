@@ -1,3 +1,4 @@
+import { brand } from "@/components/brand/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -45,19 +46,19 @@ export default function HistoryDates({ dates, selected, onSelect, scores }: Prop
       </ScrollView>
       <Pressable accessibilityRole="button" accessibilityLabel="Choose date from calendar" accessibilityState={{expanded:open}}
         style={s.calendarButton} onPress={()=>{setMonth(selected.slice(0,7));setOpen(!open);}}>
-        <Ionicons name="calendar-outline" size={23} color="#222"/>
+        <Ionicons name="calendar-outline" size={23} color={brand.deepTeal}/>
       </Pressable>
     </View>
     {open && <View style={s.calendar}>
       <View style={s.monthRow}>
         <Pressable accessibilityRole="button" accessibilityLabel="Previous month" disabled={month<=dates[dates.length-1].slice(0,7)}
           onPress={()=>setMonth(dateKey(previous).slice(0,7))} style={s.arrow}>
-          <Ionicons name="chevron-back" size={22} color={month<=dates[dates.length-1].slice(0,7) ? "#CCC" : "#222"}/>
+          <Ionicons name="chevron-back" size={22} color={month<=dates[dates.length-1].slice(0,7) ? "#CCC" : brand.deepTeal}/>
         </Pressable>
         <Text style={s.month}>{first.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Next month" disabled={month>=dates[0].slice(0,7)}
           onPress={()=>setMonth(dateKey(next).slice(0,7))} style={s.arrow}>
-          <Ionicons name="chevron-forward" size={22} color={month>=dates[0].slice(0,7) ? "#CCC" : "#222"}/>
+          <Ionicons name="chevron-forward" size={22} color={month>=dates[0].slice(0,7) ? "#CCC" : brand.deepTeal}/>
         </Pressable>
       </View>
       <View style={s.grid}>{["M","T","W","T","F","S","S"].map((label,i)=><Text key={i} style={s.weekday}>{label}</Text>)}</View>
@@ -81,11 +82,11 @@ export default function HistoryDates({ dates, selected, onSelect, scores }: Prop
 const s=StyleSheet.create({
   container:{marginBottom:18},row:{flexDirection:"row",alignItems:"center",gap:8},
   strip:{gap:8,paddingVertical:4},day:{width:64,minHeight:82,borderRadius:16,borderWidth:2,borderColor:"transparent",alignItems:"center",justifyContent:"center",gap:2},
-  selected:{borderColor:"#222",borderWidth:2},small:{fontSize:11},number:{fontSize:23,fontWeight:"700"},
-  calendarButton:{width:44,height:48,backgroundColor:"#EDEDED",borderRadius:14,alignItems:"center",justifyContent:"center"},
+  selected:{borderColor:brand.teal,borderWidth:2},small:{fontSize:11},number:{fontSize:23,fontWeight:"700"},
+  calendarButton:{width:44,height:48,backgroundColor:brand.paleTeal,borderRadius:14,alignItems:"center",justifyContent:"center"},
   calendar:{backgroundColor:"#FFF",borderRadius:20,padding:12,marginTop:12},
-  monthRow:{flexDirection:"row",alignItems:"center",justifyContent:"space-between"},month:{fontSize:16,fontWeight:"700"},
-  arrow:{padding:10},grid:{flexDirection:"row",flexWrap:"wrap"},weekday:{width:"14.2857%",textAlign:"center",paddingVertical:8,color:"#777"},
+  monthRow:{flexDirection:"row",alignItems:"center",justifyContent:"space-between"},month:{color:brand.ink,fontSize:16,fontWeight:"700"},
+  arrow:{padding:10},grid:{flexDirection:"row",flexWrap:"wrap"},weekday:{width:"14.2857%",textAlign:"center",paddingVertical:8,color:brand.muted},
   cell:{width:"14.2857%",height:44,padding:2},calendarDay:{flex:1,borderRadius:10,alignItems:"center",justifyContent:"center",borderWidth:2,borderColor:"transparent"},
-  help:{fontSize:11,color:"#777",lineHeight:16,marginTop:8},
+  help:{fontSize:11,color:brand.muted,lineHeight:16,marginTop:8},
 });

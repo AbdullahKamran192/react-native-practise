@@ -53,13 +53,13 @@ export default function MealPhoto({ meal, editable = false }: { meal: Meal; edit
       </View>}
     {editable && <>
       <View style={s.row}>
-        <MealButton secondary disabled={busy} title="Choose photo" onPress={() => void choose(false)} />
-        <MealButton secondary disabled={busy} title="Take photo" onPress={() => void choose(true)} />
+        <MealButton secondary disabled={busy} icon="image-outline" title="Choose photo" onPress={() => void choose(false)} />
+        <MealButton secondary disabled={busy} icon="camera-outline" title="Take photo" onPress={() => void choose(true)} />
       </View>
       {draft ? <View style={s.row}>
         <MealButton disabled={busy} title={busy ? "Saving..." : "Save photo"} onPress={() => void save()} />
         <MealButton secondary disabled={busy} title="Cancel" onPress={() => setDraft(null)} />
-      </View> : meal.image_path ? <MealButton secondary disabled={busy} title={busy ? "Please wait..." : "Remove photo"} onPress={() => void save(true)} /> : null}
+      </View> : meal.image_path ? <MealButton destructive icon="trash-outline" disabled={busy} title={busy ? "Please wait..." : "Remove photo"} onPress={() => void save(true)} /> : null}
       {(error || query.error) && <Text style={s.error}>{error ?? query.error?.message}</Text>}
       {(query.error || (uri && failed === uri)) && <MealButton secondary title="Reload photo" onPress={() => { setFailed(null); void query.refetch(); }} />}
     </>}

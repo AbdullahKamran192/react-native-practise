@@ -78,78 +78,24 @@ const ProductListItem = ({
     <Pressable style={({ pressed }) => [styles.productCard, pressed && { opacity: 0.7 }]}
       accessibilityRole="button" accessibilityLabel={`View ${productName}, edit amount remaining`}
       onPress={() => router.push({ pathname: "/pantryDetails", params: { pantryId: String(pantryItem.id) } })}>
-      <ProductImage thumbnail name={productName} uri={genericProduct
-        ? genericProductImageUrl(genericProduct.image_path) : barcodeProductImageUrl(barcodeProduct)} />
-
-      <View
-        style={
-          styles.productInformation
-        }
-      >
-        <View style={styles.nameRow}>
-          <Text
-            style={styles.productName}
-            numberOfLines={1}
-          >
-            {productName}
-          </Text>
-
-          {quantity !== null && (
-            <View style={styles.quantityBadge}>
-              <Text style={styles.quantityText}>
-                ×{formatPantryQuantity(quantity)}
-              </Text>
-            </View>
-          )}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+        <ProductImage thumbnail thumbnailSize={72} name={productName} uri={genericProduct
+          ? genericProductImageUrl(genericProduct.image_path) : barcodeProductImageUrl(barcodeProduct)} />
+        <View style={{ flex: 1, gap: 8 }}>
+          <Text style={styles.productName}>{productName}</Text>
+          <Text style={{ color: "#007F95", fontSize: 20, fontWeight: "700" }}>{amountRemaining}{measurementUnit} <Text style={{ color: "#617783", fontSize: 14, fontWeight: "400" }}>remaining</Text></Text>
         </View>
-
-        <View
-          style={styles.nutritionRow}
-        >
-          <Text
-            style={
-              styles.nutritionText
-            }
-          >
-            {Math.round(
-              totalCalories
-            )}{" "}
-            kcal
-          </Text>
-
-          <View style={styles.dot} />
-
-          <Text
-            style={
-              styles.nutritionText
-            }
-          >
-            {Math.round(
-              totalProtein * 10
-            ) / 10}
-            g protein
-          </Text>
-        </View>
-
-        <Text style={styles.amountText}>
-          {amountRemaining}{measurementUnit} remaining
-          {quantity !== null
-            ? ` • ${productAmount}${measurementUnit} each`
-            : " • item size unavailable"}
-        </Text>
-
-        <Text style={styles.productType}>
-          {isGenericProduct
-            ? "Generic food"
-            : "Packaged product"}
-        </Text>
+        <Ionicons name="chevron-forward" size={22} color="#617783" />
       </View>
-
-      <Ionicons
-        name="chevron-forward"
-        size={20}
-        color="#999"
-      />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
+        <Text style={{ backgroundColor: "#FFF3E2", color: "#AD510B", padding: 10, borderRadius: 12, fontSize: 15 }}><Ionicons name="flame-outline" size={16} /> {Math.round(totalCalories)} kcal</Text>
+        <Text style={{ backgroundColor: "#EAF7EC", color: "#287C3D", padding: 10, borderRadius: 12, fontSize: 15 }}><Ionicons name="barbell-outline" size={16} /> {Math.round(totalProtein * 10) / 10}g protein</Text>
+      </View>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 14 }}>
+        {quantity !== null && <View style={styles.quantityBadge}><Text style={styles.quantityText}>?{formatPantryQuantity(quantity)}</Text></View>}
+        <Text style={styles.amountText}>{quantity !== null ? `${productAmount}${measurementUnit} each` : "Item size unavailable"}</Text>
+        <Text style={styles.productType}>{isGenericProduct ? "Generic food" : "Packaged product"}</Text>
+      </View>
     </Pressable>
   );
 };
@@ -157,85 +103,10 @@ const ProductListItem = ({
 export default ProductListItem;
 
 const styles = StyleSheet.create({
-  productCard: {
-    minHeight: 92,
-    backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 16,
-    marginBottom: 12,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  productIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 15,
-    backgroundColor: "#EDEDED",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-
-  productInformation: {
-    flex: 1,
-    marginHorizontal: 14,
-  },
-
-  nameRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-
-  productName: {
-    flexShrink: 1,
-    color: "#222",
-    fontSize: 16,
-    fontWeight: "700",
-  },
-
-  quantityBadge: {
-    backgroundColor: "#222",
-    borderRadius: 10,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    marginLeft: 8,
-  },
-
-  quantityText: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "700",
-  },
-
-  nutritionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 7,
-  },
-
-  nutritionText: {
-    color: "#777",
-    fontSize: 13,
-  },
-
-  amountText: {
-    color: "#999",
-    fontSize: 11,
-    marginTop: 4,
-  },
-
-  productType: {
-    color: "#999",
-    fontSize: 10,
-    fontWeight: "600",
-    marginTop: 3,
-  },
-
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: "#BDBDBD",
-    marginHorizontal: 8,
-  },
+  productCard: { backgroundColor: "#fff", borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: "#E7F1F3" },
+  productName: { color: "#102739", fontSize: 18, fontWeight: "700", lineHeight: 25 },
+  quantityBadge: { backgroundColor: "#E3F4F6", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
+  quantityText: { color: "#00556B", fontSize: 14, fontWeight: "700" },
+  amountText: { color: "#617783", fontSize: 14 },
+  productType: { color: "#617783", fontSize: 13 },
 });

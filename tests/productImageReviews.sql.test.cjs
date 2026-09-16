@@ -54,5 +54,25 @@ test("product reviews: permissions, reservations, approval and three offensive s
   assert.equal(c.image_status,'approved');assert.equal(c.image_path,null);assert.equal(c.calories_per_100,'125');
   assert.equal((await db.query("select image_path from products")).rows[0].image_path,`products/${barcode}/image.webp`);
   await assert.rejects(begin('upload'),/already has an image/);
+  await db.exec(fs.readFileSync(path.join(__dirname,"../supabase/migrations/20260916_allow_product_image_replacements.sql"),"utf8"));
+  const publicPath=`products/${barcode}/image.webp`;
+  row=await pending();
+  assert.equal((await db.query("select image_path from products")).rows[0].image_path,publicPath);
+  await assert.rejects(begin('upload'),/awaiting review/);
+  await assert.rejects(begin('approve',other,row.image_submitted_at),/Not authorised/);
+  claim=await begin('reject',admin,row.image_submitted_at);
+  await finish('reject',claim,admin,'poor_quality');
+  assert.equal((await db.query("select image_path from products")).rows[0].image_path,publicPath);
+  row=await pending();claim=await begin('approve',admin,row.image_submitted_at);await finish('approve',claim,admin);
+  assert.equal((await db.query("select image_status,calories_per_100 from product_corrections")).rows[0].image_status,'approved');
+  assert.equal((await db.query("select calories_per_100 from product_corrections")).rows[0].calories_per_100,'125');
+  // An OFF-only product also accepts a replacement, retaining its fallback URL.
+  await db.exec("update products set image_path=null,image_url='https://images.openfoodfacts.org/example.webp'");
+  row=await pending();claim=await begin('approve',admin,row.image_submitted_at);await finish('approve',claim,admin);
+  const approved=(await db.query("select image_path,image_url from products")).rows[0];
+  assert.equal(approved.image_path,publicPath);
+  assert.equal(approved.image_url,'https://images.openfoodfacts.org/example.webp');
+  await db.exec("update user_image_moderation set image_upload_blocked=true");
+  await assert.rejects(begin('upload'),/blocked/);
  }finally{await db.close();}
 });

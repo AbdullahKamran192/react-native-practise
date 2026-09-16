@@ -1,11 +1,14 @@
+import { Ionicons } from "@expo/vector-icons";
+import { brand } from "@/components/brand/theme";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
-export function MealButton({ title, onPress, disabled = false, secondary = false }: {
-  title: string; onPress: () => void; disabled?: boolean; secondary?: boolean;
+export function MealButton({ title, onPress, disabled = false, secondary = false, destructive = false, icon }: {
+  title: string; onPress: () => void; disabled?: boolean; secondary?: boolean; destructive?: boolean; icon?: keyof typeof Ionicons.glyphMap;
 }) {
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled}
-    onPress={onPress} style={({ pressed }) => [mealStyles.button, secondary && mealStyles.secondary, (disabled || pressed) && { opacity: 0.5 }]}>
-    <Text style={[mealStyles.buttonText, secondary && { color: "#222" }]}>{title}</Text>
+    onPress={onPress} style={({ pressed }) => [mealStyles.button, secondary && mealStyles.secondary, destructive && mealStyles.destructive, (disabled || pressed) && { opacity: 0.5 }]}>
+    {icon && <Ionicons name={icon} size={22} color={destructive ? brand.red : secondary ? brand.deepTeal : "#fff"} />}
+    <Text style={[mealStyles.buttonText, secondary && { color: brand.deepTeal }, destructive && { color: brand.red }]}>{title}</Text>
   </Pressable>;
 }
 
@@ -17,17 +20,18 @@ export function MealStatus({ loading, error, retry }: { loading?: boolean; error
 }
 
 export const mealStyles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#F7F7F7" },
-  content: { padding: 20, gap: 16, paddingBottom: 40 },
-  title: { fontSize: 26, fontWeight: "700", color: "#222" },
-  heading: { fontSize: 18, fontWeight: "700", color: "#222" },
-  text: { fontSize: 15, lineHeight: 22, color: "#333" },
-  muted: { fontSize: 13, lineHeight: 19, color: "#777" },
-  card: { padding: 16, borderRadius: 16, backgroundColor: "#fff", gap: 8 },
-  row: { flexDirection: "row", alignItems: "center", gap: 10, flexWrap: "wrap" },
-  input: { backgroundColor: "#fff", borderColor: "#DDD", borderWidth: 1, borderRadius: 12, padding: 12, minHeight: 48, color: "#222", fontSize: 16 },
-  button: { backgroundColor: "#222", borderRadius: 12, minHeight: 48, paddingHorizontal: 16, paddingVertical: 12, alignItems: "center", justifyContent: "center" },
-  buttonText: { color: "#fff", fontSize: 15, fontWeight: "600" },
-  secondary: { backgroundColor: "#E7E7E7" },
+  screen: { flex: 1, backgroundColor: brand.background },
+  content: { padding: 20, gap: 20, paddingBottom: 48 },
+  title: { fontSize: 30, fontWeight: "700", color: brand.ink },
+  heading: { fontSize: 20, fontWeight: "700", color: brand.ink },
+  text: { fontSize: 16, lineHeight: 25, color: brand.ink },
+  muted: { fontSize: 15, lineHeight: 23, color: brand.muted },
+  card: { padding: 20, borderRadius: 24, backgroundColor: "#fff", gap: 16, borderWidth: 1, borderColor: "#E7F1F3" },
+  row: { flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" },
+  input: { backgroundColor: "#fff", borderColor: brand.teal, borderWidth: 1, borderRadius: 12, padding: 16, minHeight: 54, color: brand.ink, fontSize: 16 },
+  button: { backgroundColor: brand.teal, borderRadius: 18, minHeight: 54, paddingHorizontal: 18, paddingVertical: 15, flexDirection: "row", gap: 10, maxWidth: "100%", alignItems: "center", justifyContent: "center" },
+  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600", flexShrink: 1, textAlign: "center" },
+  secondary: { backgroundColor: brand.paleTeal },
+  destructive: { backgroundColor: brand.paleRed, borderWidth: 1, borderColor: "#F5CCD2" },
   error: { color: "#B3261E", fontSize: 14, lineHeight: 20 },
 });

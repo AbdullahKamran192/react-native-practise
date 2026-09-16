@@ -1,4 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useRef, useState } from "react";
+import { brand } from "@/components/brand/theme";
 import { router } from "expo-router";
 
 import {
@@ -7,6 +9,7 @@ import {
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -33,9 +36,14 @@ import type {
 } from "@/components/pantry/PantryDashboard";
 
 import ProductListItem from "@/components/pantry/ProductListItem";
-import { getPantryAmounts, formatPantryQuantity } from "@/utils/pantryAmounts";
+import { getPantryAmounts } from "@/utils/pantryAmounts";
+
+const PAGE_SIZE = 50;
 
 const Pantry = () => {
+  const [page, setPage] = useState(1);
+  const [searchText, setSearchText] = useState("");
+  const listRef = useRef<FlatList<PantryItem>>(null);
   const {
     data: pantryItems = [],
     error: pantryError,
@@ -47,6 +55,61 @@ const Pantry = () => {
     error: settingsError,
     isLoading: areSettingsLoading,
   } = useUserSettings();
+
+  const searchTerm = searchText.trim().toLowerCase();
+  const matchingItems = searchTerm
+    ? pantryItems.filter(item =>
+        (item.product?.product_name ?? item.generic_product?.product_name ?? "")
+          .toLowerCase().includes(searchTerm))
+    : pantryItems;
+  const pageCount = Math.max(1, Math.ceil(matchingItems.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageItems = matchingItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  function updateSearch(value: string) {
+    setSearchText(value);
+    setPage(1);
+  }
+  // Consuming stock can remove the last page.
+  useEffect(() => {
+    setPage(previous => Math.min(previous, pageCount));
+  }, [pageCount]);
+
+  function goToPage(nextPage: number) {
+    setPage(Math.max(1, Math.min(nextPage, pageCount)));
+    listRef.current?.scrollToOffset({ offset: 0, animated: true });
+  }
+
+  const pagination = pageCount > 1 ? (
+    <View style={styles.pagination}>
+      <Text style={styles.pageSummary} accessibilityLiveRegion="polite">
+        {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, matchingItems.length)} of {matchingItems.length} products
+      </Text>
+      <View style={styles.pageControls}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Previous pantry page"
+          accessibilityState={{ disabled: currentPage === 1 }} disabled={currentPage === 1}
+          onPress={() => goToPage(currentPage - 1)} style={[styles.pageButton, currentPage === 1 && styles.pageDisabled]}>
+          <Ionicons name="chevron-back" size={18} color={brand.teal} />
+          <Text style={styles.pageText}>Previous</Text>
+        </Pressable>
+        <Text style={styles.pageSummary}>Page {currentPage} of {pageCount}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Next pantry page"
+          accessibilityState={{ disabled: currentPage === pageCount }} disabled={currentPage === pageCount}
+          onPress={() => goToPage(currentPage + 1)} style={[styles.pageButton, currentPage === pageCount && styles.pageDisabled]}>
+          <Text style={styles.pageText}>Next</Text>
+          <Ionicons name="chevron-forward" size={18} color={brand.teal} />
+        </Pressable>
+      </View>
+      <View style={styles.pageNumbers}>
+        {Array.from({ length: pageCount }, (_, index) => index + 1).map(number => (
+          <Pressable key={number} accessibilityRole="button" accessibilityLabel={`Pantry page ${number}`}
+            accessibilityState={{ selected: number === currentPage }} onPress={() => goToPage(number)}
+            style={[styles.pageNumber, number === currentPage && styles.selectedPage]}>
+            <Text style={[styles.pageText, number === currentPage && styles.selectedPageText]}>{number}</Text>
+          </Pressable>
+        ))}
+      </View>
+    </View>
+  ) : null;
 
   /*
    * Both queries are needed before the dashboard can
@@ -132,7 +195,7 @@ const Pantry = () => {
         return currentTotals;
       }
 
-      const { amountRemaining, quantity } = getPantryAmounts(pantryItem);
+      const { amountRemaining } = getPantryAmounts(pantryItem);
       const amountMultiplier = amountRemaining / 100;
 
       currentTotals.calories +=
@@ -198,13 +261,6 @@ const Pantry = () => {
           0
         ) * amountMultiplier;
 
-      /*
-       * itemCount represents the combined number of
-       * package/item equivalents calculated from remaining amounts.
-       */
-      currentTotals.itemCount +=
-        quantity ?? 0;
-
       return currentTotals;
     },
     {
@@ -215,7 +271,6 @@ const Pantry = () => {
       sugars: 0,
       salt: 0,
       fibre: 0,
-      itemCount: 0,
     }
   );
 
@@ -268,7 +323,11 @@ const Pantry = () => {
       style={styles.container}
     >
       <FlatList<PantryItem>
-        data={pantryItems}
+        ref={listRef}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        data={pageItems}
+        ListFooterComponent={pagination}
         /*
          * Every pantry row now has its own generated
          * primary-key ID.
@@ -353,11 +412,31 @@ const Pantry = () => {
                   styles.productCount
                 }
               >
-                {formatPantryQuantity(totals.itemCount)}{" "}
-                {totals.itemCount === 1
-                  ? "item"
-                  : "items"}
+                {matchingItems.length}{" "}
+                {matchingItems.length === 1
+                  ? "product"
+                  : "products"}
               </Text>
+            </View>
+            <View style={styles.searchBar}>
+              <Ionicons name="search-outline" size={22} color={brand.teal} accessible={false} />
+              <TextInput
+                value={searchText}
+                onChangeText={updateSearch}
+                placeholder="Search your pantry"
+                placeholderTextColor={brand.muted}
+                accessibilityLabel="Search pantry products by name"
+                autoCorrect={false}
+                autoCapitalize="none"
+                returnKeyType="search"
+                style={styles.searchInput}
+              />
+              {searchText.length > 0 && (
+                <Pressable onPress={() => updateSearch("")} accessibilityRole="button"
+                  accessibilityLabel="Clear pantry search" style={styles.clearSearch}>
+                  <Ionicons name="close-circle" size={22} color={brand.muted} />
+                </Pressable>
+              )}
             </View>
           </>
         }
@@ -381,14 +460,13 @@ const Pantry = () => {
             <Text
               style={styles.emptyTitle}
             >
-              Your pantry is empty
+              {searchTerm ? "No matching products" : "Your pantry is empty"}
             </Text>
 
             <Text
               style={styles.emptyText}
             >
-              Search or scan a product
-              to add it to your pantry.
+              {searchTerm ? "Try another name or clear your search." : "Search or scan a product to add it to your pantry."}
             </Text>
           </View>
         }
@@ -400,28 +478,41 @@ const Pantry = () => {
 export default Pantry;
 
 const styles = StyleSheet.create({
+  searchBar: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: brand.surface, borderWidth: 1, borderColor: brand.border, borderRadius: 16, paddingLeft: 14, paddingRight: 6, marginBottom: 18 },
+  searchInput: { flex: 1, minWidth: 0, minHeight: 52, fontSize: 16, color: brand.ink, paddingVertical: 12 },
+  clearSearch: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  pagination: { gap: 12, paddingVertical: 18 },
+  pageSummary: { color: brand.muted, fontSize: 13, textAlign: "center" },
+  pageControls: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  pageButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, minHeight: 44, paddingHorizontal: 12, borderRadius: 12, backgroundColor: brand.paleTeal },
+  pageNumbers: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 8 },
+  pageNumber: { minWidth: 44, minHeight: 44, paddingHorizontal: 10, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: brand.paleTeal },
+  pageText: { color: brand.deepTeal, fontSize: 14, fontWeight: "600" },
+  selectedPage: { backgroundColor: brand.teal },
+  selectedPageText: { color: brand.surface },
+  pageDisabled: { opacity: 0.4 },
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: "#F3FAFB",
   },
 
   messageContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F7F7F7",
+    backgroundColor: "#F3FAFB",
     padding: 20,
   },
 
   messageText: {
-    color: "#777",
+    color: "#617783",
     fontSize: 14,
     marginTop: 12,
     textAlign: "center",
   },
 
   errorTitle: {
-    color: "#222",
+    color: "#102739",
     fontSize: 18,
     fontWeight: "700",
     marginTop: 12,
@@ -442,22 +533,22 @@ const styles = StyleSheet.create({
   },
 
   headerLabel: {
-    color: "#777",
+    color: "#617783",
     fontSize: 14,
     marginBottom: 4,
   },
 
   title: {
-    color: "#222",
-    fontSize: 26,
+    color: "#102739",
+    fontSize: 38,
     fontWeight: "700",
   },
 
   headerIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "#222",
+    width: 54,
+    height: 54,
+    borderRadius: 18,
+    backgroundColor: "#007F95",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -472,13 +563,13 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#222",
+    color: "#102739",
     fontSize: 19,
     fontWeight: "700",
   },
 
   productCount: {
-    color: "#777",
+    color: "#617783",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -489,14 +580,14 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    color: "#222",
+    color: "#102739",
     fontSize: 18,
     fontWeight: "700",
     marginTop: 14,
   },
 
   emptyText: {
-    color: "#777",
+    color: "#617783",
     fontSize: 14,
     marginTop: 6,
     textAlign: "center",

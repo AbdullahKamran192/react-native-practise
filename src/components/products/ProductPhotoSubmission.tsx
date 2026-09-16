@@ -16,6 +16,7 @@ import { MealButton, mealStyles as s } from "@/components/meals/ui";
 export default function ProductPhotoSubmission({barcode,product,disabled=false}:{barcode:string;product:LookupProduct;disabled?:boolean}) {
  const client=useQueryClient();
  const [draft,setDraft]=useState<string|null>(null);
+ const [editingPhoto,setEditingPhoto]=useState(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState<string|null>(null);
  const lock=useRef(false);
@@ -24,7 +25,7 @@ export default function ProductPhotoSubmission({barcode,product,disabled=false}:
  const state=query.data;
  const shared=barcodeProductImageUrl(state?.shared) ?? product.image_url;
  const pending=state?.status==="pending";
- const allowed=!!state && !state.blocked && !pending && !shared;
+ const allowed=!!state && !state.blocked && !pending;
  async function choose(camera:boolean) {
   if(lock.current)return; lock.current=true;setBusy(true);setError(null);
   try {const uri=await chooseMealPhoto(camera,"product");if(uri)setDraft(uri);}catch(e){setError(e instanceof Error?e.message:"Could not open photo.");}
@@ -40,24 +41,28 @@ export default function ProductPhotoSubmission({barcode,product,disabled=false}:
    await saveBarcodeProduct(submission.data);
    await productImageRequest("upload",{barcode},bytes);
    setDraft(null);
+   setEditingPhoto(false);
    await client.invalidateQueries({queryKey:["product-photo",barcode]});
   }catch(e){setError(e instanceof Error?e.message:"Could not submit photo.");void query.refetch();}
   finally{lock.current=false;setBusy(false);}
  }
  return <View>
   <ProductImage uri={pending?state?.url:shared} name={product.product_name} privateImage={pending}/>
-  {pending&&<Text style={s.muted}>Awaiting review. This photo is visible only to you and administrators.</Text>}
+  {pending&&<Text style={s.muted}>Awaiting review. This photo is visible only to you and administrators. {shared ? "The current shared image stays visible to other users until approval." : ""}</Text>}
   {state?.status==="rejected"&&<Text style={s.muted}>Your photo was not approved: {state.reason?rejectionReasons[state.reason]:"Please choose a different photo"}.</Text>}
   {state?.blocked&&<Text style={s.error}>Product photo uploads are blocked after repeated offensive or abusive submissions. Other FoodWorth features remain available.</Text>}
-  {allowed&&<View style={s.card}>
-   <Text style={s.heading}>Product photo (optional)</Text>
+  {allowed&&shared&&!editingPhoto&&<MealButton secondary icon="camera-outline" disabled={busy||disabled} title="Update product photo" onPress={()=>setEditingPhoto(true)}/>}
+  {allowed&&(!shared||editingPhoto)&&<View style={s.card}>
+   <Text style={s.heading}>{shared?"Update product photo":"Product photo (optional)"}</Text>
    <Text style={s.muted}>Upload a clear photo of the front of the product. Do not include people or personal information.</Text>
+   {shared&&<Text style={s.muted}>Your replacement needs administrator approval before it becomes the shared product image.</Text>}
    {draft&&<Image source={{uri:draft}} style={{width:"100%",height:180}} contentFit="contain" accessibilityLabel="Product photo preview"/>}
    <View style={s.row}>
     <MealButton secondary disabled={busy||disabled} title="Choose photo" onPress={()=>void choose(false)}/>
     <MealButton secondary disabled={busy||disabled} title="Take photo" onPress={()=>void choose(true)}/>
    </View>
-   {draft&&<View style={s.row}><MealButton disabled={busy||disabled} title={busy?"Submitting...":"Submit photo for review"} onPress={()=>void submit()}/><MealButton secondary disabled={busy||disabled} title="Cancel" onPress={()=>setDraft(null)}/></View>}
+   {draft&&<MealButton disabled={busy||disabled} title={busy?"Submitting...":"Submit photo for review"} onPress={()=>void submit()}/>}
+   {(draft||editingPhoto)&&<MealButton secondary disabled={busy||disabled} title="Cancel" onPress={()=>{setDraft(null);setEditingPhoto(false);}}/>}
   </View>}
   {(error||query.error)&&<Text style={s.error}>{error??query.error?.message}</Text>}
   {query.error&&<MealButton secondary title="Retry photo status" onPress={()=>void query.refetch()}/>}

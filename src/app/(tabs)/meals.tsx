@@ -1,4 +1,5 @@
 import MealPhoto from "@/components/meals/MealPhoto";
+import { BrandArtwork, MealsBackdrop } from "@/components/brand/Artwork";
 import { FlatList, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -14,20 +15,27 @@ export default function MealsScreen() {
   if (query.error) return <MealStatus error={query.error.message} retry={() => query.refetch()} />;
   const meals = query.data ?? [];
   return <SafeAreaView style={s.screen}>
+    <MealsBackdrop />
     <FlatList data={meals} keyExtractor={(meal) => String(meal.id)} contentContainerStyle={s.content}
       refreshing={query.isRefetching} onRefresh={() => query.refetch()}
-      ListHeaderComponent={<View style={{ gap: 12 }}>
+      ListHeaderComponent={<View style={{ gap: 20, marginBottom: 20 }}>
         <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between"}}>
-          <Text style={s.title}>Meals</Text>
+          <Text style={[s.title, { fontSize: 38 }]}>Meals</Text>
           <SettingsButton />
         </View>
-        <Text style={s.muted}>{meals.length} / {MAX_MEALS} meals</Text>
-        <MealButton title="Create meal" disabled={meals.length >= MAX_MEALS} onPress={() => router.push("/createMeal")} />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
+          <View style={{ flex: 1, gap: 10 }}>
+            <Text style={s.heading}>{meals.length} / {MAX_MEALS} meals</Text>
+            <Text style={s.muted}>Your favourite meals and their nutrition, in one place.</Text>
+          </View>
+          <BrandArtwork name="mealsHero" size={88} />
+        </View>
+        <MealButton icon="basket-outline" title="Create meal" disabled={meals.length >= MAX_MEALS} onPress={() => router.push("/createMeal")} />
         {meals.length >= MAX_MEALS && <Text style={s.muted}>You have 10 meals. Delete one to make room for another.</Text>}
       </View>}
       ListEmptyComponent={<View style={s.card}><Text style={s.heading}>Your recipes start here</Text><Text style={s.text}>Create a meal, then add ingredients by searching or scanning food.</Text></View>}
       renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`Open ${item.meal_name}`}
-        style={s.card} onPress={() => router.push({ pathname: "/mealDetails", params: { mealId: String(item.id) } })}>
+        style={[s.card, { marginBottom: 16 }]} onPress={() => router.push({ pathname: "/mealDetails", params: { mealId: String(item.id) } })}>
         <View style={s.row}><MealPhoto meal={item} /><Text style={[s.heading, { flex: 1 }]}>{item.meal_name}</Text><Ionicons name="chevron-forward" size={20} color="#777" /></View>
         {item.description && <Text numberOfLines={2} style={s.muted}>{item.description}</Text>}
       </Pressable>} />

@@ -50,17 +50,22 @@ automatically by this implementation.
 
 ## User flow
 
-The optional picker appears when the product has neither a shared image nor an
-Open Food Facts image, and the user's product uploads are not blocked. Existing
-pending/rejected status remains visible even if a shared image becomes available.
+Run `supabase/migrations/20260916_allow_product_image_replacements.sql` to enable
+replacement submissions. It updates the existing submission function; no columns
+or tables are added and no Edge Function redeployment is needed for this change.
+
+For a product with a shared or Open Food Facts image, **Update product photo** opens
+the photo picker controls. Products without an image show those controls directly.
+Blocked users and users with a pending submission cannot submit another photo.
+Pending/rejected status remains visible even if a shared image becomes available.
 
 Choose/take a photo, preview it, then press **Submit photo for review**. This saves
 the displayed product correction first and submits the photo separately; it does
 not add pantry stock or log consumption. Compression and validation reuse the
 meal-photo helper (WebP, longest side at most 1200 pixels, quality 75%, 2 MiB cap).
 The backend independently validates the file signature/size. Its database function
-checks correction ownership, upload blocking, pending submissions and existing
-shared images in `products.image_path` / `products.image_url`. Uploads never contact
+checks correction ownership, upload blocking and pending submissions. An existing
+shared image does not prevent submitting a replacement. Uploads never contact
 Open Food Facts; a missing OFF product or an OFF outage cannot block submission.
 The normal product lookup on the app's product screens remains unchanged.
 
@@ -70,6 +75,11 @@ One pending photo per user/barcode is allowed; it cannot be replaced while waiti
 Only the uploader and administrators receive temporary URLs for that private image.
 Pending images are shown on the uploader's product screen with **Awaiting review**.
 Other catalogue/list views use the shared approved image, OFF fallback or placeholder.
+The old shared image remains available during review and after rejection. Approval
+replaces the public object and keeps `products.image_path` pointing to it; that path
+takes precedence over the OFF URL. Local Supabase data is checked first, with OFF
+used to fill missing information. Numerical corrections retain their existing flow
+and are not gated by photo review.
 
 ## Admin flow
 

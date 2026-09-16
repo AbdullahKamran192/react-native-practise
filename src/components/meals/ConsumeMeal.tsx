@@ -27,7 +27,7 @@ export default function ConsumeMeal({ mealId, disabled }: { mealId: string; disa
   }
 
   return <View style={s.card}>
-    {!open && !log.pending ? <MealButton title="Consume meal" disabled={disabled || busy} onPress={() => setOpen(true)} /> : <>
+    {!open && !log.pending ? <MealButton icon="restaurant-outline" title="Consume meal" disabled={disabled || busy} onPress={() => setOpen(true)} /> : <>
       <Text style={s.heading}>Log meal</Text>
       {log.pending ? <Text style={s.muted}>Retry the previous log for {log.pending.input.consumedOn}. Its original pantry choice will be used without logging twice.</Text> : <>
         <MealButton title={"Date consumed: " + date.toLocaleDateString("en-GB")} secondary disabled={busy} onPress={() => setShowDate(!showDate)} />

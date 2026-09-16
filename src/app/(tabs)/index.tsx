@@ -1,3 +1,4 @@
+import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
 import ConsumptionImage from "@/components/ConsumptionImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -16,7 +17,7 @@ import { dateKey, parseDay, recentDates, nutrients, summarize, groupConsumptions
 import type { HistoryRow, Nutrient } from "@/utils/consumptionHistory";
 
 const labels: Record<Nutrient,string> = {calories:"Calories",protein:"Protein",carbs:"Carbs",fat:"Fat",sugars:"Sugars",salt:"Salt",fibre:"Fibre"};
-const colours: Record<Nutrient,string> = {calories:"#E0AA56",protein:"#599C7B",carbs:"#648DC4",fat:"#BC8A59",sugars:"#BA7597",salt:"#7C85B5",fibre:"#79A05E"};
+const colours = Object.fromEntries(nutrients.map(n => [n, nutrientTheme[n].color])) as Record<Nutrient,string>;
 const icons: Record<Nutrient,keyof typeof Ionicons.glyphMap> = {
   calories:"flame-outline",protein:"restaurant-outline",carbs:"water-outline",
   fat:"nutrition-outline",sugars:"cube-outline",salt:"flask-outline",fibre:"leaf-outline",
@@ -73,16 +74,16 @@ export default function Home() {
         <Text style={s.greeting}>{isToday?"Your daily overview":selectedLabel}</Text>
         <Text style={s.title}>{isToday?"Today's Calories":"Calories"}</Text>
       </View>
-      <SettingsButton />
+      <SettingsButton themed />
     </View>
     <HistoryDates dates={dates} selected={selected} scores={scores} onSelect={day=>{setSelected(day);setExpanded(null);}}/>
-    {(history.isPending||settings.isPending)&&<View style={s.message}><ActivityIndicator color="#222"/><Text>Loading your consumption…</Text></View>}
+    {(history.isPending||settings.isPending)&&<View style={s.message}><ActivityIndicator color={brand.deepTeal}/><Text>Loading your consumption…</Text></View>}
     {error&&<View style={s.message}><Text>{error.message}</Text><Pressable onPress={refresh} accessibilityRole="button"><Text style={s.link}>Try again</Text></Pressable></View>}
     {ready&&<>
       <View style={s.calorieCard}>
         <View style={s.calorieRing}>
           <ProgressRing size={190} strokeWidth={10} progress={progress} animationKey={selected}
-            colour="#E0AA56" trackColour="#414141"
+            colour="#B7E665" trackColour="#367687"
             label={"Calories consumed: "+format(calories)+" kcal"+(targets.calories>0?" of "+format(targets.calories)+" kcal":"; no target set")}>
             <Text style={s.cardLabel}>Consumed{summary.missing.calories?"*":""}</Text>
             <Text style={s.caloriesConsumed} numberOfLines={1} adjustsFontSizeToFit>{format(calories)}</Text>
@@ -99,7 +100,7 @@ export default function Home() {
       <Text style={s.sectionTitle}>{isToday?"Today's Nutrition":"Nutrition · "+selectedLabel}</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.nutritionRow}>
         {nutrients.map(n=><View key={n} style={{width:132}}><NutritionCard icon={icons[n]} label={labels[n]}
-          progress={targets[n]>0?summary.totals[n]/targets[n]:0} animationKey={selected} colour={colours[n]}
+          progress={targets[n]>0?summary.totals[n]/targets[n]:0} animationKey={selected} colour={colours[n]} backgroundColour={nutrientTheme[n].background}
           value={format(summary.totals[n])+(n==="calories"?" kcal":"g")+(summary.missing[n]?"*":"")}
           goal={targets[n]>0?format(targets[n])+(n==="calories"?" kcal":"g"):"—"}/></View>)}
       </ScrollView>
@@ -114,7 +115,7 @@ export default function Home() {
       <Pressable style={({pressed})=>[s.addFoodButton,pressed&&s.buttonPressed]}
         onPress={()=>router.push({pathname:"/camera",params:{intent:"pantry"}})}
         accessibilityRole="button" accessibilityLabel="Add food to pantry">
-        <Ionicons name="basket-outline" size={22} color="#222"/>
+        <Ionicons name="basket-outline" size={22} color={brand.deepTeal}/>
         <Text style={s.addFoodText}>Add Food to Pantry</Text>
       </Pressable>
     </View>
@@ -149,38 +150,38 @@ export default function Home() {
         {item.isMeal&&<Pressable onPress={()=>setExpanded(expanded===item.id?null:item.id)}
           accessibilityRole="button" accessibilityLabel={(expanded===item.id?"Hide":"Show")+" ingredients for "+item.name}
           accessibilityState={{expanded:expanded===item.id}} style={{width:44,height:44,alignItems:"center",justifyContent:"center"}}>
-          <Ionicons name={expanded===item.id?"chevron-up":"chevron-down"} size={20} color="#555"/>
+          <Ionicons name={expanded===item.id?"chevron-up":"chevron-down"} size={20} color={brand.muted}/>
         </Pressable>}
         {editing&&<DeleteFoodLogButton groupId={item.items[0].consumption_group_id} name={item.name}/>}
         </View>
         {item.isMeal&&expanded===item.id&&item.items.map(ingredient=><View key={ingredient.id} style={s.ingredient}>
-          <Text style={{flex:1,color:"#555"}}>{ingredient.product_name_snapshot}</Text>
-          <Text style={{color:"#555"}}>{format(Number(ingredient.amount_consumed))}{ingredient.measurement_unit}</Text>
+          <Text style={{flex:1,color:brand.muted}}>{ingredient.product_name_snapshot}</Text>
+          <Text style={{color:brand.muted}}>{format(Number(ingredient.amount_consumed))}{ingredient.measurement_unit}</Text>
         </View>)}
       </View>}/>
   </SafeAreaView>;
 }
 const s=StyleSheet.create({
   mealsHeading:{flexDirection:"row",alignItems:"center",gap:12,marginBottom:14},
-  editButton:{minWidth:84,minHeight:44,paddingHorizontal:14,borderRadius:12,backgroundColor:"#222",flexDirection:"row",gap:7,alignItems:"center",justifyContent:"center"},
-  container:{flex:1,backgroundColor:"#F7F7F7"},scrollContent:{padding:20,paddingBottom:40},
+  editButton:{minWidth:84,minHeight:44,paddingHorizontal:14,borderRadius:12,backgroundColor:brand.teal,flexDirection:"row",gap:7,alignItems:"center",justifyContent:"center"},
+  container:{flex:1,backgroundColor:brand.background},scrollContent:{padding:20,paddingBottom:40},
   header:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:16,gap:12},
-  greeting:{fontSize:14,color:"#777",marginBottom:4},title:{fontSize:26,fontWeight:"700",color:"#222"},
-  calorieCard:{backgroundColor:"#222",borderRadius:20,padding:22,marginBottom:20},
-  calorieRing:{alignItems:"center"},cardLabel:{color:"#BDBDBD",fontSize:13,marginBottom:4},
+  greeting:{fontSize:14,color:brand.muted,marginBottom:4},title:{fontSize:26,fontWeight:"700",color:brand.ink},
+  calorieCard:{backgroundColor:brand.deepTeal,borderRadius:20,padding:22,marginBottom:20},
+  calorieRing:{alignItems:"center"},cardLabel:{color:"#D3ECEF",fontSize:13,marginBottom:4},
   caloriesConsumed:{color:"#fff",fontSize:30,fontWeight:"700",maxWidth:150},
-  calorieUnit:{color:"#DDD",fontSize:14,marginTop:2},
-  calorieGoal:{color:"#BDBDBD",fontSize:12,marginTop:5},
-  calorieFooter:{color:"#DDD",fontSize:14,textAlign:"center",marginTop:14},
-  sectionTitle:{fontSize:19,fontWeight:"700",color:"#222",marginBottom:14},
+  calorieUnit:{color:"#E5F6F4",fontSize:14,marginTop:2},
+  calorieGoal:{color:"#D3ECEF",fontSize:12,marginTop:5},
+  calorieFooter:{color:"#E5F6F4",fontSize:14,textAlign:"center",marginTop:14},
+  sectionTitle:{fontSize:19,fontWeight:"700",color:brand.ink,marginBottom:14},
   nutritionRow:{gap:10,paddingBottom:20},foodActions:{flexDirection:"row",gap:10,marginBottom:24},
-  consumeFoodButton:{flex:1,minHeight:64,padding:10,borderRadius:16,backgroundColor:"#222",flexDirection:"row",alignItems:"center",justifyContent:"center",gap:7},
-  addFoodButton:{flex:1,minHeight:64,padding:10,borderRadius:16,backgroundColor:"#E7E7E7",borderWidth:1,borderColor:"#D4D4D4",flexDirection:"row",alignItems:"center",justifyContent:"center",gap:7},
-  consumeFoodText:{flexShrink:1,color:"#fff",fontSize:14,fontWeight:"700"},addFoodText:{flexShrink:1,color:"#222",fontSize:14,fontWeight:"700"},
-  buttonPressed:{opacity:.7},message:{padding:20,gap:10,alignItems:"center"},link:{color:"#365A40",fontWeight:"600",marginBottom:14},
-  notice:{color:"#777",fontSize:12,marginBottom:14},empty:{color:"#777",paddingVertical:20},
+  consumeFoodButton:{flex:1,minHeight:64,padding:10,borderRadius:16,backgroundColor:brand.teal,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:7},
+  addFoodButton:{flex:1,minHeight:64,padding:10,borderRadius:16,backgroundColor:brand.paleTeal,borderWidth:1,borderColor:brand.border,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:7},
+  consumeFoodText:{flexShrink:1,color:"#fff",fontSize:14,fontWeight:"700"},addFoodText:{flexShrink:1,color:brand.ink,fontSize:14,fontWeight:"700"},
+  buttonPressed:{opacity:.7},message:{padding:20,gap:10,alignItems:"center"},link:{color:brand.teal,fontWeight:"600",marginBottom:14},
+  notice:{color:brand.muted,fontSize:12,marginBottom:14},empty:{color:brand.muted,paddingVertical:20},
   eventCard:{backgroundColor:"#fff",borderRadius:16,padding:14,marginBottom:10},eventRow:{flexDirection:"row",alignItems:"center",gap:10},
-  eventIcon:{width:42,height:42,borderRadius:13,backgroundColor:"#F2F2F2",alignItems:"center",justifyContent:"center"},
-  eventName:{fontWeight:"600",fontSize:16,color:"#222"},eventSubtitle:{fontSize:12,color:"#777",marginTop:4},
-  eventCalories:{fontWeight:"600",fontSize:13,color:"#444"},ingredient:{flexDirection:"row",gap:10,borderTopWidth:1,borderColor:"#EEE",paddingTop:10,marginTop:10},
+  eventIcon:{width:42,height:42,borderRadius:13,backgroundColor:brand.paleTeal,alignItems:"center",justifyContent:"center"},
+  eventName:{fontWeight:"600",fontSize:16,color:brand.ink},eventSubtitle:{fontSize:12,color:brand.muted,marginTop:4},
+  eventCalories:{fontWeight:"600",fontSize:13,color:brand.deepTeal},ingredient:{flexDirection:"row",gap:10,borderTopWidth:1,borderColor:brand.border,paddingTop:10,marginTop:10},
 });

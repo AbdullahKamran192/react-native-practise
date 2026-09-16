@@ -1,3 +1,5 @@
+import NutritionTile from "@/components/brand/NutritionTile";
+import { BrandArtwork } from "@/components/brand/Artwork";
 import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission";
 import ProductImage from "@/components/products/ProductImage";
 import { Ionicons } from "@expo/vector-icons";
@@ -304,17 +306,7 @@ const ProductConsumeScreen = () => {
             </Text>
           </View>
 
-          <View style={styles.scanIcon}>
-            <Ionicons
-              name={
-                isGenericProduct
-                  ? "nutrition-outline"
-                  : "barcode-outline"
-              }
-              size={24}
-              color="#222"
-            />
-          </View>
+          <BrandArtwork name="consumeBasket" size={72} />
         </View>
 
         {lookupStatus === "not-found" && (
@@ -758,17 +750,7 @@ function SummaryItem({
   label,
   value,
 }: SummaryItemProps) {
-  return (
-    <View style={styles.summaryItem}>
-      <Text style={styles.summaryLabel}>
-        {label}
-      </Text>
-
-      <Text style={styles.summaryValue}>
-        {value}
-      </Text>
-    </View>
-  );
+  return <NutritionTile label={label} value={value} />;
 }
 
 function formatNutrient(value: number): string {

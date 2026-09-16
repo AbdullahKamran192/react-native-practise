@@ -1,3 +1,4 @@
+import NutritionTile from "@/components/brand/NutritionTile";
 import { Ionicons } from "@expo/vector-icons";
 import {
   Pressable,
@@ -170,23 +171,7 @@ const CompactNutritionItem = ({
     ? `${value} ${unit}`
     : "Missing";
 
-  return (
-    <View style={styles.compactNutritionItem}>
-      <Text style={styles.compactNutritionLabel}>
-        {label}
-      </Text>
-
-      <Text
-        style={
-          value.trim()
-            ? styles.compactNutritionValue
-            : styles.compactMissingValue
-        }
-      >
-        {displayValue}
-      </Text>
-    </View>
-  );
+  return <NutritionTile label={label} value={displayValue} />;
 };
 
 export default ProductReadOnlyDashboard;

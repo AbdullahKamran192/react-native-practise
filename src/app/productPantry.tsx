@@ -2,11 +2,12 @@ import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission
 import ProductImage from "@/components/products/ProductImage";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   ActivityIndicator,
-  Alert,
+  AccessibilityInfo,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -72,6 +73,14 @@ const ProductPantryScreen = () => {
     productId,
   });
 
+  const [status, setStatus] = useState<{ title: string; message: string; success: boolean } | null>(null);
+  useEffect(() => { setStatus(null); }, [productIdentifier]);
+
+  function showStatus(title: string, message: string, success = false) {
+    setStatus({ title, message, success });
+    if (Platform.OS === "ios") AccessibilityInfo.announceForAccessibility(title + ". " + message);
+  }
+
   const [price, setPrice] = useState("");
   const [amountSelection, setAmountSelection] = useState<PantryAmountSelection>({
     mode: "quantity", value: "1",
@@ -80,6 +89,7 @@ const ProductPantryScreen = () => {
   const amountToAdd = resolvePantryAddition(amountSelection, packageSize);
 
   function handleAmountChange(selection: PantryAmountSelection) {
+    setStatus(null);
     setAmountSelection(selection);
     setCalculatedValue(null);
   }
@@ -108,6 +118,7 @@ const ProductPantryScreen = () => {
     if (product?.measurement_unit !== updatedProduct.measurement_unit) {
       setAmountSelection({ mode: "quantity", value: "1" });
     }
+    setStatus(null);
     setProduct(updatedProduct);
 
     /*
@@ -118,11 +129,13 @@ const ProductPantryScreen = () => {
   }
 
   function handlePriceChange(value: string) {
+    setStatus(null);
     setPrice(value);
     setCalculatedValue(null);
   }
 
   function calculateProductValue() {
+    setStatus(null);
     if (!product) {
       return;
     }
@@ -133,7 +146,7 @@ const ProductPantryScreen = () => {
       enteredPrice === null ||
       enteredPrice <= 0
     ) {
-      Alert.alert(
+      showStatus(
         "Invalid price",
         "Enter a valid product price greater than £0."
       );
@@ -150,7 +163,7 @@ const ProductPantryScreen = () => {
       productAmount === null ||
       productAmount <= 0
     ) {
-      Alert.alert(
+      showStatus(
         "Invalid amount to add",
         `Enter the total amount to add in ${measurementUnit}.`
       );
@@ -170,7 +183,7 @@ const ProductPantryScreen = () => {
       caloriesPer100 === null &&
       proteinPer100 === null
     ) {
-      Alert.alert(
+      showStatus(
         "Missing nutrition",
         `Enter calories or protein per 100${measurementUnit} before calculating the value.`
       );
@@ -201,12 +214,19 @@ const ProductPantryScreen = () => {
   }
 
   async function addProductToPantry() {
+    if (isAddingToPantry) return;
+    setStatus(null);
     if (!product) {
       return;
     }
 
     if (amountToAdd === null) {
-      Alert.alert("Invalid amount to add", "Edit the amount to add and enter a valid quantity or total amount.");
+      showStatus(
+        packageSize === null || packageSize <= 0 ? "Missing package amount" : "Invalid amount to add",
+        packageSize === null || packageSize <= 0
+          ? "Enter the package amount, or edit Amount to add and enter the total in g or ml."
+          : "Edit the amount to add and enter a valid quantity or total amount."
+      );
       return;
     }
 
@@ -223,7 +243,7 @@ const ProductPantryScreen = () => {
         !Number.isInteger(parsedGenericProductId) ||
         parsedGenericProductId <= 0
       ) {
-        Alert.alert(
+        showStatus(
           "Invalid product",
           "The generic product ID is missing or invalid."
         );
@@ -237,9 +257,10 @@ const ProductPantryScreen = () => {
           amountToAdd,
         });
 
-        Alert.alert(
-          "Added to pantry",
-          `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
+        showStatus(
+          "Product added to pantry",
+          `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`,
+          true
         );
       } catch (error) {
         const message =
@@ -247,7 +268,7 @@ const ProductPantryScreen = () => {
             ? error.message
             : "Could not add the generic product.";
 
-        Alert.alert(
+        showStatus(
           "Could not add product",
           message
         );
@@ -263,7 +284,7 @@ const ProductPantryScreen = () => {
      * before the product is added to the pantry.
      */
     if (!barcode) {
-      Alert.alert(
+      showStatus(
         "Invalid product",
         "The product barcode is missing."
       );
@@ -275,7 +296,7 @@ const ProductPantryScreen = () => {
       createProductSubmission(barcode, product);
 
     if (!submissionResult.success) {
-      Alert.alert(
+      showStatus(
         "Check product information",
         submissionResult.error
       );
@@ -289,9 +310,10 @@ const ProductPantryScreen = () => {
         amountToAdd,
       });
 
-      Alert.alert(
-        "Added to pantry",
-        `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
+      showStatus(
+        "Product added to pantry",
+        `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`,
+          true
       );
     } catch (error) {
       const message =
@@ -299,7 +321,7 @@ const ProductPantryScreen = () => {
           ? error.message
           : "Could not add the product.";
 
-      Alert.alert(
+      showStatus(
         "Could not add product",
         message
       );
@@ -528,6 +550,16 @@ const ProductPantryScreen = () => {
           </Text>
         </Pressable>
       </ScrollView>
+      {status && <View
+        accessible accessibilityLiveRegion="polite"
+        accessibilityLabel={status.title + ". " + status.message}
+        style={[styles.statusBanner, status.success ? styles.statusSuccess : styles.statusError]}>
+        <Ionicons name={status.success ? "checkmark-circle" : "alert-circle-outline"} size={28} color={status.success ? "#23733D" : "#A62B36"} />
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={[styles.statusTitle, { color: status.success ? "#23733D" : "#A62B36" }]}>{status.title}</Text>
+          <Text style={styles.statusMessage}>{status.message}</Text>
+        </View>
+      </View>}
     </SafeAreaView>
   );
 };
@@ -535,6 +567,11 @@ const ProductPantryScreen = () => {
 export default ProductPantryScreen;
 
 const styles = StyleSheet.create({
+  statusBanner: { flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 20, marginBottom: 12, padding: 16, borderRadius: 18, borderWidth: 1 },
+  statusSuccess: { backgroundColor: "#EAF7EC", borderColor: "#BDDFC5" },
+  statusError: { backgroundColor: "#FFF0F1", borderColor: "#F0C8CE" },
+  statusTitle: { fontSize: 16, fontWeight: "700" },
+  statusMessage: { fontSize: 14, lineHeight: 21, color: "#354D58" },
   container: {
     flex: 1,
     backgroundColor: "#F7F7F7",

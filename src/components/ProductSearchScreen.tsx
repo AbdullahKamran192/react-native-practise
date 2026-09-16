@@ -1,3 +1,4 @@
+import { brand } from "@/components/brand/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -17,7 +18,7 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { searchProducts } from "@/api/products/search/searchProducts";
+import { searchProducts, SEARCH_PAGE_SIZE } from "@/api/products/search/searchProducts";
 import type { ProductSearchResult } from "@/api/products/search/types";
 import SettingsButton from "@/components/SettingsButton";
 import ProductImage from "@/components/products/ProductImage";
@@ -25,6 +26,7 @@ import ProductImage from "@/components/products/ProductImage";
 const Search = ({ mealId }: { mealId?: string }) => {
   const router = useRouter();
 
+  const [page, setPage] = useState(0);
   const [searchInput, setSearchInput] = useState("");
   const [submittedSearch, setSubmittedSearch] =
     useState("");
@@ -33,13 +35,14 @@ const Search = ({ mealId }: { mealId?: string }) => {
     useState<ProductSearchResult | null>(null);
 
   const {
-    data: searchResults = [],
+    data: resultPage,
     error,
     isFetching,
+    refetch,
   } = useQuery({
-    queryKey: ["product-search", submittedSearch],
+    queryKey: ["product-search", submittedSearch, page],
 
-    queryFn: () => searchProducts(submittedSearch),
+    queryFn: () => searchProducts(submittedSearch, page),
 
     /*
      * Do not query the database until the user
@@ -48,12 +51,16 @@ const Search = ({ mealId }: { mealId?: string }) => {
     enabled: submittedSearch.length > 0,
   });
 
+  const searchResults = resultPage?.items ?? [];
+  const totalPages = Math.max(1, Math.ceil((resultPage?.total ?? 0) / SEARCH_PAGE_SIZE));
+
   /*
    * The database search happens when the user
    * presses the search button or submits the
    * keyboard.
    */
   const handleSearch = () => {
+    setPage(0);
     const cleanedSearch = searchInput.trim();
 
     if (!cleanedSearch) {
@@ -113,6 +120,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
   };
 
   const clearSearch = () => {
+    setPage(0);
     setSearchInput("");
     setSubmittedSearch("");
   };
@@ -169,7 +177,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
           <Ionicons
             name="search-outline"
             size={42}
-            color="#999"
+            color={brand.muted}
           />
 
           <Text style={styles.emptyTitle}>
@@ -188,7 +196,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
         <Ionicons
           name="basket-outline"
           size={42}
-          color="#999"
+          color={brand.muted}
         />
 
         <Text style={styles.emptyTitle}>
@@ -213,7 +221,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
 
         <Text style={styles.title}>Search</Text>
         </View>
-        {!mealId && <SettingsButton />}
+        {!mealId && <SettingsButton themed />}
       </View>
 
       <View style={styles.searchRow}>
@@ -221,7 +229,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
           <Ionicons
             name="search-outline"
             size={20}
-            color="#777"
+            color={brand.muted}
           />
 
           <TextInput
@@ -230,7 +238,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
             onChangeText={setSearchInput}
             onSubmitEditing={handleSearch}
             placeholder="Search for a food"
-            placeholderTextColor="#999"
+            placeholderTextColor={brand.muted}
             returnKeyType="search"
             autoCapitalize="none"
             autoCorrect={false}
@@ -241,7 +249,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
               <Ionicons
                 name="close-circle"
                 size={20}
-                color="#999"
+                color={brand.muted}
               />
             </Pressable>
           )}
@@ -263,7 +271,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
         <View style={styles.messageContainer}>
           <ActivityIndicator
             size="large"
-            color="#222"
+            color={brand.deepTeal}
           />
 
           <Text style={styles.messageText}>
@@ -285,6 +293,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
           <Text style={styles.messageText}>
             {error.message}
           </Text>
+          <Pressable accessibilityRole="button" onPress={() => void refetch()} style={styles.pageButton}><Text style={styles.pageButtonText}>Try again</Text></Pressable>
         </View>
       ) : (
         <FlatList
@@ -307,6 +316,17 @@ const Search = ({ mealId }: { mealId?: string }) => {
             ) : null
           }
           ListEmptyComponent={renderEmptyComponent}
+          ListFooterComponent={submittedSearch && (page > 0 || totalPages > 1) ? <View style={styles.pagination}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Previous search page" disabled={page === 0}
+              style={[styles.pageButton, page === 0 && { opacity: 0.4 }]} onPress={() => setPage(p => p - 1)}>
+              <Text style={styles.pageButtonText}>Previous</Text>
+            </Pressable>
+            <Text style={styles.pageLabel}>Page {page + 1} of {Math.max(page + 1, totalPages)}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next search page" disabled={page + 1 >= totalPages}
+              style={[styles.pageButton, page + 1 >= totalPages && { opacity: 0.4 }]} onPress={() => setPage(p => p + 1)}>
+              <Text style={styles.pageButtonText}>Next</Text>
+            </Pressable>
+          </View> : null}
         />
       )}
 
@@ -389,7 +409,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
                 <Ionicons
                   name="basket-outline"
                   size={21}
-                  color="#222"
+                  color={brand.deepTeal}
                 />
               </View>
 
@@ -406,7 +426,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
               <Ionicons
                 name="chevron-forward"
                 size={20}
-                color="#777"
+                color={brand.muted}
               />
             </Pressable>
 
@@ -428,9 +448,13 @@ const Search = ({ mealId }: { mealId?: string }) => {
 export default Search;
 
 const styles = StyleSheet.create({
+  pagination: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10, paddingVertical: 16 },
+  pageButton: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, backgroundColor: brand.paleTeal, justifyContent: "center" },
+  pageButtonText: { color: brand.deepTeal, fontWeight: "600", fontSize: 15 },
+  pageLabel: { color: brand.muted, fontSize: 14 },
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: brand.background,
     paddingHorizontal: 20,
   },
 
@@ -440,13 +464,13 @@ const styles = StyleSheet.create({
   },
 
   headerLabel: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 14,
     marginBottom: 4,
   },
 
   title: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 26,
     fontWeight: "700",
   },
@@ -469,7 +493,7 @@ const styles = StyleSheet.create({
 
   searchInput: {
     flex: 1,
-    color: "#222",
+    color: brand.ink,
     fontSize: 15,
     marginHorizontal: 10,
   },
@@ -478,7 +502,7 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 16,
-    backgroundColor: "#222",
+    backgroundColor: brand.teal,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 10,
@@ -490,7 +514,7 @@ const styles = StyleSheet.create({
   },
 
   resultsText: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 13,
     marginBottom: 12,
   },
@@ -514,20 +538,20 @@ const styles = StyleSheet.create({
   },
 
   productName: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 16,
     fontWeight: "700",
   },
 
   productType: {
-    color: "#666",
+    color: brand.muted,
     fontSize: 12,
     fontWeight: "600",
     marginTop: 4,
   },
 
   productAmount: {
-    color: "#999",
+    color: brand.muted,
     fontSize: 11,
     marginTop: 3,
   },
@@ -541,7 +565,7 @@ const styles = StyleSheet.create({
   },
 
   messageText: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 14,
     lineHeight: 20,
     textAlign: "center",
@@ -549,14 +573,14 @@ const styles = StyleSheet.create({
   },
 
   errorTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 18,
     fontWeight: "700",
     marginTop: 12,
   },
 
   emptyTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 18,
     fontWeight: "700",
     marginTop: 12,
@@ -571,7 +595,7 @@ const styles = StyleSheet.create({
 
   modalCard: {
     width: "100%",
-    backgroundColor: "#F7F7F7",
+    backgroundColor: brand.background,
     borderRadius: 24,
     paddingHorizontal: 18,
     paddingTop: 10,
@@ -582,20 +606,20 @@ const styles = StyleSheet.create({
     width: 42,
     height: 5,
     borderRadius: 3,
-    backgroundColor: "#D0D0D0",
+    backgroundColor: brand.border,
     alignSelf: "center",
     marginBottom: 18,
   },
 
   modalTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 21,
     fontWeight: "700",
     textAlign: "center",
   },
 
   modalProductName: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 14,
     lineHeight: 20,
     textAlign: "center",
@@ -607,7 +631,7 @@ const styles = StyleSheet.create({
   modalPrimaryButton: {
     minHeight: 76,
     borderRadius: 18,
-    backgroundColor: "#222",
+    backgroundColor: brand.teal,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 14,
@@ -631,7 +655,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: "#3B3B3B",
+    backgroundColor: brand.deepTeal,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -640,7 +664,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: "#EDEDED",
+    backgroundColor: brand.paleTeal,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -657,20 +681,20 @@ const styles = StyleSheet.create({
   },
 
   modalPrimaryDescription: {
-    color: "#C7C7C7",
+    color: "#E5F6F4",
     fontSize: 12,
     lineHeight: 17,
     marginTop: 3,
   },
 
   modalSecondaryTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 16,
     fontWeight: "700",
   },
 
   modalSecondaryDescription: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 12,
     lineHeight: 17,
     marginTop: 3,
@@ -684,7 +708,7 @@ const styles = StyleSheet.create({
   },
 
   modalCancelText: {
-    color: "#666",
+    color: brand.muted,
     fontSize: 15,
     fontWeight: "600",
   },

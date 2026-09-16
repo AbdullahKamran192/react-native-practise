@@ -4,16 +4,17 @@ import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { normaliseImageUrl, genericProductImageUrl } from "@/utils/productImage";
 
-export default function ProductImage({ uri, name, compact = false, thumbnail = false, privateImage = false }: { uri?: string | null; name: string; compact?: boolean; thumbnail?: boolean; privateImage?: boolean }) {
+export default function ProductImage({ uri, name, compact = false, thumbnail = false, privateImage = false, thumbnailSize = 56 }: { uri?: string | null; name: string; compact?: boolean; thumbnail?: boolean; privateImage?: boolean; thumbnailSize?: number }) {
   const url = normaliseImageUrl(uri);
   const [failedUrl, setFailedUrl] = useState<string | null>(null);
-  return <View style={[styles.card, compact && styles.compactCard, thumbnail && styles.thumbnail]}>
+  const thumbnailDimensions = thumbnail ? { width: thumbnailSize, height: thumbnailSize } : undefined;
+  return <View style={[styles.card, compact && styles.compactCard, thumbnail && styles.thumbnail, thumbnailDimensions]}>
     {url && failedUrl !== url ? <Image
-      key={url} source={{ uri: url }} style={[styles.image, compact && styles.compactImage, thumbnail && styles.thumbnailImage]} contentFit="contain"
+      key={url} source={{ uri: url }} style={[styles.image, compact && styles.compactImage, thumbnail && styles.thumbnailImage, thumbnailDimensions]} contentFit="contain"
       cachePolicy={privateImage || url?.startsWith(genericProductImageUrl("products/")!) ? "none" : "disk"}
       transition={200} accessibilityLabel={`Photo of ${name || "product"}`}
       onError={() => setFailedUrl(url)}
-    /> : <View style={[styles.placeholder, compact && styles.compactImage, thumbnail && styles.thumbnailImage]} accessibilityLabel="No product image available">
+    /> : <View style={[styles.placeholder, compact && styles.compactImage, thumbnail && styles.thumbnailImage, thumbnailDimensions]} accessibilityLabel="No product image available">
       <Ionicons name="image-outline" size={36} color="#9A9A9A" />
       {!thumbnail && <Text style={styles.caption}>No image available</Text>}
     </View>}

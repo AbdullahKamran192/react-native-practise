@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
 import ConsumptionImage from "@/components/ConsumptionImage";
 import { useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
@@ -18,7 +20,10 @@ function Nutrition({rows}:{rows:HistoryRow[]}) {
     {nutrients.map(n=>{
       const known=rows.some(row=>row[`${n}_consumed`]!==null && row[`${n}_consumed`]!==undefined);
       return <View key={n} style={s.nutrientRow}>
-        <Text style={s.text}>{labels[n]}</Text>
+        <View style={s.nutrientLabel}>
+          <Ionicons name={nutrientTheme[n].icon} size={20} color={nutrientTheme[n].color} accessible={false} />
+          <Text style={[s.text, s.labelText]}>{labels[n]}</Text>
+        </View>
         <Text style={s.value}>{known?format(totals[n])+(n==="calories"?" kcal":" g")+(missing[n]?"*":""):"Not recorded"}</Text>
       </View>;
     })}
@@ -70,12 +75,14 @@ export default function ConsumptionDetails(){
   </SafeAreaView>;
 }
 const s=StyleSheet.create({
-  screen:{flex:1,backgroundColor:"#F7F7F7"},content:{padding:20,paddingBottom:40,gap:18},
-  caption:{fontSize:13,color:"#777",marginBottom:6},title:{fontSize:26,fontWeight:"700",color:"#222"},
-  subtitle:{fontSize:14,color:"#666",marginTop:6},note:{fontSize:12,lineHeight:18,color:"#777",marginTop:10},
-  card:{backgroundColor:"#fff",padding:18,borderRadius:18,gap:10},heading:{fontSize:18,fontWeight:"600",color:"#222"},
-  amount:{fontSize:17,fontWeight:"600",color:"#365A40"},text:{fontSize:15,color:"#555"},
-  nutrientRow:{flexDirection:"row",justifyContent:"space-between",gap:14,paddingVertical:11,borderBottomWidth:1,borderBottomColor:"#F0F0F0"},
-  value:{fontSize:15,fontWeight:"600",color:"#222",flexShrink:1,textAlign:"right"},
+  nutrientLabel:{flexDirection:"row",alignItems:"center",gap:8,flexShrink:1},
+  labelText:{flexShrink:1},
+  screen:{flex:1,backgroundColor:brand.background},content:{padding:20,paddingBottom:40,gap:18},
+  caption:{fontSize:13,color:brand.teal,marginBottom:6},title:{fontSize:26,fontWeight:"700",color:brand.ink},
+  subtitle:{fontSize:14,color:brand.muted,marginTop:6},note:{fontSize:12,lineHeight:18,color:brand.muted,marginTop:10},
+  card:{backgroundColor:brand.surface,padding:18,borderRadius:18,gap:10},heading:{fontSize:18,fontWeight:"600",color:brand.ink},
+  amount:{fontSize:17,fontWeight:"600",color:brand.teal},text:{fontSize:15,color:brand.muted},
+  nutrientRow:{flexDirection:"row",justifyContent:"space-between",gap:14,paddingVertical:11,borderBottomWidth:1,borderBottomColor:brand.border},
+  value:{fontSize:15,fontWeight:"600",color:brand.ink,flexShrink:1,textAlign:"right"},
 });
 

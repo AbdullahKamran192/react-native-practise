@@ -1,3 +1,5 @@
+import { Ionicons } from "@expo/vector-icons";
+import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
 import ProductImage from "@/components/products/ProductImage";
 import { genericProductImageUrl, barcodeProductImageUrl } from "@/utils/productImage";
 import { useLocalSearchParams } from "expo-router";
@@ -97,7 +99,10 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
         {nutrients.map(nutrient => {
           const per100 = product?.[`${nutrient}_per_100`];
           return <View key={nutrient} style={s.row}>
-            <Text style={s.text}>{labels[nutrient]}</Text>
+            <View style={s.nutrientLabel}>
+              <Ionicons name={nutrientTheme[nutrient].icon} size={20} color={nutrientTheme[nutrient].color} accessible={false} />
+              <Text style={[s.text, s.labelText]}>{labels[nutrient]}</Text>
+            </View>
             <Text style={s.value}>{per100 == null ? "Not recorded" : amount === null ? "—" : `${format(Number(per100) * amount / 100)} ${nutrient === "calories" ? "kcal" : "g"}`}</Text>
           </View>;
         })}
@@ -107,15 +112,17 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
 }
 
 const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#F7F7F7" }, content: { padding: 20, paddingBottom: 40 },
-  caption: { fontSize: 13, color: "#777", marginBottom: 6 }, title: { fontSize: 26, fontWeight: "700", color: "#222" },
-  note: { fontSize: 13, lineHeight: 20, color: "#777", marginTop: 8 },
-  button: { backgroundColor: "#222", borderRadius: 14, minHeight: 50, alignItems: "center", justifyContent: "center", marginTop: 16 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600" }, disabled: { opacity: 0.45 },
-  success: { color: "#365A40", marginTop: 12 }, error: { color: "#B3261E", marginTop: 12 },
-  reload: { paddingVertical: 14 }, reloadText: { color: "#222", fontWeight: "600", textDecorationLine: "underline" },
-  card: { backgroundColor: "#fff", padding: 18, borderRadius: 18, marginTop: 22 },
-  heading: { fontSize: 18, fontWeight: "600", color: "#222" }, text: { fontSize: 15, color: "#555" },
-  row: { flexDirection: "row", justifyContent: "space-between", gap: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#F0F0F0" },
-  value: { fontSize: 15, fontWeight: "600", color: "#222", flexShrink: 1, textAlign: "right" },
+  nutrientLabel: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 },
+  labelText: { flexShrink: 1 },
+  screen: { flex: 1, backgroundColor: brand.background }, content: { padding: 20, paddingBottom: 40 },
+  caption: { fontSize: 13, color: brand.teal, marginBottom: 6 }, title: { fontSize: 26, fontWeight: "700", color: brand.ink },
+  note: { fontSize: 13, lineHeight: 20, color: brand.muted, marginTop: 8 },
+  button: { backgroundColor: brand.teal, borderRadius: 14, minHeight: 50, alignItems: "center", justifyContent: "center", marginTop: 16 },
+  buttonText: { color: brand.surface, fontSize: 16, fontWeight: "600" }, disabled: { opacity: 0.45 },
+  success: { color: nutrientTheme.protein.color, marginTop: 12 }, error: { color: brand.red, marginTop: 12 },
+  reload: { paddingVertical: 14 }, reloadText: { color: brand.teal, fontWeight: "600", textDecorationLine: "underline" },
+  card: { backgroundColor: brand.surface, padding: 18, borderRadius: 18, marginTop: 22 },
+  heading: { fontSize: 18, fontWeight: "600", color: brand.ink }, text: { fontSize: 15, color: brand.muted },
+  row: { flexDirection: "row", justifyContent: "space-between", gap: 14, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: brand.border },
+  value: { fontSize: 15, fontWeight: "600", color: brand.ink, flexShrink: 1, textAlign: "right" },
 });

@@ -1,3 +1,6 @@
+import { BrandArtwork } from "@/components/brand/Artwork";
+import NutritionTile from "@/components/brand/NutritionTile";
+import { brand, nutrients } from "@/components/brand/theme";
 import { Ionicons } from "@expo/vector-icons";
 import {
   ScrollView,
@@ -192,45 +195,16 @@ const PantryDashboard = ({
   return (
     <View>
       <View style={styles.dashboard}>
-        <Text style={styles.dashboardLabel}>
-          Nutrition available
-        </Text>
-
-        <View style={styles.totalRow}>
-          <View style={styles.totalItem}>
-            <Ionicons
-              name="flame-outline"
-              size={22}
-              color="#fff"
-            />
-
-            <Text style={styles.totalValue}>
-              {totals.calories.toLocaleString()}
-            </Text>
-
-            <Text style={styles.totalLabel}>
-              total kcal
-            </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 20 }}>
+          <BrandArtwork name="pantryBasket" size={64} />
+          <View style={{ flex: 1, gap: 6 }}>
+            <Text style={{ fontSize: 21, fontWeight: "700", color: brand.ink }}>Pantry nutrition</Text>
+            <Text style={{ fontSize: 15, lineHeight: 22, color: brand.muted }}>Nutrition available from your stored items</Text>
           </View>
-
-          <View style={styles.divider} />
-
-          <View style={styles.totalItem}>
-            <Ionicons
-              name="barbell-outline"
-              size={22}
-              color="#fff"
-            />
-
-            <Text style={styles.totalValue}>
-              {totals.protein.toLocaleString()}
-              g
-            </Text>
-
-            <Text style={styles.totalLabel}>
-              total protein
-            </Text>
-          </View>
+        </View>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+          <NutritionTile label="Calories" value={totals.calories.toLocaleString() + " kcal"} />
+          <NutritionTile label="Protein" value={totals.protein.toLocaleString() + "g"} />
         </View>
       </View>
 
@@ -251,13 +225,13 @@ const PantryDashboard = ({
           return (
             <View
               key={nutrition.key}
-              style={styles.daysCard}
+              style={[styles.daysCard, { backgroundColor: nutrients[nutrition.key].background }]}
             >
               <View style={styles.daysIcon}>
                 <Ionicons
                   name={nutrition.icon}
                   size={21}
-                  color="#222"
+                  color={nutrients[nutrition.key].color}
                 />
               </View>
 
@@ -288,9 +262,9 @@ export default PantryDashboard;
 
 const styles = StyleSheet.create({
   dashboard: {
-    backgroundColor: "#222",
-    borderRadius: 20,
-    padding: 24,
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 20,
   },
 
   dashboardLabel: {
@@ -335,7 +309,7 @@ const styles = StyleSheet.create({
   },
 
   daysCard: {
-    width: 160,
+    width: 180,
     minHeight: 158,
     backgroundColor: "#fff",
     borderRadius: 18,
@@ -346,28 +320,28 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: "#EDEDED",
+    backgroundColor: "#FFFFFF",
     justifyContent: "center",
     alignItems: "center",
   },
 
   daysValue: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 19,
     fontWeight: "700",
     marginTop: 14,
   },
 
   daysLabel: {
-    color: "#777",
-    fontSize: 12,
-    lineHeight: 17,
+    color: brand.muted,
+    fontSize: 14,
+    lineHeight: 21,
     marginTop: 4,
   },
 
   targetLabel: {
-    color: "#999",
-    fontSize: 10,
+    color: brand.muted,
+    fontSize: 13,
     marginTop: 8,
   },
 });

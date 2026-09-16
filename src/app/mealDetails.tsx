@@ -1,3 +1,4 @@
+import NutritionTile from "@/components/brand/NutritionTile";
 import MealPhoto from "@/components/meals/MealPhoto";
 import ProductImage from "@/components/products/ProductImage";
 import { barcodeProductImageUrl, genericProductImageUrl } from "@/utils/productImage";
@@ -36,7 +37,7 @@ function Ingredient({ item, mealId }: { item: MealItem; mealId: string }) {
         updateItem.mutate({ mealId, itemId: item.id, amount: toNumber(amount) ?? 0 }, { onSuccess: () => setEditing(false) });
       }} />
       {editing && <MealButton secondary title="Cancel" disabled={busy} onPress={() => setEditing(false)} />}
-      <MealButton secondary disabled={busy} title="Remove" onPress={() => Alert.alert("Remove ingredient?", product?.product_name ?? "This ingredient", [
+      <MealButton destructive icon="trash-outline" disabled={busy} title="Remove" onPress={() => Alert.alert("Remove ingredient?", product?.product_name ?? "This ingredient", [
         { text: "Cancel", style: "cancel" },
         { text: "Remove", style: "destructive", onPress: () => removeItem.mutate({ mealId, itemId: item.id }) },
       ])} />
@@ -61,24 +62,26 @@ export default function MealDetailsScreen() {
       <Text style={s.title}>{meal.meal_name}</Text>
       {meal.description && <Text style={s.text}>{meal.description}</Text>}
       {meal.instructions && <><Text style={s.heading}>Instructions</Text><Text style={s.text}>{meal.instructions}</Text></>}
-      <MealButton secondary title="Edit meal details" onPress={() => setEditing(true)} />
+      <MealButton secondary icon="create-outline" title="Edit meal details" onPress={() => setEditing(true)} />
     </View>}
     <Text style={s.heading}>Ingredients · {meal.items.length} / 50</Text>
     <View style={s.row}>
-      <MealButton title="Search food" onPress={() => router.push({ pathname: "/mealSearch", params: { intent: "meal", mealId } })} />
-      <MealButton title="Scan barcode" secondary onPress={() => router.push({ pathname: "/camera", params: { intent: "meal", mealId } })} />
+      <MealButton icon="search-outline" title="Search food" onPress={() => router.push({ pathname: "/mealSearch", params: { intent: "meal", mealId } })} />
+      <MealButton icon="barcode-outline" title="Scan barcode" secondary onPress={() => router.push({ pathname: "/camera", params: { intent: "meal", mealId } })} />
     </View>
     {meal.items.length === 0 && <Text style={s.muted}>Add ingredients and enter the amount used in this recipe.</Text>}
     {meal.items.length >= 50 && <Text style={s.muted}>Ingredient limit reached. You can still add more of a product already in this meal.</Text>}
     {meal.items.map((item) => <Ingredient key={item.id} item={item} mealId={mealId} />)}
     <View style={s.card}>
       <Text style={s.heading}>Nutrition for the whole meal</Text>
-      {nutrientKeys.map((key) => <Text key={key} style={s.text}>{key[0].toUpperCase() + key.slice(1)}: {Number(nutrition.totals[key].toFixed(key === "calories" ? 0 : 1))}{key === "calories" ? " kcal" : "g"}</Text>)}
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+        {nutrientKeys.map((key) => <NutritionTile key={key} label={key[0].toUpperCase() + key.slice(1)} value={`${Number(nutrition.totals[key].toFixed(key === "calories" ? 0 : 1))}${key === "calories" ? " kcal" : "g"}`} />)}
+      </View>
       {nutrition.incomplete && <Text style={s.muted}>Some ingredient nutrition is missing. Totals include known values only.</Text>}
     </View>
     <ConsumeMeal mealId={mealId} disabled={meal.items.length === 0 || editing || update.isPending || remove.isPending} />
     {remove.error && <Text style={s.error}>{remove.error.message}</Text>}
-    <MealButton secondary disabled={remove.isPending} title={remove.isPending ? "Deleting…" : "Delete meal"} onPress={() => Alert.alert("Delete meal?", `Delete ${meal.meal_name} and its ingredient list?`, [
+    <MealButton destructive icon="trash-outline" disabled={remove.isPending} title={remove.isPending ? "Deleting…" : "Delete meal"} onPress={() => Alert.alert("Delete meal?", `Delete ${meal.meal_name} and its ingredient list?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => remove.mutate(mealId, { onSuccess: () => router.replace("/(tabs)/meals") }) },
     ])} />

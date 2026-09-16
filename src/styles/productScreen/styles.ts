@@ -12,7 +12,7 @@ export const productScreenStyles = StyleSheet.create({
   /* Screen layout */
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: "#F3FAFB",
   },
 
   scrollContent: {
@@ -22,14 +22,14 @@ export const productScreenStyles = StyleSheet.create({
 
   centeredContainer: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: "#F3FAFB",
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
 
   loadingText: {
-    color: "#777",
+    color: "#617783",
     fontSize: 14,
     marginTop: 14,
   },
@@ -48,19 +48,19 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   headerLabel: {
-    color: "#777",
+    color: "#617783",
     fontSize: 14,
     marginBottom: 4,
   },
 
   title: {
-    color: "#222",
-    fontSize: 26,
+    color: "#102739",
+    fontSize: 32,
     fontWeight: "700",
   },
 
   subtitle: {
-    color: "#777",
+    color: "#617783",
     fontSize: 14,
     lineHeight: 20,
     marginTop: 6,
@@ -161,7 +161,7 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#222",
+    color: "#102739",
     fontSize: 19,
     fontWeight: "700",
     marginTop: 28,
@@ -169,7 +169,7 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   sectionDescription: {
-    color: "#777",
+    color: "#617783",
     fontSize: 13,
     lineHeight: 19,
     marginTop: -7,
@@ -178,16 +178,16 @@ export const productScreenStyles = StyleSheet.create({
 
   card: {
     backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 24,
+    padding: 20,
   },
 
   cardWithBorder: {
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#E8E8E8",
-    borderRadius: 18,
-    padding: 18,
+    borderColor: "#DCEDEF",
+    borderRadius: 24,
+    padding: 20,
   },
 
   cardRow: {
@@ -206,8 +206,8 @@ export const productScreenStyles = StyleSheet.create({
   compactProductCard: {
     backgroundColor: "#fff",
     borderWidth: 1,
-    borderColor: "#E8E8E8",
-    borderRadius: 18,
+    borderColor: "#DCEDEF",
+    borderRadius: 24,
     padding: 16,
   },
 
@@ -223,22 +223,22 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   compactProductName: {
-    color: "#222",
+    color: "#102739",
     fontSize: 18,
     fontWeight: "700",
     lineHeight: 23,
   },
 
   compactProductBrand: {
-    color: "#777",
+    color: "#617783",
     fontSize: 13,
     marginTop: 4,
   },
 
   editProductButton: {
-    height: 36,
+    minHeight: 48,
     borderRadius: 11,
-    backgroundColor: "#EFEFEF",
+    backgroundColor: "#E3F4F6",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -251,7 +251,7 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   editProductButtonText: {
-    color: "#222",
+    color: "#102739",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -264,12 +264,12 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   compactAmountLabel: {
-    color: "#777",
+    color: "#617783",
     fontSize: 13,
   },
 
   compactAmountValue: {
-    color: "#222",
+    color: "#102739",
     fontSize: 13,
     fontWeight: "700",
   },
@@ -281,16 +281,16 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   compactNutritionHeading: {
-    color: "#555",
-    fontSize: 12,
+    color: "#102739",
+    fontSize: 18,
     fontWeight: "700",
-    marginBottom: 11,
+    marginBottom: 16,
   },
 
   compactNutritionGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    rowGap: 12,
+    gap: 12,
   },
 
   compactNutritionItem: {
@@ -299,13 +299,13 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   compactNutritionLabel: {
-    color: "#888",
+    color: "#617783",
     fontSize: 11,
     marginBottom: 3,
   },
 
   compactNutritionValue: {
-    color: "#222",
+    color: "#102739",
     fontSize: 14,
     fontWeight: "700",
   },
@@ -334,8 +334,8 @@ export const productScreenStyles = StyleSheet.create({
 
   priceCard: {
     backgroundColor: "#fff",
-    borderRadius: 18,
-    padding: 18,
+    borderRadius: 24,
+    padding: 20,
   },
 
   priceLabel: {
@@ -347,7 +347,7 @@ export const productScreenStyles = StyleSheet.create({
   inputContainer: {
     height: 52,
     borderWidth: 1,
-    borderColor: "#E2E2E2",
+    borderColor: "#BCDCE2",
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -356,7 +356,7 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   inputContainerFocused: {
-    borderColor: "#888",
+    borderColor: "#007F95",
   },
 
   inputContainerError: {
@@ -364,7 +364,7 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   currencySymbol: {
-    color: "#222",
+    color: "#102739",
     fontSize: 20,
     fontWeight: "700",
     marginRight: 8,
@@ -373,19 +373,19 @@ export const productScreenStyles = StyleSheet.create({
   input: {
     flex: 1,
     height: "100%",
-    color: "#222",
+    color: "#102739",
     fontSize: 18,
   },
 
   inputSuffix: {
-    color: "#777",
+    color: "#617783",
     fontSize: 15,
     fontWeight: "600",
     marginLeft: 8,
   },
 
   inputHelpText: {
-    color: "#777",
+    color: "#617783",
     fontSize: 12,
     lineHeight: 17,
     marginTop: 7,
@@ -410,15 +410,15 @@ export const productScreenStyles = StyleSheet.create({
     minHeight: 44,
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "#D4D4D4",
+    borderColor: "#BCDCE2",
     borderRadius: 12,
-    backgroundColor: "#E7E7E7",
+    backgroundColor: "#E3F4F6",
     paddingHorizontal: 14,
     paddingVertical: 10,
   },
 
   amountPresetText: {
-    color: "#222",
+    color: "#102739",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -434,7 +434,7 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   quantityPickerLabel: {
-    color: "#222",
+    color: "#102739",
     fontSize: 14,
     fontWeight: "600",
   },
@@ -451,15 +451,15 @@ export const productScreenStyles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#D4D4D4",
+    borderColor: "#BCDCE2",
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
   },
 
   quantityOptionSelected: {
-    backgroundColor: "#222",
-    borderColor: "#222",
+    backgroundColor: "#007F95",
+    borderColor: "#007F95",
   },
 
   quantityOptionTextSelected: {
@@ -481,7 +481,7 @@ export const productScreenStyles = StyleSheet.create({
     flex: 1,
     height: 52,
     borderWidth: 1,
-    borderColor: "#E2E2E2",
+    borderColor: "#BCDCE2",
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -493,7 +493,7 @@ export const productScreenStyles = StyleSheet.create({
     minWidth: 82,
     height: 52,
     borderWidth: 1,
-    borderColor: "#E2E2E2",
+    borderColor: "#BCDCE2",
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
@@ -511,7 +511,7 @@ export const productScreenStyles = StyleSheet.create({
   dateButton: {
     minHeight: 54,
     borderWidth: 1,
-    borderColor: "#E2E2E2",
+    borderColor: "#BCDCE2",
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -526,7 +526,7 @@ export const productScreenStyles = StyleSheet.create({
   dateIconContainer: {
     width: 36,
     height: 36,
-    borderRadius: 18,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "#F0F0F0",
@@ -538,13 +538,13 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   dateLabel: {
-    color: "#777",
+    color: "#617783",
     fontSize: 12,
     marginBottom: 2,
   },
 
   dateValue: {
-    color: "#222",
+    color: "#102739",
     fontSize: 15,
     fontWeight: "700",
   },
@@ -555,7 +555,7 @@ export const productScreenStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E8E8E8",
+    borderColor: "#DCEDEF",
     borderRadius: 16,
     paddingHorizontal: 15,
     paddingVertical: 12,
@@ -579,8 +579,8 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   checkboxChecked: {
-    borderColor: "#222",
-    backgroundColor: "#222",
+    borderColor: "#007F95",
+    backgroundColor: "#007F95",
   },
 
   checkboxContent: {
@@ -588,13 +588,13 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   checkboxLabel: {
-    color: "#222",
+    color: "#102739",
     fontSize: 15,
     fontWeight: "600",
   },
 
   checkboxDescription: {
-    color: "#777",
+    color: "#617783",
     fontSize: 12,
     lineHeight: 17,
     marginTop: 3,
@@ -602,14 +602,14 @@ export const productScreenStyles = StyleSheet.create({
 
   /* Nutrition summary used when consuming */
   summaryCard: {
-    backgroundColor: "#222",
-    borderRadius: 18,
-    padding: 18,
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    padding: 20,
   },
 
   summaryTitle: {
-    color: "#fff",
-    fontSize: 16,
+    color: "#102739",
+    fontSize: 20,
     fontWeight: "700",
     marginBottom: 15,
   },
@@ -617,7 +617,7 @@ export const productScreenStyles = StyleSheet.create({
   summaryGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    rowGap: 16,
+    gap: 12,
   },
 
   summaryItem: {
@@ -640,9 +640,9 @@ export const productScreenStyles = StyleSheet.create({
   calculateButton: {
     height: 52,
     borderRadius: 16,
-    backgroundColor: "#E7E7E7",
+    backgroundColor: "#E3F4F6",
     borderWidth: 1,
-    borderColor: "#D4D4D4",
+    borderColor: "#BCDCE2",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -655,7 +655,7 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   calculateButtonText: {
-    color: "#222",
+    color: "#102739",
     fontSize: 16,
     fontWeight: "700",
   },
@@ -663,9 +663,9 @@ export const productScreenStyles = StyleSheet.create({
   secondaryButton: {
     height: 52,
     borderRadius: 16,
-    backgroundColor: "#E7E7E7",
+    backgroundColor: "#E3F4F6",
     borderWidth: 1,
-    borderColor: "#D4D4D4",
+    borderColor: "#BCDCE2",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -678,15 +678,16 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   secondaryButtonText: {
-    color: "#222",
+    color: "#102739",
     fontSize: 16,
     fontWeight: "700",
   },
 
   addButton: {
-    height: 54,
+    minHeight: 58,
+    paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: "#222",
+    backgroundColor: "#007F95",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -705,9 +706,10 @@ export const productScreenStyles = StyleSheet.create({
   },
 
   primaryButton: {
-    height: 54,
+    minHeight: 58,
+    paddingVertical: 16,
     borderRadius: 16,
-    backgroundColor: "#222",
+    backgroundColor: "#007F95",
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",

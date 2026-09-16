@@ -30,71 +30,36 @@ type GenericProductSearchRow = {
  * selected. Full product information will be loaded
  * after the user chooses a result.
  */
-export async function searchProducts(
-  searchText: string
-): Promise<ProductSearchResult[]> {
+export const SEARCH_PAGE_SIZE = 50;
+export type ProductSearchPage = { items: ProductSearchResult[]; total: number };
+
+export async function searchProducts(searchText: string, page = 0): Promise<ProductSearchPage> {
+  if (!Number.isSafeInteger(page) || page < 0) throw new Error("Invalid search page.");
   const cleanedSearch = searchText.trim();
+  if (!cleanedSearch) return { items: [], total: 0 };
+  const offset = page * SEARCH_PAGE_SIZE;
 
-  if (!cleanedSearch) {
-    return [];
-  }
+  // Preserve packaged-first ordering. Fetch only this page, never the catalogue.
+  // The count locates the boundary between the two catalogues without loading rows.
+  const barcodeResponse = await supabase.from("products")
+    .select("barcode_number,image_path,image_url,product_name,product_amount,measurement_unit", { count: "exact" })
+    .ilike("product_name", `%${cleanedSearch}%`)
+    .order("product_name", { ascending: true })
+    .order("barcode_number", { ascending: true })
+    .range(offset, offset + SEARCH_PAGE_SIZE - 1);
+  if (barcodeResponse.error) throw new Error(barcodeResponse.error.message);
 
-  /*
-   * Both independent searches run at the same time.
-   */
-  const [
-    barcodeResponse,
-    genericResponse,
-  ] = await Promise.all([
-    supabase
-      .from("products")
-      .select(`
-        barcode_number,
-        image_path,
-        image_url,
-        product_name,
-        product_amount,
-        measurement_unit
-      `)
-      .ilike(
-        "product_name",
-        `%${cleanedSearch}%`
-      )
-      .order("product_name", {
-        ascending: true,
-      })
-      .limit(20),
-
-    supabase
-      .from("generic_products")
-      .select(`
-        id,
-        image_path,
-        product_name,
-        default_amount,
-        measurement_unit
-      `)
-      .ilike(
-        "product_name",
-        `%${cleanedSearch}%`
-      )
-      .order("product_name", {
-        ascending: true,
-      })
-      .limit(20),
-  ]);
-
-  if (barcodeResponse.error) {
-    throw new Error(
-      barcodeResponse.error.message
-    );
-  }
-
-  if (genericResponse.error) {
-    throw new Error(
-      genericResponse.error.message
-    );
-  }
+  const barcodeCount = barcodeResponse.count ?? 0;
+  const remaining = SEARCH_PAGE_SIZE - (barcodeResponse.data?.length ?? 0);
+  const genericOffset = Math.max(0, offset - barcodeCount);
+  let genericQuery = supabase.from("generic_products")
+    .select("id,image_path,product_name,default_amount,measurement_unit", { count: "exact", head: remaining === 0 })
+    .ilike("product_name", `%${cleanedSearch}%`)
+    .order("product_name", { ascending: true })
+    .order("id", { ascending: true });
+  if (remaining > 0) genericQuery = genericQuery.range(genericOffset, genericOffset + remaining - 1);
+  const genericResponse = await genericQuery;
+  if (genericResponse.error) throw new Error(genericResponse.error.message);
 
   const barcodeProducts =
     (barcodeResponse.data ??
@@ -147,8 +112,5 @@ export async function searchProducts(
    * probably make up most searches, followed by
    * generic food results.
    */
-  return [
-    ...barcodeResults,
-    ...genericResults,
-  ];
+  return { items: [...barcodeResults, ...genericResults], total: barcodeCount + (genericResponse.count ?? 0) };
 }
