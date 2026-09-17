@@ -1,3 +1,4 @@
+import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
   Alert,
@@ -30,7 +31,7 @@ const PolicyItem = ({
         <AppIcon
           name={icon}
           size={21}
-          color="#333"
+          color={brand.deepTeal}
         />
       </View>
 
@@ -41,7 +42,7 @@ const PolicyItem = ({
       <AppIcon
         name="chevron-forward"
         size={20}
-        color="#999"
+        color={brand.muted}
       />
     </Pressable>
   );
@@ -106,7 +107,7 @@ export default function PolicySection() {
 
 const styles = StyleSheet.create({
   sectionTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 19,
     fontWeight: "700",
     marginTop: 28,
@@ -114,8 +115,10 @@ const styles = StyleSheet.create({
   },
 
   policyCard: {
-    backgroundColor: "#fff",
+    backgroundColor: brand.surface,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: brand.border,
     paddingHorizontal: 16,
     overflow: "hidden",
   },
@@ -136,12 +139,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#EDEDED",
+    backgroundColor: brand.paleTeal,
   },
 
   policyLabel: {
     flex: 1,
-    color: "#222",
+    color: brand.ink,
     fontSize: 14,
     fontWeight: "600",
     marginLeft: 12,
@@ -149,6 +152,6 @@ const styles = StyleSheet.create({
 
   divider: {
     height: 1,
-    backgroundColor: "#EEEEEE",
+    backgroundColor: brand.border,
   },
 });

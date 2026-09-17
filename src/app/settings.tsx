@@ -1,3 +1,5 @@
+import FoodBudgetCard from "@/components/settings/FoodBudgetCard";
+import { brand } from "@/components/brand/theme";
 import ProductImageReviewsLink from "@/components/settings/ProductImageReviewsLink";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { useQueryClient } from "@tanstack/react-query";
@@ -314,7 +316,7 @@ export default function SettingsScreen() {
       <SafeAreaView edges={["left", "right", "bottom"]} style={styles.centeredContainer}>
         <ActivityIndicator
           size="large"
-          color="#222"
+          color={brand.ink}
         />
 
         <Text style={styles.loadingText}>
@@ -330,7 +332,7 @@ export default function SettingsScreen() {
         <AppIcon
           name="alert-circle-outline"
           size={44}
-          color="#B3261E"
+          color={brand.red}
         />
 
         <Text style={styles.errorTitle}>
@@ -364,12 +366,17 @@ export default function SettingsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <Text style={styles.pageLabel}>
-          Your account
+          Your preferences
         </Text>
 
         <Text style={styles.pageTitle}>
-          Profile
+          Settings
         </Text>
+
+        <FoodBudgetCard
+          value={formValues.cost}
+          onChangeText={(value) => handlePreferenceChange("cost", value)}
+        />
 
         <ProfileCard user={user} />
 
@@ -398,13 +405,13 @@ export default function SettingsScreen() {
           {isSigningOut ? (
             <ActivityIndicator
               size="small"
-              color="#B3261E"
+              color={brand.red}
             />
           ) : (
             <AppIcon
               name="log-out-outline"
               size={21}
-              color="#B3261E"
+              color={brand.red}
             />
           )}
 
@@ -426,7 +433,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: brand.background,
   },
 
   scrollContent: {
@@ -438,25 +445,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#F7F7F7",
+    backgroundColor: brand.background,
     padding: 24,
   },
 
   loadingText: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 14,
     marginTop: 12,
   },
 
   errorTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 19,
     fontWeight: "700",
     marginTop: 14,
   },
 
   errorText: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 13,
     lineHeight: 19,
     textAlign: "center",
@@ -464,7 +471,7 @@ const styles = StyleSheet.create({
   },
 
   retryButton: {
-    backgroundColor: "#222",
+    backgroundColor: brand.teal,
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -472,19 +479,19 @@ const styles = StyleSheet.create({
   },
 
   retryButtonText: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 14,
     fontWeight: "700",
   },
 
   pageLabel: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 14,
     marginBottom: 4,
   },
 
   pageTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 28,
     fontWeight: "800",
     marginBottom: 20,
@@ -496,7 +503,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "#FFF0F0",
+    backgroundColor: brand.paleRed,
     borderWidth: 1,
     borderColor: "#F1C4C4",
     borderRadius: 16,
@@ -504,7 +511,7 @@ const styles = StyleSheet.create({
   },
 
   signOutText: {
-    color: "#B3261E",
+    color: brand.red,
     fontSize: 15,
     fontWeight: "700",
   },
@@ -518,7 +525,7 @@ const styles = StyleSheet.create({
   },
 
   versionText: {
-    color: "#999",
+    color: brand.muted,
     fontSize: 12,
     textAlign: "center",
     marginTop: 18,

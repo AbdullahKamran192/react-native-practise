@@ -20,9 +20,10 @@ function loadSearch(barcodeCount, genericCount, failTable) {
       then(resolve) {
         if (table === failTable) return resolve({ error: { message: 'Search unavailable' } });
         const count = table === 'products' ? barcodeCount : genericCount;
-        if (call.options.head) return resolve({ data: null, count });
+        if (call.options?.head) return resolve({ data: null, count });
         assert.ok(call.range, 'Every row request must have a database range');
         const [from, to] = call.range;
+        if (from >= count) return resolve({ error: { code: "PGRST103", message: "Requested range not satisfiable" } });
         assert.ok(to - from + 1 <= 50);
         const data = Array.from({ length: Math.max(0, Math.min(count, to + 1) - from) }, (_, i) => ({
           id: from + i, barcode_number: String(from + i), product_name: 'Same name',
@@ -55,8 +56,8 @@ test('combined pages fetch at most 50 rows and cross catalogue boundaries withou
   assert.equal(new Set(all).size, 125);
   assert.equal(all[59], 'barcode-59');
   assert.equal(all[60], 'generic-0');
-  assert.deepEqual(api.calls[0].order, ['product_name', 'barcode_number']);
-  assert.deepEqual(api.calls[1].order, ['product_name', 'id']);
+  assert.deepEqual(api.calls.find(c => c.table === 'products' && c.range).order, ['product_name', 'barcode_number']);
+  assert.deepEqual(api.calls.find(c => c.table === 'generic_products' && c.range).order, ['product_name', 'id']);
   assert.equal(api.calls[0].pattern, '%food%');
 });
 
@@ -78,4 +79,17 @@ test('invalid pages and database failures surface as errors', async () => {
   for (const table of ['products', 'generic_products']) {
     await assert.rejects(loadSearch(10, 10, table).searchProducts('food'), /Search unavailable/);
   }
+});
+
+test('generic-only later pages never request exhausted barcode ranges', async () => {
+  const api = loadSearch(12, 110);
+  const second = await api.searchProducts('h', 1);
+  assert.equal(second.items.length, 50);
+  assert.equal(second.items[0].id, '38');
+  assert.equal(second.items[0].source, 'generic');
+  assert.equal(api.calls.filter(c => c.table === 'products' && c.range).length, 0);
+  const third = await api.searchProducts('h', 2);
+  assert.equal(third.items.length, 22);
+  assert.equal(third.items[0].id, '88');
+  assert.deepEqual(await api.searchProducts('h', 3), { items: [], total: 122 });
 });

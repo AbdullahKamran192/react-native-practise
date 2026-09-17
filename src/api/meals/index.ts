@@ -18,5 +18,6 @@ export function useMealActions() {
   const addItem = useMutation({ mutationFn: (input: AddMealItemInput) => api.addMealItem(input), onSuccess: refresh });
   const updateItem = useMutation({ mutationFn: ({ mealId, itemId, amount }: { mealId: string; itemId: number; amount: number }) => api.updateMealItemAmount(mealId, itemId, amount), onSuccess: refresh });
   const removeItem = useMutation({ mutationFn: ({ mealId, itemId }: { mealId: string; itemId: number }) => api.removeMealItem(mealId, itemId), onSuccess: refresh });
-  return { create, update, remove, addItem, updateItem, removeItem };
+  const replaceItem = useMutation({ mutationFn: api.replaceMealItem, onSuccess: refresh });
+  return { create, update, remove, addItem, updateItem, removeItem, replaceItem };
 }

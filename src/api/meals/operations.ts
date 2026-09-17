@@ -1,4 +1,7 @@
 import { mealImageRequest } from "./images";
+import type { PantryItem } from "@/api/products";
+import { replacementCandidates } from "@/utils/mealReplacements";
+import { ingredientAvailability } from "@/utils/mealAvailability";
 import { supabase } from "@/lib/supabase";
 import type { AddMealItemInput, Meal, MealInput, MealWithItems, MealListItem } from "./types";
 import { MAX_MEALS, MAX_MEAL_ITEMS, validateMeal, validateMealAmount, validateMealId } from "./validation";
@@ -107,4 +110,31 @@ export async function removeMealItem(mealId: string, itemId: number) {
   await userId();
   const { error } = await supabase.from("meal_items").delete().eq("id", itemId).eq("meal_id", mealId);
   if (error) fail(error);
+}
+
+export async function replaceMealItem(input: { mealId: string; itemId: number; pantryId: number; originalBarcode: string; originalAmount: number }) {
+  const user = await userId();
+  const meal = await getMeal(input.mealId);
+  const item = meal.items.find(row => row.id === input.itemId);
+  if (!item || item.product_barcode !== input.originalBarcode || Number(item.amount) !== Number(input.originalAmount)) {
+    throw new Error("This ingredient changed. Reopen the replacement page.");
+  }
+  if (!Number.isSafeInteger(input.pantryId) || input.pantryId <= 0) throw new Error("Choose a pantry product.");
+  const results = await Promise.all([
+    supabase.from("pantry").select("*, product:products(*)").eq("user_id", user).eq("id", input.pantryId),
+    supabase.from("pantry").select("*, product:products(*)").eq("user_id", user).eq("product_barcode", item.product_barcode),
+  ]);
+  for (const result of results) if (result.error) fail(result.error);
+  const pantry = results.flatMap(result => result.data ?? []) as unknown as PantryItem[];
+  if (ingredientAvailability(item, pantry) >= 0.8) throw new Error("This ingredient now has at least 80% available. Refresh the meal.");
+  const candidates = replacementCandidates(item, meal.items, pantry);
+  const selected = [...candidates.equivalent, ...candidates.similar].find(row => row.id === input.pantryId);
+  if (!selected) throw new Error("This replacement is no longer available or is already in the meal. Refresh the page.");
+  const { data, error } = await supabase.from("meal_items")
+    .update({ product_barcode: selected.product_barcode, generic_product_id: null })
+    .eq("id", item.id).eq("meal_id", input.mealId)
+    .eq("product_barcode", input.originalBarcode).eq("amount", input.originalAmount)
+    .select("id").maybeSingle();
+  if (error) fail(error);
+  if (!data) throw new Error("This ingredient changed. Reopen the replacement page.");
 }

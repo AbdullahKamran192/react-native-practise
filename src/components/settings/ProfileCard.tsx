@@ -1,3 +1,4 @@
+import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet, Text, View } from "react-native";
 import type { User } from "@supabase/supabase-js";
@@ -82,7 +83,7 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#222",
+    backgroundColor: brand.deepTeal,
     borderRadius: 20,
     padding: 18,
   },
@@ -93,11 +94,11 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#414141",
+    backgroundColor: brand.teal,
   },
 
   avatarText: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 20,
     fontWeight: "800",
   },
@@ -108,13 +109,13 @@ const styles = StyleSheet.create({
   },
 
   profileName: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 18,
     fontWeight: "700",
   },
 
   profileEmail: {
-    color: "#BDBDBD",
+    color: brand.paleTeal,
     fontSize: 13,
     marginTop: 5,
   },

@@ -17,6 +17,7 @@ export type MeasurementUnit =
   | "ml";
 
 export type ProductRow = {
+  generic_product_id?: number | null;
   image_path?: string | null;
   image_url?: string | null;
   barcode_number: string;

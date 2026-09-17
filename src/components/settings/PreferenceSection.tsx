@@ -1,3 +1,4 @@
+import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
   ActivityIndicator,
@@ -57,7 +58,7 @@ const PreferenceInput = ({
         <AppIcon
           name={icon}
           size={21}
-          color="#333"
+          color={brand.deepTeal}
         />
       </View>
 
@@ -76,6 +77,7 @@ const PreferenceInput = ({
           style={styles.input}
           value={value}
           onChangeText={onChangeText}
+          accessibilityLabel={label}
           keyboardType="decimal-pad"
           selectTextOnFocus
         />
@@ -194,18 +196,6 @@ export default function PreferenceSection({
           }
         />
 
-        <View style={styles.divider} />
-
-        <PreferenceInput
-          label="Food budget"
-          description="Preferred daily food cost"
-          unit="£"
-          icon="wallet-outline"
-          value={values.cost}
-          onChangeText={(value) =>
-            onChange("cost", value)
-          }
-        />
       </View>
 
       <Pressable
@@ -220,13 +210,13 @@ export default function PreferenceSection({
         {isSaving ? (
           <ActivityIndicator
             size="small"
-            color="#fff"
+            color={brand.surface}
           />
         ) : (
           <AppIcon
             name="checkmark-outline"
             size={21}
-            color="#fff"
+            color={brand.surface}
           />
         )}
 
@@ -247,21 +237,23 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 19,
     fontWeight: "700",
   },
 
   sectionDescription: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 13,
     lineHeight: 19,
     marginTop: 4,
   },
 
   preferencesCard: {
-    backgroundColor: "#fff",
+    backgroundColor: brand.surface,
     borderRadius: 20,
+    borderWidth: 1,
+    borderColor: brand.border,
     paddingHorizontal: 16,
   },
 
@@ -278,7 +270,7 @@ const styles = StyleSheet.create({
     borderRadius: 13,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#EDEDED",
+    backgroundColor: brand.paleTeal,
   },
 
   preferenceInformation: {
@@ -287,13 +279,13 @@ const styles = StyleSheet.create({
   },
 
   preferenceLabel: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 14,
     fontWeight: "700",
   },
 
   preferenceDescription: {
-    color: "#888",
+    color: brand.muted,
     fontSize: 11,
     marginTop: 3,
   },
@@ -305,8 +297,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
     borderWidth: 1,
-    borderColor: "#DADADA",
-    backgroundColor: "#F8F8F8",
+    borderColor: brand.border,
+    backgroundColor: brand.background,
     borderRadius: 11,
     paddingHorizontal: 9,
   },
@@ -314,7 +306,7 @@ const styles = StyleSheet.create({
   input: {
     minWidth: 42,
     maxWidth: 65,
-    color: "#222",
+    color: brand.ink,
     fontSize: 14,
     fontWeight: "700",
     textAlign: "right",
@@ -322,14 +314,14 @@ const styles = StyleSheet.create({
   },
 
   unit: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 11,
     marginLeft: 4,
   },
 
   divider: {
     height: 1,
-    backgroundColor: "#EEEEEE",
+    backgroundColor: brand.border,
   },
 
   saveButton: {
@@ -338,13 +330,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
-    backgroundColor: "#222",
+    backgroundColor: brand.teal,
     borderRadius: 16,
     marginTop: 16,
   },
 
   saveButtonText: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 15,
     fontWeight: "700",
   },
