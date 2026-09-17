@@ -1,7 +1,7 @@
 import ProductImage from "@/components/products/ProductImage";
 import { genericProductImageUrl, barcodeProductImageUrl } from "@/utils/productImage";
 import { getPantryAmounts, formatPantryQuantity } from "@/utils/pantryAmounts";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { router } from "expo-router";
 
 import {
@@ -44,10 +44,7 @@ const ProductListItem = ({
     return null;
   }
 
-  const isGenericProduct =
-    genericProduct !== null;
-
-  const { amountRemaining, productAmount, quantity } = getPantryAmounts(pantryItem);
+  const { amountRemaining, quantity } = getPantryAmounts(pantryItem);
 
   const measurementUnit =
     barcodeProduct?.measurement_unit ??
@@ -85,16 +82,21 @@ const ProductListItem = ({
           <Text style={styles.productName}>{productName}</Text>
           <Text style={{ color: "#007F95", fontSize: 20, fontWeight: "700" }}>{amountRemaining}{measurementUnit} <Text style={{ color: "#617783", fontSize: 14, fontWeight: "400" }}>remaining</Text></Text>
         </View>
-        <Ionicons name="chevron-forward" size={22} color="#617783" />
+        <AppIcon name="chevron-forward" size={22} color="#617783" />
       </View>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 16 }}>
-        <Text style={{ backgroundColor: "#FFF3E2", color: "#AD510B", padding: 10, borderRadius: 12, fontSize: 15 }}><Ionicons name="flame-outline" size={16} /> {Math.round(totalCalories)} kcal</Text>
-        <Text style={{ backgroundColor: "#EAF7EC", color: "#287C3D", padding: 10, borderRadius: 12, fontSize: 15 }}><Ionicons name="barbell-outline" size={16} /> {Math.round(totalProtein * 10) / 10}g protein</Text>
-      </View>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10, marginTop: 14 }}>
-        {quantity !== null && <View style={styles.quantityBadge}><Text style={styles.quantityText}>?{formatPantryQuantity(quantity)}</Text></View>}
-        <Text style={styles.amountText}>{quantity !== null ? `${productAmount}${measurementUnit} each` : "Item size unavailable"}</Text>
-        <Text style={styles.productType}>{isGenericProduct ? "Generic food" : "Packaged product"}</Text>
+      <View style={styles.badgeRow}>
+        <View style={[styles.badge, { flex: 1.2, backgroundColor: "#FFF3E2" }]} accessibilityLabel={Math.round(totalCalories) + " calories remaining"}>
+          <AppIcon name="flame-outline" size={15} color="#AD510B" />
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.badgeText, { color: "#AD510B" }]}>{Math.round(totalCalories)} kcal</Text>
+        </View>
+        <View style={[styles.badge, { flex: 1, backgroundColor: "#EAF7EC" }]} accessibilityLabel={Math.round(totalProtein * 10) / 10 + " grams protein remaining"}>
+          <AppIcon name="barbell-outline" size={15} color="#287C3D" />
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.badgeText, { color: "#287C3D" }]}>{Math.round(totalProtein * 10) / 10}g</Text>
+        </View>
+        <View style={[styles.badge, { flex: 0.8, backgroundColor: "#E3F4F6" }]} accessibilityLabel={quantity === null ? "Quantity unavailable" : formatPantryQuantity(quantity) + " items remaining"}>
+          <AppIcon name="cube" size={15} color="#00556B" />
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.badgeText, { color: "#00556B" }]}>{quantity !== null ? "\u00D7" + formatPantryQuantity(quantity) : "\u2014"}</Text>
+        </View>
       </View>
     </Pressable>
   );
@@ -105,8 +107,7 @@ export default ProductListItem;
 const styles = StyleSheet.create({
   productCard: { backgroundColor: "#fff", borderRadius: 24, padding: 20, marginBottom: 16, borderWidth: 1, borderColor: "#E7F1F3" },
   productName: { color: "#102739", fontSize: 18, fontWeight: "700", lineHeight: 25 },
-  quantityBadge: { backgroundColor: "#E3F4F6", borderRadius: 10, paddingHorizontal: 10, paddingVertical: 6 },
-  quantityText: { color: "#00556B", fontSize: 14, fontWeight: "700" },
-  amountText: { color: "#617783", fontSize: 14 },
-  productType: { color: "#617783", fontSize: 13 },
+  badgeRow: { flexDirection: "row", gap: 6, marginTop: 14 },
+  badge: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 4, paddingHorizontal: 6, paddingVertical: 9, borderRadius: 12, minWidth: 0 },
+  badgeText: { fontSize: 14, flexShrink: 1 },
 });

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet, Text, View } from "react-native";
 
 export type ValueGrade = "A" | "B" | "C" | "D" | "E";
@@ -155,7 +155,7 @@ const ProductValueDashboard = ({
           ]}
         >
           <View style={styles.valueHeader}>
-            <Ionicons
+            <AppIcon
               name="flame-outline"
               size={22}
               color={caloriesColours.textColor}
@@ -207,7 +207,7 @@ const ProductValueDashboard = ({
           ]}
         >
           <View style={styles.valueHeader}>
-            <Ionicons
+            <AppIcon
               name="barbell-outline"
               size={22}
               color={proteinColours.textColor}
@@ -292,7 +292,7 @@ const ProductValueDashboard = ({
       </View>
 
       <View style={styles.explanation}>
-        <Ionicons
+        <AppIcon
           name="information-circle-outline"
           size={18}
           color="#777"

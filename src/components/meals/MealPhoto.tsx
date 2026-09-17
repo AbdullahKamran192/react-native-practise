@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { chooseMealPhoto, readMealPhoto } from "@/utils/mealPhoto";
 import { useRef, useState } from "react";
 import { Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { mealImageRequest } from "@/api/meals/images";
 import type { Meal } from "@/api/meals";
 import { MealButton, mealStyles as s } from "./ui";
@@ -48,17 +48,17 @@ export default function MealPhoto({ meal, editable = false }: { meal: Meal; edit
   return <View style={editable ? s.card : undefined}>
     {uri && failed !== uri ? <Image key={uri} source={{ uri }} style={photoStyle} contentFit="cover" cachePolicy="none" accessibilityLabel={`Photo of ${meal.meal_name}`} onError={() => setFailed(uri)} />
       : <View style={[photoStyle, { backgroundColor: "#EDEDED", alignItems: "center", justifyContent: "center" }]}>
-        <Ionicons name="image-outline" size={editable ? 40 : 26} color="#999" />
+        <AppIcon name="image-outline" size={editable ? 40 : 26} color="#999" />
         {editable && <Text style={s.muted}>{query.isFetching ? "Loading photo..." : "No photo available"}</Text>}
       </View>}
     {editable && <>
-      <View style={s.row}>
-        <MealButton secondary disabled={busy} icon="image-outline" title="Choose photo" onPress={() => void choose(false)} />
-        <MealButton secondary disabled={busy} icon="camera-outline" title="Take photo" onPress={() => void choose(true)} />
+      <View style={s.actionRow}>
+        <MealButton equalWidth secondary disabled={busy} icon="image-outline" title="Choose photo" onPress={() => void choose(false)} />
+        <MealButton equalWidth secondary disabled={busy} icon="camera-outline" title="Take photo" onPress={() => void choose(true)} />
       </View>
-      {draft ? <View style={s.row}>
-        <MealButton disabled={busy} title={busy ? "Saving..." : "Save photo"} onPress={() => void save()} />
-        <MealButton secondary disabled={busy} title="Cancel" onPress={() => setDraft(null)} />
+      {draft ? <View style={s.actionRow}>
+        <MealButton equalWidth disabled={busy} title={busy ? "Saving..." : "Save photo"} onPress={() => void save()} />
+        <MealButton equalWidth secondary disabled={busy} title="Cancel" onPress={() => setDraft(null)} />
       </View> : meal.image_path ? <MealButton destructive icon="trash-outline" disabled={busy} title={busy ? "Please wait..." : "Remove photo"} onPress={() => void save(true)} /> : null}
       {(error || query.error) && <Text style={s.error}>{error ?? query.error?.message}</Text>}
       {(query.error || (uri && failed === uri)) && <MealButton secondary title="Reload photo" onPress={() => { setFailed(null); void query.refetch(); }} />}

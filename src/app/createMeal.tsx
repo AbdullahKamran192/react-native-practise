@@ -2,7 +2,7 @@ import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMealActions } from "@/api/meals";
 import type { Meal, MealInput } from "@/api/meals";
@@ -62,7 +62,7 @@ export default function CreateMealScreen() {
       <Text style={s.heading}>Meal photo (optional)</Text>
       {photo ? <Image source={{ uri: photo }} style={{ width: "100%", height: 220, borderRadius: 14 }} contentFit="cover" accessibilityLabel="Selected meal photo preview" />
         : <View style={{ height: 120, borderRadius: 14, backgroundColor: "#EDEDED", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <Ionicons name="image-outline" size={36} color="#999" />
+          <AppIcon name="image-outline" size={36} color="#999" />
           <Text style={s.muted}>No photo selected</Text>
         </View>}
       <View style={s.row}>

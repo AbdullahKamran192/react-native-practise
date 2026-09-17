@@ -4,6 +4,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 const ts = require("typescript");
 
+const periodModule = { exports: {} };
+new Function('exports', ts.transpileModule(fs.readFileSync(path.join(__dirname, '../src/utils/mealPeriod.ts'), 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText)(periodModule.exports);
+
 function setup(results = [], store = new Map(), options = {}) {
   const calls = [], submissions = [];
   const storage = {
@@ -12,6 +15,7 @@ function setup(results = [], store = new Map(), options = {}) {
     removeItem: async key => { store.delete(key); },
   };
   const imports = {
+    "@/utils/mealPeriod": periodModule.exports,
     "@react-native-async-storage/async-storage": { __esModule: true, default: storage },
     "@/lib/supabase": { supabase: {
       auth: { getUser: async () => ({ data: { user: options.signedOut ? null : { id: options.user ?? "owner" } }, error: null }) },
@@ -34,7 +38,7 @@ function setup(results = [], store = new Map(), options = {}) {
   }, module, module.exports);
   return { api: module.exports, calls, submissions, store };
 }
-const food = { genericProductId: "1", amount: 20, unit: "g", consumedOn: "2026-09-12", removeFromPantry: true };
+const food = { mealPeriod: "Breakfast", genericProductId: "1", amount: 20, unit: "g", consumedOn: "2026-09-12", removeFromPantry: true };
 const success = () => ({ data: [{ id: 1, product_name_snapshot: "Oats", consumed_on: food.consumedOn }], error: null });
 
 test("generic food sends references/date/amount/checkbox, not client nutrition totals", async () => {
@@ -42,6 +46,7 @@ test("generic food sends references/date/amount/checkbox, not client nutrition t
   await db.api.logConsumption("generic:1", { ...food, removeFromPantry: false });
   assert.equal(db.calls[0].p_remove_from_pantry, false);
   assert.equal(db.calls[0].p_amount, 20);
+  assert.equal(db.calls[0].p_meal_period, "Breakfast");
   assert.equal(db.calls[0].p_generic_product_id, "1");
   assert.equal(db.calls[0].p_consumed_on, food.consumedOn);
   assert.equal(db.calls[0].p_meal_id, null);
@@ -63,7 +68,7 @@ test("timeout and app restart reuse original group and all original choices", as
   await assert.rejects(first.api.logConsumption("generic:1", food), /Timeout/);
   const second = setup([success()], first.store);
   assert.equal((await second.api.getPendingLog("generic:1")).input.amount, 20);
-  await second.api.logConsumption("generic:1", { ...food, amount: 999, removeFromPantry: false });
+  await second.api.logConsumption("generic:1", { ...food, amount: 999, mealPeriod: "Dinner", removeFromPantry: false });
   assert.deepEqual(second.calls[0], first.calls[0]);
   assert.equal(second.store.size, 0);
 });
@@ -111,3 +116,15 @@ test("local date uses the device calendar, not UTC conversion", () => {
   assert.equal(setup().api.localDate(new Date(2026,0,2,0,1)), "2026-01-02");
 });
 
+
+test("local time defaults at every meal period boundary", () => {
+  const defaults = periodModule.exports;
+  for (const [hour,minute,period] of [[4,59,'Snack'],[5,0,'Breakfast'],[10,59,'Breakfast'],[11,0,'Lunch'],[14,59,'Lunch'],[15,0,'Snack'],[16,59,'Snack'],[17,0,'Dinner'],[21,59,'Dinner'],[22,0,'Snack'],[0,0,'Snack']]) {
+    assert.equal(defaults.defaultMealPeriod(new Date(2026,8,16,hour,minute)),period);
+  }
+});
+test("invalid meal period is rejected before logging", async () => {
+  const db = setup([]);
+  await assert.rejects(db.api.logConsumption('generic:1', {...food, mealPeriod: 'Brunch'}), /meal period/);
+  assert.equal(db.calls.length, 0);
+});

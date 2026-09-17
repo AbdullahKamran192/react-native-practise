@@ -1,4 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
+import DeletePantryButton from "@/components/pantry/DeletePantryButton";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useEffect, useRef, useState } from "react";
 import { brand } from "@/components/brand/theme";
 import { router } from "expo-router";
@@ -42,6 +43,7 @@ const PAGE_SIZE = 50;
 
 const Pantry = () => {
   const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState(false);
   const [searchText, setSearchText] = useState("");
   const listRef = useRef<FlatList<PantryItem>>(null);
   const {
@@ -88,7 +90,7 @@ const Pantry = () => {
         <Pressable accessibilityRole="button" accessibilityLabel="Previous pantry page"
           accessibilityState={{ disabled: currentPage === 1 }} disabled={currentPage === 1}
           onPress={() => goToPage(currentPage - 1)} style={[styles.pageButton, currentPage === 1 && styles.pageDisabled]}>
-          <Ionicons name="chevron-back" size={18} color={brand.teal} />
+          <AppIcon name="chevron-back" size={18} color={brand.teal} />
           <Text style={styles.pageText}>Previous</Text>
         </Pressable>
         <Text style={styles.pageSummary}>Page {currentPage} of {pageCount}</Text>
@@ -96,7 +98,7 @@ const Pantry = () => {
           accessibilityState={{ disabled: currentPage === pageCount }} disabled={currentPage === pageCount}
           onPress={() => goToPage(currentPage + 1)} style={[styles.pageButton, currentPage === pageCount && styles.pageDisabled]}>
           <Text style={styles.pageText}>Next</Text>
-          <Ionicons name="chevron-forward" size={18} color={brand.teal} />
+          <AppIcon name="chevron-forward" size={18} color={brand.teal} />
         </Pressable>
       </View>
       <View style={styles.pageNumbers}>
@@ -150,7 +152,7 @@ const Pantry = () => {
           styles.messageContainer
         }
       >
-        <Ionicons
+        <AppIcon
           name="alert-circle-outline"
           size={42}
           color="#C62828"
@@ -377,7 +379,7 @@ const Pantry = () => {
                 accessibilityRole="button"
                 accessibilityLabel="Add food to pantry"
               >
-                <Ionicons
+                <AppIcon
                   name="add"
                   size={23}
                   color="#fff"
@@ -407,19 +409,15 @@ const Pantry = () => {
                 Your Products
               </Text>
 
-              <Text
-                style={
-                  styles.productCount
-                }
-              >
-                {matchingItems.length}{" "}
-                {matchingItems.length === 1
-                  ? "product"
-                  : "products"}
-              </Text>
+
+            <Pressable accessibilityRole="button" accessibilityLabel={editing ? "Stop editing pantry" : "Edit pantry products"}
+              accessibilityState={{ selected: editing }} onPress={() => setEditing(value => !value)} style={styles.editButton}>
+              <AppIcon name={editing ? "close" : "create-outline"} size={20} color={brand.surface} />
+              <Text style={{ color: brand.surface, fontWeight: "600" }}>{editing ? "Done" : "Edit"}</Text>
+            </Pressable>
             </View>
             <View style={styles.searchBar}>
-              <Ionicons name="search-outline" size={22} color={brand.teal} accessible={false} />
+              <AppIcon name="search-outline" size={22} color={brand.teal} accessible={false} />
               <TextInput
                 value={searchText}
                 onChangeText={updateSearch}
@@ -434,16 +432,20 @@ const Pantry = () => {
               {searchText.length > 0 && (
                 <Pressable onPress={() => updateSearch("")} accessibilityRole="button"
                   accessibilityLabel="Clear pantry search" style={styles.clearSearch}>
-                  <Ionicons name="close-circle" size={22} color={brand.muted} />
+                  <AppIcon name="close-circle" size={22} color={brand.muted} />
                 </Pressable>
               )}
             </View>
+            <Text style={[styles.productCount, { marginBottom: 14, textAlign: "left" }]}>
+              {matchingItems.length} {matchingItems.length === 1 ? "product" : "products"}
+            </Text>
           </>
         }
         renderItem={({ item }) => (
-          <ProductListItem
-            pantryItem={item}
-          />
+          <View style={{ flexDirection: "row", alignItems: "center", gap: editing ? 10 : 0 }}>
+            <View style={{ flex: 1 }}><ProductListItem pantryItem={item} /></View>
+            {editing && <DeletePantryButton item={item} />}
+          </View>
         )}
         ListEmptyComponent={
           <View
@@ -451,7 +453,7 @@ const Pantry = () => {
               styles.emptyContainer
             }
           >
-            <Ionicons
+            <AppIcon
               name="basket-outline"
               size={40}
               color="#999"
@@ -478,6 +480,7 @@ const Pantry = () => {
 export default Pantry;
 
 const styles = StyleSheet.create({
+  editButton: { flexShrink: 0, flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingHorizontal: 16, borderRadius: 12, backgroundColor: brand.teal },
   searchBar: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: brand.surface, borderWidth: 1, borderColor: brand.border, borderRadius: 16, paddingLeft: 14, paddingRight: 6, marginBottom: 18 },
   searchInput: { flex: 1, minWidth: 0, minHeight: 52, fontSize: 16, color: brand.ink, paddingVertical: 12 },
   clearSearch: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
@@ -555,6 +558,7 @@ const styles = StyleSheet.create({
 
   sectionHeader: {
     flexDirection: "row",
+    gap: 8,
     justifyContent:
       "space-between",
     alignItems: "center",
@@ -563,6 +567,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
+    flexShrink: 1,
     color: "#102739",
     fontSize: 19,
     fontWeight: "700",

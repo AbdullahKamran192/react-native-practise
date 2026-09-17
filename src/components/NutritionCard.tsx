@@ -1,11 +1,11 @@
 import { brand } from "@/components/brand/theme";
 import { View, Text } from 'react-native'
-import { Ionicons } from '@expo/vector-icons';
+import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet } from 'react-native';
 import ProgressRing from './ProgressRing';
 
 type NutritionCardProps = {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof AppIcon.glyphMap;
   label: string;
   value: string;
   goal: string;
@@ -29,7 +29,7 @@ const NutritionCard = ({
     <View style={[styles.nutritionCard, { backgroundColor: backgroundColour }]}>
       <ProgressRing progress={progress} animationKey={animationKey} colour={colour} trackColour={brand.border}
         label={label + ": " + value + " of " + goal}>
-        <Ionicons name={icon} size={22} color={colour} />
+        <AppIcon name={icon} size={22} color={colour} />
       </ProgressRing>
 
       <Text style={styles.nutritionLabel}>{label}</Text>

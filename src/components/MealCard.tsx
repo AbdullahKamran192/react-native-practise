@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 
 
 type MealCardProps = {
   meal: string;
   food: string;
   calories: number;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof AppIcon.glyphMap;
 };
 
 const MealCard = ({
@@ -18,7 +18,7 @@ const MealCard = ({
   return (
     <View style={styles.mealCard}>
       <View style={styles.mealIcon}>
-        <Ionicons name={icon} size={24} color="#444" />
+        <AppIcon name={icon} size={24} color="#444" />
       </View>
 
       <View style={styles.mealInfo}>

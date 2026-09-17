@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import {
   Pressable,
   StyleSheet,
@@ -44,7 +44,7 @@ type ProductTextInputProps = {
 
 type NutritionInputProps = {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof AppIcon.glyphMap;
   value: string;
   unit: string;
   onChangeText: (value: string) => void;
@@ -101,7 +101,7 @@ const ProductTextInput = ({
           {label}
         </Text>
 
-        <Ionicons
+        <AppIcon
           name="pencil-outline"
           size={14}
           color="#BDBDBD"
@@ -153,14 +153,14 @@ const NutritionInput = ({
     >
       <View style={styles.nutritionHeader}>
         <View style={styles.nutritionIcon}>
-          <Ionicons
+          <AppIcon
             name={icon}
             size={19}
             color="#222"
           />
         </View>
 
-        <Ionicons
+        <AppIcon
           name="pencil-outline"
           size={14}
           color="#888"
@@ -246,7 +246,7 @@ const ProductNutritionDashboard = ({
       <View style={styles.productCard}>
         <View style={styles.cardHeader}>
           <View style={styles.productIcon}>
-            <Ionicons
+            <AppIcon
               name="nutrition-outline"
               size={27}
               color="#fff"
@@ -254,7 +254,7 @@ const ProductNutritionDashboard = ({
           </View>
 
           <View style={styles.editBadge}>
-            <Ionicons
+            <AppIcon
               name="create-outline"
               size={15}
               color="#fff"
@@ -375,7 +375,7 @@ const ProductNutritionDashboard = ({
             </Text>
 
             <View style={styles.lockedBadge}>
-              <Ionicons
+              <AppIcon
                 name="lock-closed-outline"
                 size={11}
                 color="#BDBDBD"
@@ -388,7 +388,7 @@ const ProductNutritionDashboard = ({
           </View>
 
           <View style={styles.barcodeValue}>
-            <Ionicons
+            <AppIcon
               name="barcode-outline"
               size={20}
               color="#BDBDBD"
@@ -413,7 +413,7 @@ const ProductNutritionDashboard = ({
           </Text>
         </View>
 
-        <Ionicons
+        <AppIcon
           name="pencil-outline"
           size={19}
           color="#777"

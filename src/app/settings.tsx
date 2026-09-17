@@ -1,5 +1,5 @@
 import ProductImageReviewsLink from "@/components/settings/ProductImageReviewsLink";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -327,7 +327,7 @@ export default function SettingsScreen() {
   if (settingsError) {
     return (
       <SafeAreaView edges={["left", "right", "bottom"]} style={styles.centeredContainer}>
-        <Ionicons
+        <AppIcon
           name="alert-circle-outline"
           size={44}
           color="#B3261E"
@@ -401,7 +401,7 @@ export default function SettingsScreen() {
               color="#B3261E"
             />
           ) : (
-            <Ionicons
+            <AppIcon
               name="log-out-outline"
               size={21}
               color="#B3261E"

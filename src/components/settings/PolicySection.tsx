@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import {
   Alert,
   Pressable,
@@ -9,7 +9,7 @@ import {
 
 type PolicyItemProps = {
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof AppIcon.glyphMap;
   onPress: () => void;
 };
 
@@ -27,7 +27,7 @@ const PolicyItem = ({
       onPress={onPress}
     >
       <View style={styles.policyIcon}>
-        <Ionicons
+        <AppIcon
           name={icon}
           size={21}
           color="#333"
@@ -38,7 +38,7 @@ const PolicyItem = ({
         {label}
       </Text>
 
-      <Ionicons
+      <AppIcon
         name="chevron-forward"
         size={20}
         color="#999"

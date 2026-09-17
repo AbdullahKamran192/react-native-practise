@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import {
   useLocalSearchParams,
 } from "expo-router";
@@ -663,7 +663,7 @@ const ProductScreen = () => {
           </View>
 
           <View style={styles.scanIcon}>
-            <Ionicons
+            <AppIcon
               name={
                 isGenericProduct
                   ? "nutrition-outline"
@@ -682,7 +682,7 @@ const ProductScreen = () => {
               styles.manualEntryNotice
             }
           >
-            <Ionicons
+            <AppIcon
               name="information-circle-outline"
               size={23}
               color="#7A5413"
@@ -715,7 +715,7 @@ const ProductScreen = () => {
               styles.manualEntryNotice
             }
           >
-            <Ionicons
+            <AppIcon
               name="cloud-offline-outline"
               size={23}
               color="#7A5413"
@@ -801,7 +801,7 @@ const ProductScreen = () => {
             calculateProductValue
           }
         >
-          <Ionicons
+          <AppIcon
             name="calculator-outline"
             size={22}
             color="#222"
@@ -850,7 +850,7 @@ const ProductScreen = () => {
               color="#fff"
             />
           ) : (
-            <Ionicons
+            <AppIcon
               name="add"
               size={24}
               color="#fff"

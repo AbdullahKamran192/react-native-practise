@@ -1,6 +1,6 @@
 import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission";
 import ProductImage from "@/components/products/ProductImage";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 
@@ -367,7 +367,7 @@ const ProductPantryScreen = () => {
           </View>
 
           <View style={styles.scanIcon}>
-            <Ionicons
+            <AppIcon
               name={
                 isGenericProduct
                   ? "nutrition-outline"
@@ -381,7 +381,7 @@ const ProductPantryScreen = () => {
 
         {lookupStatus === "not-found" && (
           <View style={styles.manualEntryNotice}>
-            <Ionicons
+            <AppIcon
               name="information-circle-outline"
               size={23}
               color="#7A5413"
@@ -403,7 +403,7 @@ const ProductPantryScreen = () => {
 
         {lookupStatus === "error" && (
           <View style={styles.manualEntryNotice}>
-            <Ionicons
+            <AppIcon
               name="cloud-offline-outline"
               size={23}
               color="#7A5413"
@@ -427,7 +427,7 @@ const ProductPantryScreen = () => {
 
         {isGenericProduct && (
           <View style={styles.genericProductNotice}>
-            <Ionicons
+            <AppIcon
               name="lock-closed-outline"
               size={21}
               color="#365A40"
@@ -499,7 +499,7 @@ const ProductPantryScreen = () => {
           ]}
           onPress={calculateProductValue}
         >
-          <Ionicons
+          <AppIcon
             name="calculator-outline"
             size={22}
             color="#222"
@@ -536,7 +536,7 @@ const ProductPantryScreen = () => {
               color="#fff"
             />
           ) : (
-            <Ionicons
+            <AppIcon
               name="add"
               size={24}
               color="#fff"
@@ -554,7 +554,7 @@ const ProductPantryScreen = () => {
         accessible accessibilityLiveRegion="polite"
         accessibilityLabel={status.title + ". " + status.message}
         style={[styles.statusBanner, status.success ? styles.statusSuccess : styles.statusError]}>
-        <Ionicons name={status.success ? "checkmark-circle" : "alert-circle-outline"} size={28} color={status.success ? "#23733D" : "#A62B36"} />
+        <AppIcon name={status.success ? "checkmark-circle" : "alert-circle-outline"} size={28} color={status.success ? "#23733D" : "#A62B36"} />
         <View style={{ flex: 1, gap: 4 }}>
           <Text style={[styles.statusTitle, { color: status.success ? "#23733D" : "#A62B36" }]}>{status.title}</Text>
           <Text style={styles.statusMessage}>{status.message}</Text>

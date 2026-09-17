@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { toNumber } from "@/api/products/productLookup/utils";
@@ -45,7 +45,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
           accessibilityLabel={editing ? "Close amount editor" : `Edit ${amountLabel.toLowerCase()}`}
           accessibilityState={{ expanded: editing, disabled }}
         >
-          <Ionicons name={editing ? "checkmark-outline" : "create-outline"} size={20} color="#222" />
+          <AppIcon name={editing ? "checkmark-outline" : "create-outline"} size={20} color="#222" />
           <Text style={styles.buttonText}>{editing ? "Done" : "Edit"}</Text>
         </Pressable>
       </View>

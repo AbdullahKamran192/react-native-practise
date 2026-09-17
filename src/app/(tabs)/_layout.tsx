@@ -1,3 +1,4 @@
+import { tabIcons } from "../../../assets/brand/uiAssets";
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
@@ -5,18 +6,18 @@ export default function TabLayout() {
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="house.fill" md="home" />
+        <NativeTabs.Trigger.Icon {...tabIcons.home} />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="pantry">
-        <NativeTabs.Trigger.Icon sf="cooktop" md="settings" />
+        <NativeTabs.Trigger.Icon {...tabIcons.pantry} />
         <NativeTabs.Trigger.Label>Pantry</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="search">
-        <NativeTabs.Trigger.Icon sf="magnifyingglass" md="search" />
+        <NativeTabs.Trigger.Icon {...tabIcons.search} />
         <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="meals">
-        <NativeTabs.Trigger.Icon sf="fork.knife" md="restaurant" />
+        <NativeTabs.Trigger.Icon {...tabIcons.meals} />
         <NativeTabs.Trigger.Label>Meals</NativeTabs.Trigger.Label>
       </NativeTabs.Trigger>
     </NativeTabs>   

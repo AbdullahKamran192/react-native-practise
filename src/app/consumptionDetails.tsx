@@ -1,4 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
+import ConsumptionPeriodEditor from "@/components/ConsumptionPeriodEditor";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
 import ConsumptionImage from "@/components/ConsumptionImage";
 import { useLocalSearchParams, useFocusEffect } from "expo-router";
@@ -21,7 +22,7 @@ function Nutrition({rows}:{rows:HistoryRow[]}) {
       const known=rows.some(row=>row[`${n}_consumed`]!==null && row[`${n}_consumed`]!==undefined);
       return <View key={n} style={s.nutrientRow}>
         <View style={s.nutrientLabel}>
-          <Ionicons name={nutrientTheme[n].icon} size={20} color={nutrientTheme[n].color} accessible={false} />
+          <AppIcon name={nutrientTheme[n].icon} size={20} color={nutrientTheme[n].color} accessible={false} />
           <Text style={[s.text, s.labelText]}>{labels[n]}</Text>
         </View>
         <Text style={s.value}>{known?format(totals[n])+(n==="calories"?" kcal":" g")+(missing[n]?"*":""):"Not recorded"}</Text>
@@ -50,8 +51,9 @@ export default function ConsumptionDetails(){
         <Text style={s.caption}>{isMeal?"Consumed meal":"Consumed food"}</Text>
         <Text style={s.title}>{first.meal_name_snapshot??first.product_name_snapshot}</Text>
         <Text style={s.subtitle}>{parseDay(first.consumed_on).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})}</Text>
-        <Text style={s.note}>Saved details from when this was logged. Read only.</Text>
+        <Text style={s.note}>Nutrition and product details are saved from when this was logged.</Text>
       </View>
+      <View style={s.card}><ConsumptionPeriodEditor key={first.consumption_group_id} row={first} /></View>
       {!isMeal&&<View style={s.card}>
         <Text style={s.heading}>Amount consumed</Text>
         <Text style={s.amount}>{format(Number(first.amount_consumed))} {first.measurement_unit}</Text>

@@ -1,5 +1,5 @@
 import { brand } from "@/components/brand/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -174,7 +174,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
     if (submittedSearch) {
       return (
         <View style={styles.messageContainer}>
-          <Ionicons
+          <AppIcon
             name="search-outline"
             size={42}
             color={brand.muted}
@@ -193,7 +193,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
 
     return (
       <View style={styles.messageContainer}>
-        <Ionicons
+        <AppIcon
           name="basket-outline"
           size={42}
           color={brand.muted}
@@ -226,7 +226,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
 
       <View style={styles.searchRow}>
         <View style={styles.searchInputContainer}>
-          <Ionicons
+          <AppIcon
             name="search-outline"
             size={20}
             color={brand.muted}
@@ -246,7 +246,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
 
           {searchInput.length > 0 && (
             <Pressable onPress={clearSearch}>
-              <Ionicons
+              <AppIcon
                 name="close-circle"
                 size={20}
                 color={brand.muted}
@@ -259,7 +259,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
           style={styles.searchButton}
           onPress={handleSearch}
         >
-          <Ionicons
+          <AppIcon
             name="search"
             size={21}
             color="#fff"
@@ -280,7 +280,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
         </View>
       ) : error ? (
         <View style={styles.messageContainer}>
-          <Ionicons
+          <AppIcon
             name="alert-circle-outline"
             size={42}
             color="#C62828"
@@ -372,7 +372,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
               }
             >
               <View style={styles.modalPrimaryIcon}>
-                <Ionicons
+                <AppIcon
                   name="restaurant-outline"
                   size={21}
                   color="#fff"
@@ -389,7 +389,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
                 </Text>
               </View>
 
-              <Ionicons
+              <AppIcon
                 name="chevron-forward"
                 size={20}
                 color="#fff"
@@ -406,7 +406,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
               }
             >
               <View style={styles.modalSecondaryIcon}>
-                <Ionicons
+                <AppIcon
                   name="basket-outline"
                   size={21}
                   color={brand.deepTeal}
@@ -423,7 +423,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
                 </Text>
               </View>
 
-              <Ionicons
+              <AppIcon
                 name="chevron-forward"
                 size={20}
                 color={brand.muted}

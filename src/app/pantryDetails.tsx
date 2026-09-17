@@ -1,8 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
+import DeletePantryButton from "@/components/pantry/DeletePantryButton";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
 import ProductImage from "@/components/products/ProductImage";
 import { genericProductImageUrl, barcodeProductImageUrl } from "@/utils/productImage";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { ScrollView, Text, View, Pressable, StyleSheet } from "react-native";
@@ -33,6 +34,7 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
   const [item, setItem] = useState(initialItem);
   const [selection, setSelection] = useState<PantryAmountSelection>({ mode: "amount", value: String(item.amount_remaining) });
   const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const inFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
@@ -81,11 +83,11 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
       <Text style={s.note}>{packageSize === null ? "Item size unavailable" : `1 item = ${format(packageSize)} ${unit}`}</Text>
       {item.product_barcode && <Text style={s.note}>Barcode: {item.product_barcode}</Text>}
       <AmountToAdd purpose="remaining" selection={selection} onChange={value => { setSelection(value); setSaved(false); }}
-        packageSize={packageSize} unit={unit} disabled={busy} />
+        packageSize={packageSize} unit={unit} disabled={busy || deleting} />
       <Text style={s.note}>Set the total you have left. Changes are applied when you save.</Text>
-      <Pressable onPress={() => void save()} disabled={busy || !changed}
-        accessibilityRole="button" accessibilityState={{ disabled: busy || !changed }}
-        style={[s.button, (busy || !changed) && s.disabled]}>
+      <Pressable onPress={() => void save()} disabled={busy || deleting || !changed}
+        accessibilityRole="button" accessibilityState={{ disabled: busy || deleting || !changed }}
+        style={[s.button, (busy || deleting || !changed) && s.disabled]}>
         <Text style={s.buttonText}>{busy ? "Please wait…" : "Save changes"}</Text>
       </Pressable>
       {saved && <Text style={s.success} accessibilityLiveRegion="polite">Amount remaining updated.</Text>}
@@ -100,13 +102,15 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
           const per100 = product?.[`${nutrient}_per_100`];
           return <View key={nutrient} style={s.row}>
             <View style={s.nutrientLabel}>
-              <Ionicons name={nutrientTheme[nutrient].icon} size={20} color={nutrientTheme[nutrient].color} accessible={false} />
+              <AppIcon name={nutrientTheme[nutrient].icon} size={20} color={nutrientTheme[nutrient].color} accessible={false} />
               <Text style={[s.text, s.labelText]}>{labels[nutrient]}</Text>
             </View>
             <Text style={s.value}>{per100 == null ? "Not recorded" : amount === null ? "—" : `${format(Number(per100) * amount / 100)} ${nutrient === "calories" ? "kcal" : "g"}`}</Text>
           </View>;
         })}
       </View>
+      <DeletePantryButton item={item} fullWidth disabled={busy} onBusyChange={setDeleting}
+        onDeleted={() => { if (router.canGoBack()) router.back(); else router.replace("/(tabs)/pantry"); }} />
     </ScrollView>
   </SafeAreaView>;
 }

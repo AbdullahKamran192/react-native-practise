@@ -25,7 +25,7 @@ export async function getConsumptionHistory(firstDate: string, lastDate: string)
   let lastId: number | null = null;
   while (true) {
     let query = supabase.from("food_consumption")
-      .select(`id,consumption_group_id,consumed_on,created_at,meal_name_snapshot,product_name_snapshot,brand_snapshot,amount_consumed,measurement_unit,calories_consumed,protein_consumed,carbs_consumed,fat_consumed,sugars_consumed,salt_consumed,fibre_consumed,${imageRelations}`)
+      .select(`id,consumption_group_id,consumed_on,meal_period,created_at,meal_name_snapshot,product_name_snapshot,brand_snapshot,amount_consumed,measurement_unit,calories_consumed,protein_consumed,carbs_consumed,fat_consumed,sugars_consumed,salt_consumed,fibre_consumed,${imageRelations}`)
       .eq("user_id",user.id).gte("consumed_on",firstDate).lte("consumed_on",lastDate)
       .order("id", {ascending:true}).limit(500);
     if (lastId !== null) query = query.gt("id",lastId);

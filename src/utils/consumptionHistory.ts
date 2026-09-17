@@ -1,6 +1,8 @@
+import type { MealPeriod } from "./mealPeriod";
 export const nutrients = ["calories", "protein", "carbs", "fat", "sugars", "salt", "fibre"] as const;
 export type Nutrient = typeof nutrients[number];
 export type HistoryRow = {
+  meal_period: MealPeriod;
   product?: { image_url: string | null; image_path?: string | null } | null;
   generic_product?: { image_path: string | null } | null;
   meal?: { id: number; user_id: string; image_path: string | null } | null;
@@ -39,6 +41,7 @@ export function groupConsumptions(rows: HistoryRow[]) {
   return [...groups.entries()].map(([id, items]) => ({
     id, items, name: items[0].meal_name_snapshot ?? items[0].product_name_snapshot,
     isMeal: items[0].meal_name_snapshot !== null,
+    mealPeriod: items[0].meal_period ?? "Snack",
     createdAt: items[0].created_at, ...summarize(items),
   })).sort((a,b) => b.createdAt.localeCompare(a.createdAt));
 }

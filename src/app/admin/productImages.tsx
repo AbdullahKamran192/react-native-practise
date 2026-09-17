@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Modal, Pressable, Text, View } from "react-native";
@@ -62,7 +62,7 @@ export default function ProductImageReviews(){
      <Text style={s.heading}>Why are you rejecting this image?</Text>
      {(Object.keys(rejectionReasons) as RejectionReason[]).map(value=><Pressable key={value} disabled={busy} onPress={()=>setReason(value)}
        accessibilityRole="radio" accessibilityLabel={rejectionReasons[value]} accessibilityState={{checked:reason===value,disabled:busy}} style={{paddingVertical:10,flexDirection:"row",alignItems:"center",gap:10}}>
-       <Ionicons name={reason===value?"radio-button-on":"radio-button-off"} size={22} color="#222" />
+       <AppIcon name={reason===value?"radio-button-on":"radio-button-off"} size={22} color="#222" />
        <Text style={s.text}>{rejectionReasons[value]}</Text>
       </Pressable>)}
      {(reason==="offensive"||reason==="abusive")&&<Text style={s.error}>This adds one violation. Three violations block further product photo submissions.</Text>}

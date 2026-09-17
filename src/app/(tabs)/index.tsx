@@ -1,10 +1,11 @@
+import { mealPeriods } from "@/utils/mealPeriod";
 import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
 import ConsumptionImage from "@/components/ConsumptionImage";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, AppState, FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, AppState, SectionList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getConsumptionHistory } from "@/api/consumption/history";
 import { useUserSettings } from "@/api/user-settings";
@@ -18,7 +19,7 @@ import type { HistoryRow, Nutrient } from "@/utils/consumptionHistory";
 
 const labels: Record<Nutrient,string> = {calories:"Calories",protein:"Protein",carbs:"Carbs",fat:"Fat",sugars:"Sugars",salt:"Salt",fibre:"Fibre"};
 const colours = Object.fromEntries(nutrients.map(n => [n, nutrientTheme[n].color])) as Record<Nutrient,string>;
-const icons: Record<Nutrient,keyof typeof Ionicons.glyphMap> = {
+const icons: Record<Nutrient,keyof typeof AppIcon.glyphMap> = {
   calories:"flame-outline",protein:"restaurant-outline",carbs:"water-outline",
   fat:"nutrition-outline",sugars:"cube-outline",salt:"flask-outline",fibre:"leaf-outline",
 };
@@ -109,13 +110,13 @@ export default function Home() {
       <Pressable style={({pressed})=>[s.consumeFoodButton,pressed&&s.buttonPressed]}
         onPress={()=>router.push({pathname:"/camera",params:{intent:"consume"}})}
         accessibilityRole="button" accessibilityLabel="Consume food">
-        <Ionicons name="restaurant-outline" size={22} color="#fff"/>
+        <AppIcon name="restaurant-outline" size={22} color="#fff"/>
         <Text style={s.consumeFoodText}>Consume Food</Text>
       </Pressable>
       <Pressable style={({pressed})=>[s.addFoodButton,pressed&&s.buttonPressed]}
         onPress={()=>router.push({pathname:"/camera",params:{intent:"pantry"}})}
         accessibilityRole="button" accessibilityLabel="Add food to pantry">
-        <Ionicons name="basket-outline" size={22} color={brand.deepTeal}/>
+        <AppIcon name="basket-outline" size={22} color={brand.deepTeal}/>
         <Text style={s.addFoodText}>Add Food to Pantry</Text>
       </Pressable>
     </View>
@@ -124,13 +125,16 @@ export default function Home() {
       <Pressable onPress={()=>setEditing(value=>!value)} style={s.editButton}
         accessibilityRole="button" accessibilityLabel={editing?"Stop editing food logs":"Edit food logs"}
         accessibilityState={{selected:editing}}>
-        <Ionicons name={editing?"close":"create-outline"} size={21} color="#fff"/>
+        <AppIcon name={editing?"close":"create-outline"} size={21} color="#fff"/>
         <Text style={{fontWeight:"700",color:"#fff"}}>{editing?"Done":"Edit"}</Text>
       </Pressable>
     </View>
   </View>;
   return <SafeAreaView style={s.container} edges={["top","left","right"]}>
-    <FlatList data={ready?events:[]} keyExtractor={item=>item.id} ListHeaderComponent={header}
+    <SectionList sections={ready ? mealPeriods.map(period => ({ title: period, data: events.filter(event => event.mealPeriod === period) })) : []}
+      stickySectionHeadersEnabled={false}
+      renderSectionHeader={({section}) => <Text style={[s.sectionTitle, { marginTop: 16 }]}>{section.title}</Text>}
+      renderSectionFooter={({section}) => section.data.length === 0 ? <Text style={s.empty}>No food logged.</Text> : null} keyExtractor={item=>item.id} ListHeaderComponent={header}
       contentContainerStyle={s.scrollContent} showsVerticalScrollIndicator={false}
       refreshing={history.isRefetching||settings.isRefetching} onRefresh={refresh}
       ListEmptyComponent={ready?<Text style={s.empty}>No food logged for {isToday?"today":selectedLabel} yet.</Text>:null}
@@ -150,7 +154,7 @@ export default function Home() {
         {item.isMeal&&<Pressable onPress={()=>setExpanded(expanded===item.id?null:item.id)}
           accessibilityRole="button" accessibilityLabel={(expanded===item.id?"Hide":"Show")+" ingredients for "+item.name}
           accessibilityState={{expanded:expanded===item.id}} style={{width:44,height:44,alignItems:"center",justifyContent:"center"}}>
-          <Ionicons name={expanded===item.id?"chevron-up":"chevron-down"} size={20} color={brand.muted}/>
+          <AppIcon name={expanded===item.id?"chevron-up":"chevron-down"} size={20} color={brand.muted}/>
         </Pressable>}
         {editing&&<DeleteFoodLogButton groupId={item.items[0].consumption_group_id} name={item.name}/>}
         </View>

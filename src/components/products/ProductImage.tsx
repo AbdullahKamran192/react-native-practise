@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { normaliseImageUrl, genericProductImageUrl } from "@/utils/productImage";
@@ -15,7 +15,7 @@ export default function ProductImage({ uri, name, compact = false, thumbnail = f
       transition={200} accessibilityLabel={`Photo of ${name || "product"}`}
       onError={() => setFailedUrl(url)}
     /> : <View style={[styles.placeholder, compact && styles.compactImage, thumbnail && styles.thumbnailImage, thumbnailDimensions]} accessibilityLabel="No product image available">
-      <Ionicons name="image-outline" size={36} color="#9A9A9A" />
+      <AppIcon name="image-outline" size={36} color="#9A9A9A" />
       {!thumbnail && <Text style={styles.caption}>No image available</Text>}
     </View>}
   </View>;

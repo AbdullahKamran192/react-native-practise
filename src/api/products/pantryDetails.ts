@@ -9,6 +9,15 @@ async function currentUser() {
   return user.id;
 }
 
+export async function deletePantryItem(id: number): Promise<void> {
+  if (!Number.isSafeInteger(id) || id <= 0) throw new Error("Choose a pantry item.");
+  const userId = await currentUser();
+  const { data, error } = await supabase.from("pantry")
+    .delete().eq("id", id).eq("user_id", userId).select("id").maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("This pantry item was already removed or could not be deleted. Refresh your pantry.");
+}
+
 export async function getPantryItem(id: string): Promise<PantryItem | null> {
   if (!/^[1-9]\d*$/.test(id)) throw new Error("Choose a pantry item.");
   const userId = await currentUser();

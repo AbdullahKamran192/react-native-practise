@@ -1,5 +1,5 @@
 import { brand } from "@/components/brand/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet } from "react-native";
 
@@ -8,7 +8,7 @@ export default function SettingsButton({ themed = false }: { themed?: boolean })
   return <Pressable onPress={()=>router.navigate("/settings")}
     accessibilityRole="button" accessibilityLabel="Open settings"
     style={({pressed})=>[styles.button,themed&&{backgroundColor:brand.paleTeal},pressed&&{opacity:0.6}]}>
-    <Ionicons name="settings-outline" size={23} color={themed ? brand.deepTeal : "#222"}/>
+    <AppIcon name="settings-outline" size={23} color={themed ? brand.deepTeal : "#222"}/>
   </Pressable>;
 }
 const styles=StyleSheet.create({

@@ -13,8 +13,8 @@ test("logging RPC: food, meals, optional pantry, snapshots, retries and rollback
   const nutrition = "calories_per_100 numeric, protein_per_100 numeric, carbs_per_100 numeric, fat_per_100 numeric, sugars_per_100 numeric, salt_per_100 numeric, fibre_per_100 numeric";
   async function log(overrides = {}) {
     const args = { group: newGroup(), date: "2026-09-12", remove: true, meal: null, barcode: null, generic: null, amount: null, unit: null, zone: "UTC", ...overrides };
-    return db.query("select * from public.log_food_consumption($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)",
-      [args.group, args.date, args.zone, args.remove, args.meal, args.barcode, args.generic, args.amount, args.unit, "Test brand"]);
+    return db.query("select * from public.log_food_consumption($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)",
+      [args.group, args.date, args.zone, args.remove, args.meal, args.barcode, args.generic, args.amount, args.unit, "Test brand", args.period ?? null]);
   }
   try {
     await db.exec(`
@@ -40,10 +40,16 @@ test("logging RPC: food, meals, optional pantry, snapshots, retries and rollback
     for (const file of ["20260912_food_consumption.sql", "20260912_log_food_consumption.sql", "20260912_remove_consumption_entry.sql"])
       await db.exec(fs.readFileSync(path.join(__dirname, "../supabase/migrations", file), "utf8"));
 
+    // A pre-migration log is retained and receives the documented initial period.
+    const legacy = (await db.query("select * from public.log_food_consumption($1,'2026-09-12','UTC',false,null,null,2,1,'g')", [newGroup()])).rows[0];
+    await db.exec(fs.readFileSync(path.join(__dirname, '../supabase/migrations/20260916_consumption_meal_period.sql'), 'utf8'));
+    assert.equal((await db.query('select meal_period from public.food_consumption where id=$1', [legacy.id])).rows[0].meal_period, 'Snack');
+
     await t.test("unchecked meal logs all ingredients with no pantry change", async () => {
       await db.exec("set role authenticated");
-      const rows = (await log({ meal: 1, remove: false })).rows;
+      const rows = (await log({ meal: 1, remove: false, period: "Breakfast" })).rows;
       assert.equal(rows.length, 3);
+      assert.ok(rows.every(row => row.meal_period === "Breakfast"));
       assert.equal(new Set(rows.map(r => r.consumption_group_id)).size, 1);
       assert.ok(rows.every(r => r.meal_name_snapshot === "Smoothie"));
       assert.equal(rows.reduce((n,r) => n + Number(r.calories_consumed), 0), 331.5);
@@ -86,6 +92,28 @@ test("logging RPC: food, meals, optional pantry, snapshots, retries and rollback
     await t.test("exact depletion deletes stock", async () => {
       await log({ barcode: "123", amount: 50, unit: "ml" });
       assert.equal((await db.query("select * from public.pantry where id=1")).rows.length, 0);
+    });
+    await t.test("period edits move a whole group, preserve snapshots and stock, and enforce ownership", async () => {
+      const before = (await db.query('select * from public.food_consumption where consumption_group_id=$1 order by id', [savedGroup])).rows;
+      const stock = (await db.query('select * from public.pantry order by id')).rows;
+      await db.exec('set role authenticated');
+      await db.query('select public.set_consumption_meal_period($1,$2)', [savedGroup,'Dinner']);
+      const after = (await db.query('select * from public.food_consumption where consumption_group_id=$1 order by id', [savedGroup])).rows;
+      assert.deepEqual(after, before.map(row=>({...row,meal_period:'Dinner'})));
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)", [other]);
+      await assert.rejects(db.query('select public.set_consumption_meal_period($1,$2)', [savedGroup,'Lunch']), /no longer available/);
+      await db.query("select set_config('request.jwt.claim.sub',$1,false)", [owner]);
+      for(const period of [null,'Brunch','']) await assert.rejects(db.query('select public.set_consumption_meal_period($1,$2)', [savedGroup,period]), /valid meal period/);
+      await db.exec('reset role');
+      assert.deepEqual((await db.query('select * from public.pantry order by id')).rows,stock);
+      const retry = (await log({group:savedGroup,meal:1,period:'Breakfast'})).rows;
+      assert.ok(retry.every(row=>row.meal_period==='Dinner'));
+      await assert.rejects(log({generic:2,amount:1,unit:'g',period:'Brunch'}), /Choose Breakfast/);
+      const single = (await log({generic:2,amount:1,unit:'g',period:'Lunch',remove:false})).rows[0];
+      assert.equal(single.meal_period,'Lunch');
+      await db.exec('set role anon');
+      await assert.rejects(db.query('select public.set_consumption_meal_period($1,$2)', [savedGroup,'Lunch']), /permission denied/);
+      await db.exec('reset role');
     });
     await t.test("invalid requests and foreign/empty meals are rejected", async () => {
       for (const args of [

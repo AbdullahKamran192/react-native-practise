@@ -1,3 +1,4 @@
+import { defaultMealPeriod, isMealPeriod, type MealPeriod } from "@/utils/mealPeriod";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "@/lib/supabase";
 import { saveBarcodeProduct } from "@/api/products";
@@ -5,6 +6,7 @@ import type { ProductSubmission, MeasurementUnit } from "@/utils/productSubmissi
 
 export type LogInput = {
   consumedOn: string;
+  mealPeriod?: MealPeriod;
   removeFromPantry: boolean;
 } & (
   | { mealId: string }
@@ -13,6 +15,7 @@ export type LogInput = {
 );
 export type PendingLog = { userId: string; groupId: string; timeZone: string; input: LogInput };
 export type ConsumptionRow = {
+  meal_period: MealPeriod;
   id: number; consumption_group_id: string; consumed_on: string;
   product_name_snapshot: string; meal_name_snapshot: string | null;
   amount_consumed: number; measurement_unit: MeasurementUnit;
@@ -23,6 +26,7 @@ export function localDate(date = new Date()): string {
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
 }
 export function validateInput(input: LogInput) {
+  if (input.mealPeriod !== undefined && !isMealPeriod(input.mealPeriod)) throw new Error("Choose a valid meal period.");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.consumedOn)) throw new Error("Choose a consumption date.");
   if ("mealId" in input) {
     if (!/^[1-9]\d*$/.test(input.mealId)) throw new Error("Choose a valid meal.");
@@ -76,6 +80,7 @@ async function execute(user: string, key: string, input?: LogInput): Promise<Con
     if (pending.userId !== user) throw new Error("Sign in with the original account to finish this log.");
   } else {
     if (!input) throw new Error("Enter the food details first.");
+    input = { ...input, mealPeriod: input.mealPeriod ?? defaultMealPeriod() };
     validateInput(input);
     // Catalogue corrections may create the scanned product. They never change
     // pantry stock. Do this before persisting the immutable consumption request.
@@ -86,6 +91,7 @@ async function execute(user: string, key: string, input?: LogInput): Promise<Con
   if (await userId() !== user) throw new Error("Your account changed. Sign in again before logging.");
   const saved = pending.input;
   const { data, error } = await supabase.rpc("log_food_consumption", {
+    p_meal_period: saved.mealPeriod ?? null,
     p_group_id: pending.groupId, p_consumed_on: saved.consumedOn,
     p_time_zone: pending.timeZone, p_remove_from_pantry: saved.removeFromPantry,
     p_meal_id: "mealId" in saved ? saved.mealId : null,
@@ -100,7 +106,7 @@ async function execute(user: string, key: string, input?: LogInput): Promise<Con
     if (error.code?.startsWith("22") || error.code?.startsWith("23") ||
       ["42501", "42P01", "PGRST202"].includes(error.code)) await AsyncStorage.removeItem(key);
     if (["PGRST202", "42P01"].includes(error.code)) {
-      throw new Error("Run the food_consumption table SQL and 20260912_log_food_consumption.sql in Supabase first.");
+      throw new Error("Run the consumption logging migrations, including 20260916_consumption_meal_period.sql, in Supabase first.");
     }
     throw new Error(error.message);
   }

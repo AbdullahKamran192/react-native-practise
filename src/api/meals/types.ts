@@ -24,6 +24,7 @@ export type MealItem = {
 };
 
 export type MealWithItems = Meal & { items: MealItem[] };
+export type MealListItem = Meal & { items: Pick<MealItem, "product_barcode" | "generic_product_id" | "amount">[] };
 export type MealInput = Pick<Meal, "meal_name" | "description" | "instructions">;
 export type MealProduct =
   | { product_barcode: string; generic_product_id: null }

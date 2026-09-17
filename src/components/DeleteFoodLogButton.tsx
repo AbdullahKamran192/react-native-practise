@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useQueryClient } from "@tanstack/react-query";
 import { removeConsumption } from "@/api/consumption/remove";
 import type { HistoryRow } from "@/utils/consumptionHistory";
@@ -28,7 +28,7 @@ export default function DeleteFoodLogButton({groupId,name}:{groupId:string;name:
   return <>
     <Pressable accessibilityRole="button" accessibilityLabel={"Delete "+name}
       onPress={()=>{setError("");setOpen(true);}} style={s.bin}>
-      <Ionicons name="trash-outline" size={23} color="#B63D3D"/>
+      <AppIcon name="trash-outline" size={23} color="#B63D3D"/>
     </Pressable>
     <Modal visible={open} transparent animationType="fade" onRequestClose={()=>{if(!saving)setOpen(false);}}>
       <View style={s.backdrop}><View style={s.dialog} accessibilityViewIsModal>

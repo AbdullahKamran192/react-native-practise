@@ -1,5 +1,5 @@
 import NutritionTile from "@/components/brand/NutritionTile";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import {
   Pressable,
   Text,
@@ -56,7 +56,7 @@ const ProductReadOnlyDashboard = ({
 
         {isGenericProduct || !onEdit ? (
           <View style={styles.editProductButton}>
-            <Ionicons
+            <AppIcon
               name="lock-closed-outline"
               size={15}
               color="#666"
@@ -76,7 +76,7 @@ const ProductReadOnlyDashboard = ({
             accessibilityRole="button"
             accessibilityLabel="Edit product information"
           >
-            <Ionicons
+            <AppIcon
               name="pencil-outline"
               size={16}
               color="#222"

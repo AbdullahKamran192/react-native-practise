@@ -1,5 +1,7 @@
+import MealPeriodSelector from "@/components/MealPeriodSelector";
+import { defaultMealPeriod } from "@/utils/mealPeriod";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useState } from "react";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { localDate } from "@/api/consumption";
@@ -7,6 +9,7 @@ import { useConsumptionLog } from "@/hooks/useConsumptionLog";
 import { MealButton, mealStyles as s } from "./ui";
 
 export default function ConsumeMeal({ mealId, disabled }: { mealId: string; disabled: boolean }) {
+  const [mealPeriod, setMealPeriod] = useState(defaultMealPeriod);
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(new Date());
   const [showDate, setShowDate] = useState(false);
@@ -16,7 +19,7 @@ export default function ConsumeMeal({ mealId, disabled }: { mealId: string; disa
 
   async function consume() {
     const rows = await log.submit(log.pending ? undefined : {
-      mealId, consumedOn: localDate(date), removeFromPantry,
+      mealId, consumedOn: localDate(date), mealPeriod, removeFromPantry,
     });
     if (rows) {
       setOpen(false);
@@ -26,19 +29,22 @@ export default function ConsumeMeal({ mealId, disabled }: { mealId: string; disa
     }
   }
 
-  return <View style={s.card}>
-    {!open && !log.pending ? <MealButton icon="restaurant-outline" title="Consume meal" disabled={disabled || busy} onPress={() => setOpen(true)} /> : <>
+  return <View style={open || log.pending ? s.card : { gap: 12 }}>
+    {!open && !log.pending ? <MealButton icon="restaurant-outline" title="Consume meal" disabled={disabled || busy} onPress={() => { setMealPeriod(defaultMealPeriod()); setOpen(true); }} /> : <>
       <Text style={s.heading}>Log meal</Text>
+      <MealPeriodSelector value={log.pending?.input.mealPeriod ?? mealPeriod} onChange={setMealPeriod} disabled={busy || !!log.pending} />
       {log.pending ? <Text style={s.muted}>Retry the previous log for {log.pending.input.consumedOn}. Its original pantry choice will be used without logging twice.</Text> : <>
         <MealButton title={"Date consumed: " + date.toLocaleDateString("en-GB")} secondary disabled={busy} onPress={() => setShowDate(!showDate)} />
-        {showDate && <DateTimePicker value={date} mode="date" maximumDate={new Date()} disabled={busy} onChange={(event, selected) => {
+        {showDate && <DateTimePicker value={date} mode="date" maximumDate={new Date()} disabled={busy}
+          display={Platform.OS === "ios" ? "inline" : "default"}
+          onDismiss={() => setShowDate(false)} onValueChange={(_event, selected) => {
           if (Platform.OS === "android") setShowDate(false);
-          if (event.type === "set" && selected) setDate(selected);
+          setDate(selected);
         }} />}
         <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: removeFromPantry, disabled: busy }}
           disabled={busy} onPress={() => setRemoveFromPantry(!removeFromPantry)}
           style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12 }}>
-          <Ionicons name={removeFromPantry ? "checkbox" : "square-outline"} size={25} color="#222" />
+          <AppIcon name={removeFromPantry ? "checkbox" : "square-outline"} size={25} color="#222" />
           <Text style={[s.text, { flex: 1 }]}>Remove available ingredients from my pantry</Text>
         </Pressable>
         <Text style={s.muted}>All ingredients will be logged. When checked, available pantry amounts are reduced and exhausted items removed.</Text>

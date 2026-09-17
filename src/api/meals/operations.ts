@@ -1,6 +1,6 @@
 import { mealImageRequest } from "./images";
 import { supabase } from "@/lib/supabase";
-import type { AddMealItemInput, Meal, MealInput, MealWithItems } from "./types";
+import type { AddMealItemInput, Meal, MealInput, MealWithItems, MealListItem } from "./types";
 import { MAX_MEALS, MAX_MEAL_ITEMS, validateMeal, validateMealAmount, validateMealId } from "./validation";
 
 function fail(error: { code?: string; message: string }, duplicate = "This ingredient is already in the meal."): never {
@@ -17,11 +17,11 @@ async function userId() {
   return user.id;
 }
 
-export async function getMeals(): Promise<Meal[]> {
+export async function getMeals(): Promise<MealListItem[]> {
   const user = await userId();
-  const { data, error } = await supabase.from("meals").select("*").eq("user_id", user).order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("meals").select("*, items:meal_items(product_barcode,generic_product_id,amount)").eq("user_id", user).order("created_at", { ascending: false });
   if (error) fail(error);
-  return data as Meal[];
+  return data as unknown as MealListItem[];
 }
 
 export async function getMeal(id: string): Promise<MealWithItems> {

@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet, Text, View } from "react-native";
 import type { User } from "@supabase/supabase-js";
 
@@ -67,7 +67,7 @@ export default function ProfileCard({
 
       {user?.email_confirmed_at && (
         <View style={styles.verifiedIcon}>
-          <Ionicons
+          <AppIcon
             name="checkmark"
             size={18}
             color="#246B3A"

@@ -48,3 +48,23 @@ Client tests: `node --test tests/logConsumption.test.cjs`.
 SQL tests: install the optional `@electric-sql/pglite` module outside the project, set `FOODWORTH_PGLITE_PATH` to its module directory, then run `node --test tests/foodConsumption.sql.test.cjs tests/logConsumption.sql.test.cjs`.
 
 The SQL tests run the actual migrations in isolated PostgreSQL with schema fixtures. They cover single barcode/generic foods, checked/unchecked meals, partial/exact depletion, snapshots after meal deletion, retries, ownership, invalid inputs and transaction rollback. Live Supabase and device behaviour still require checking after installation.
+# Meal periods
+
+Run `supabase/migrations/20260916_consumption_meal_period.sql` once in FoodWorth's
+Supabase SQL Editor after the existing consumption migrations. It adds the
+`meal_period` column, extends the logging RPC, and installs an owner-only RPC to
+change an entire consumption group's period. It does not change nutrition or
+pantry stock when updating a period.
+
+Allowed values: Breakfast, Lunch, Dinner, Snack. Existing logs initially become
+Snack because their eating time was not recorded; users can reclassify them on
+the consumption details screen. New logs default from the device's local hour:
+05:00–10:59 Breakfast, 11:00–14:59 Lunch, 17:00–21:59 Dinner, otherwise Snack.
+The selected period is saved with the pending request so retries keep that choice.
+Older clients can omit the new RPC argument; the server uses their supplied time
+zone to calculate a default. Replaying an already-saved group preserves its current
+period, including subsequent user edits.
+
+Consume Food and the meal logging form offer the selector. Add to Pantry remains
+a stock operation and does not create a consumption record. Home groups events
+under the four period headings; daily nutrition still sums all events for the date.

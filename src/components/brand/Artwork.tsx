@@ -1,14 +1,14 @@
 import { Image, StyleSheet, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import Svg, { Defs, LinearGradient, Stop, Rect, Path } from "react-native-svg";
-import { artwork } from "../../../assets/brand/artwork";
+import { artwork } from "../../../assets/brand/uiAssets";
 import { brand } from "./theme";
 
 export function BrandArtwork({ name, size = 80 }: { name: "mealsHero" | "pantryBasket" | "consumeBasket"; size?: number }) {
   const source = artwork[name];
   return <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width: size, height: size, borderRadius: 24, backgroundColor: brand.paleTeal, alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
     {source ? <Image source={source} resizeMode="contain" style={{ width: size, height: size }} />
-      : <Ionicons name={name === "mealsHero" ? "restaurant-outline" : "basket-outline"} color={brand.teal} size={size * 0.52} />}
+      : <AppIcon name={name === "mealsHero" ? "restaurant-outline" : "basket-outline"} color={brand.teal} size={size * 0.52} />}
   </View>;
 }
 

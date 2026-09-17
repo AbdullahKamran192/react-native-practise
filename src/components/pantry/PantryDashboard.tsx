@@ -1,7 +1,7 @@
 import { BrandArtwork } from "@/components/brand/Artwork";
 import NutritionTile from "@/components/brand/NutritionTile";
 import { brand, nutrients } from "@/components/brand/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import {
   ScrollView,
   StyleSheet,
@@ -29,7 +29,7 @@ type PantryDashboardProps = {
 type NutritionCard = {
   key: keyof PantryNutritionTotals;
   label: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof AppIcon.glyphMap;
   total: number;
   dailyTarget: number;
 };
@@ -228,7 +228,7 @@ const PantryDashboard = ({
               style={[styles.daysCard, { backgroundColor: nutrients[nutrition.key].background }]}
             >
               <View style={styles.daysIcon}>
-                <Ionicons
+                <AppIcon
                   name={nutrition.icon}
                   size={21}
                   color={nutrients[nutrition.key].color}

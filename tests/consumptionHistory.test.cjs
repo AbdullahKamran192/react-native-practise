@@ -98,3 +98,13 @@ test("failed later page rejects the query instead of displaying partial totals",
   await assert.rejects(api.getConsumptionHistory("2026-08-14","2026-09-12"),/Network error/);
 });
 
+
+test("meal period grouping keeps meal ingredients together and daily totals unchanged",()=>{
+  const rows=[row({id:1,consumption_group_id:'meal',meal_name_snapshot:'Smoothie',meal_period:'Breakfast',calories_consumed:100}),row({id:2,consumption_group_id:'meal',meal_name_snapshot:'Smoothie',meal_period:'Breakfast',calories_consumed:50}),row({id:3,consumption_group_id:'food',meal_period:'Lunch',calories_consumed:20})];
+  const groups=h.groupConsumptions(rows);
+  assert.equal(groups.filter(g=>g.mealPeriod==='Breakfast').length,1);
+  assert.equal(groups.find(g=>g.mealPeriod==='Breakfast').items.length,2);
+  const moved=rows.map(r=>r.consumption_group_id==='meal'?{...r,meal_period:'Dinner'}:r);
+  assert.equal(h.groupConsumptions(moved).filter(g=>g.mealPeriod==='Dinner').length,1);
+  assert.deepEqual(h.summarize(rows),h.summarize(moved));
+});

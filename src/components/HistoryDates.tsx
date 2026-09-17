@@ -1,5 +1,5 @@
 import { brand } from "@/components/brand/theme";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { dateKey, parseDay, dayColours } from "@/utils/consumptionHistory";
@@ -46,19 +46,19 @@ export default function HistoryDates({ dates, selected, onSelect, scores }: Prop
       </ScrollView>
       <Pressable accessibilityRole="button" accessibilityLabel="Choose date from calendar" accessibilityState={{expanded:open}}
         style={s.calendarButton} onPress={()=>{setMonth(selected.slice(0,7));setOpen(!open);}}>
-        <Ionicons name="calendar-outline" size={23} color={brand.deepTeal}/>
+        <AppIcon name="calendar-outline" size={23} color={brand.deepTeal}/>
       </Pressable>
     </View>
     {open && <View style={s.calendar}>
       <View style={s.monthRow}>
         <Pressable accessibilityRole="button" accessibilityLabel="Previous month" disabled={month<=dates[dates.length-1].slice(0,7)}
           onPress={()=>setMonth(dateKey(previous).slice(0,7))} style={s.arrow}>
-          <Ionicons name="chevron-back" size={22} color={month<=dates[dates.length-1].slice(0,7) ? "#CCC" : brand.deepTeal}/>
+          <AppIcon name="chevron-back" size={22} color={month<=dates[dates.length-1].slice(0,7) ? "#CCC" : brand.deepTeal}/>
         </Pressable>
         <Text style={s.month}>{first.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Next month" disabled={month>=dates[0].slice(0,7)}
           onPress={()=>setMonth(dateKey(next).slice(0,7))} style={s.arrow}>
-          <Ionicons name="chevron-forward" size={22} color={month>=dates[0].slice(0,7) ? "#CCC" : brand.deepTeal}/>
+          <AppIcon name="chevron-forward" size={22} color={month>=dates[0].slice(0,7) ? "#CCC" : brand.deepTeal}/>
         </Pressable>
       </View>
       <View style={s.grid}>{["M","T","W","T","F","S","S"].map((label,i)=><Text key={i} style={s.weekday}>{label}</Text>)}</View>

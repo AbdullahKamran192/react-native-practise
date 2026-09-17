@@ -1,10 +1,12 @@
+import MealPeriodSelector from "@/components/MealPeriodSelector";
+import { defaultMealPeriod } from "@/utils/mealPeriod";
 import NutritionTile from "@/components/brand/NutritionTile";
 import { BrandArtwork } from "@/components/brand/Artwork";
 import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission";
 import ProductImage from "@/components/products/ProductImage";
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import type { DateTimePickerEvent } from "@react-native-community/datetimepicker";
+import type { DateTimePickerChangeEvent } from "@react-native-community/datetimepicker";
 import { useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 
@@ -94,6 +96,7 @@ const ProductConsumeScreen = () => {
   const [showDatePicker, setShowDatePicker] =
     useState(false);
 
+  const [mealPeriod, setMealPeriod] = useState(defaultMealPeriod);
   const [removeFromPantry, setRemoveFromPantry] =
     useState(true);
 
@@ -176,20 +179,9 @@ const ProductConsumeScreen = () => {
     setProduct(updatedProduct);
   }
 
-  function handleDateChange(
-    event: DateTimePickerEvent,
-    selectedDate?: Date
-  ) {
-    if (Platform.OS === "android") {
-      setShowDatePicker(false);
-    }
-
-    if (
-      event.type === "set" &&
-      selectedDate
-    ) {
-      setConsumedAt(selectedDate);
-    }
+  function handleDateChange(_event: DateTimePickerChangeEvent, selectedDate: Date) {
+    setConsumedAt(selectedDate);
+    if (Platform.OS === "android") setShowDatePicker(false);
   }
 
   async function handleLogConsumption() {
@@ -237,7 +229,7 @@ const ProductConsumeScreen = () => {
       return;
     }
 
-    const common = { amount, unit: measurementUnit, consumedOn: localDate(consumedAt), removeFromPantry };
+    const common = { amount, unit: measurementUnit, consumedOn: localDate(consumedAt), mealPeriod, removeFromPantry };
     let rows;
     if (isGenericProduct) {
       if (lookupStatus !== "found") {
@@ -311,7 +303,7 @@ const ProductConsumeScreen = () => {
 
         {lookupStatus === "not-found" && (
           <View style={styles.manualEntryNotice}>
-            <Ionicons
+            <AppIcon
               name="information-circle-outline"
               size={23}
               color="#7A5413"
@@ -332,7 +324,7 @@ const ProductConsumeScreen = () => {
 
         {lookupStatus === "error" && (
           <View style={styles.manualEntryNotice}>
-            <Ionicons
+            <AppIcon
               name="cloud-offline-outline"
               size={23}
               color="#7A5413"
@@ -357,7 +349,7 @@ const ProductConsumeScreen = () => {
 
         {isGenericProduct && (
           <View style={styles.genericProductNotice}>
-            <Ionicons
+            <AppIcon
               name="lock-closed-outline"
               size={21}
               color="#365A40"
@@ -392,7 +384,7 @@ const ProductConsumeScreen = () => {
               ]}
               onPress={() => setIsEditingProduct(false)}
             >
-              <Ionicons
+              <AppIcon
                 name="checkmark-outline"
                 size={21}
                 color="#222"
@@ -481,7 +473,7 @@ const ProductConsumeScreen = () => {
                 expanded: showQuantityPicker,
               }}
             >
-              <Ionicons name="options-outline" size={20} color="#222" />
+              <AppIcon name="options-outline" size={20} color="#222" />
               <Text style={styles.amountPresetText}></Text>
             </Pressable>
           </View>
@@ -559,6 +551,9 @@ const ProductConsumeScreen = () => {
           </View>
         </View>
 
+        <View style={{ marginVertical: 16 }}>
+          <MealPeriodSelector value={log.pending?.input.mealPeriod ?? mealPeriod} onChange={setMealPeriod} disabled={log.saving || log.checking || !!log.pending} />
+        </View>
         <Text style={styles.sectionTitle}>
           Consumption date
         </Text>
@@ -573,7 +568,7 @@ const ProductConsumeScreen = () => {
           accessibilityLabel="Choose consumption date"
         >
           <View style={styles.dateIconContainer}>
-            <Ionicons
+            <AppIcon
               name="calendar-outline"
               size={20}
               color="#222"
@@ -590,7 +585,7 @@ const ProductConsumeScreen = () => {
             </Text>
           </View>
 
-          <Ionicons
+          <AppIcon
             name="chevron-forward"
             size={19}
             color="#999"
@@ -601,9 +596,10 @@ const ProductConsumeScreen = () => {
           <DateTimePicker
             value={consumedAt}
             mode="date"
-            display="default"
+            display={Platform.OS === "ios" ? "inline" : "default"}
             maximumDate={new Date()}
-            onChange={handleDateChange}
+            onValueChange={handleDateChange}
+            onDismiss={() => setShowDatePicker(false)}
           />
         )}
 
@@ -631,7 +627,7 @@ const ProductConsumeScreen = () => {
             ]}
           >
             {removeFromPantry && (
-              <Ionicons
+              <AppIcon
                 name="checkmark"
                 size={17}
                 color="#fff"
@@ -726,7 +722,7 @@ const ProductConsumeScreen = () => {
           onPress={handleLogConsumption}
           disabled={log.saving || log.checking || !!log.storageError || (isEditingProduct && !log.pending)}
         >
-          <Ionicons
+          <AppIcon
             name="checkmark-circle-outline"
             size={23}
             color="#fff"

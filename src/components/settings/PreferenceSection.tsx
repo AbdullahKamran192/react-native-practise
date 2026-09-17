@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import {
   ActivityIndicator,
   Pressable,
@@ -39,7 +39,7 @@ type PreferenceInputProps = {
   description: string;
   value: string;
   unit: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: keyof typeof AppIcon.glyphMap;
   onChangeText: (value: string) => void;
 };
 
@@ -54,7 +54,7 @@ const PreferenceInput = ({
   return (
     <View style={styles.preferenceRow}>
       <View style={styles.preferenceIcon}>
-        <Ionicons
+        <AppIcon
           name={icon}
           size={21}
           color="#333"
@@ -223,7 +223,7 @@ export default function PreferenceSection({
             color="#fff"
           />
         ) : (
-          <Ionicons
+          <AppIcon
             name="checkmark-outline"
             size={21}
             color="#fff"

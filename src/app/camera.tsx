@@ -1,4 +1,4 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import {
   CameraType,
   CameraView,
@@ -132,7 +132,7 @@ export default function CameraScreen() {
     return (
       <View style={styles.permissionContainer}>
         <View style={styles.permissionIcon}>
-          <Ionicons
+          <AppIcon
             name="camera-outline"
             size={36}
             color="#222"
@@ -153,7 +153,7 @@ export default function CameraScreen() {
           style={styles.permissionButton}
           onPress={requestPermission}
         >
-          <Ionicons
+          <AppIcon
             name="camera-outline"
             size={21}
             color="#fff"

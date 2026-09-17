@@ -1,14 +1,14 @@
-import { Ionicons } from "@expo/vector-icons";
+import { AppIcon } from "@/components/brand/AppIcon";
 import { brand } from "@/components/brand/theme";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
-export function MealButton({ title, onPress, disabled = false, secondary = false, destructive = false, icon }: {
-  title: string; onPress: () => void; disabled?: boolean; secondary?: boolean; destructive?: boolean; icon?: keyof typeof Ionicons.glyphMap;
+export function MealButton({ title, onPress, disabled = false, secondary = false, destructive = false, icon, equalWidth = false }: {
+  title: string; onPress: () => void; disabled?: boolean; secondary?: boolean; destructive?: boolean; icon?: keyof typeof AppIcon.glyphMap; equalWidth?: boolean;
 }) {
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled}
-    onPress={onPress} style={({ pressed }) => [mealStyles.button, secondary && mealStyles.secondary, destructive && mealStyles.destructive, (disabled || pressed) && { opacity: 0.5 }]}>
-    {icon && <Ionicons name={icon} size={22} color={destructive ? brand.red : secondary ? brand.deepTeal : "#fff"} />}
-    <Text style={[mealStyles.buttonText, secondary && { color: brand.deepTeal }, destructive && { color: brand.red }]}>{title}</Text>
+    onPress={onPress} style={({ pressed }) => [mealStyles.button, equalWidth && { flex: 1, minWidth: 0, paddingHorizontal: 8, gap: 6 }, secondary && mealStyles.secondary, destructive && mealStyles.destructive, (disabled || pressed) && { opacity: 0.5 }]}>
+    {icon && <AppIcon name={icon} size={22} color={destructive ? brand.red : secondary ? brand.deepTeal : "#fff"} />}
+    <Text numberOfLines={equalWidth ? 1 : undefined} adjustsFontSizeToFit={equalWidth} style={[mealStyles.buttonText, secondary && { color: brand.deepTeal }, destructive && { color: brand.red }]}>{title}</Text>
   </Pressable>;
 }
 
@@ -27,6 +27,7 @@ export const mealStyles = StyleSheet.create({
   text: { fontSize: 16, lineHeight: 25, color: brand.ink },
   muted: { fontSize: 15, lineHeight: 23, color: brand.muted },
   card: { padding: 20, borderRadius: 24, backgroundColor: "#fff", gap: 16, borderWidth: 1, borderColor: "#E7F1F3" },
+  actionRow: { flexDirection: "row", alignItems: "stretch", gap: 10 },
   row: { flexDirection: "row", alignItems: "center", gap: 12, flexWrap: "wrap" },
   input: { backgroundColor: "#fff", borderColor: brand.teal, borderWidth: 1, borderRadius: 12, padding: 16, minHeight: 54, color: brand.ink, fontSize: 16 },
   button: { backgroundColor: brand.teal, borderRadius: 18, minHeight: 54, paddingHorizontal: 18, paddingVertical: 15, flexDirection: "row", gap: 10, maxWidth: "100%", alignItems: "center", justifyContent: "center" },
