@@ -1,6 +1,7 @@
+import { formatNumber } from "@/utils/formatNumber";
 import ProductImage from "@/components/products/ProductImage";
 import { genericProductImageUrl, barcodeProductImageUrl } from "@/utils/productImage";
-import { getPantryAmounts, formatPantryQuantity } from "@/utils/pantryAmounts";
+import { getPantryAmounts } from "@/utils/pantryAmounts";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { router } from "expo-router";
 
@@ -80,7 +81,7 @@ const ProductListItem = ({
           ? genericProductImageUrl(genericProduct.image_path) : barcodeProductImageUrl(barcodeProduct)} />
         <View style={{ flex: 1, gap: 8 }}>
           <Text style={styles.productName}>{productName}</Text>
-          <Text style={{ color: "#007F95", fontSize: 20, fontWeight: "700" }}>{amountRemaining}{measurementUnit} <Text style={{ color: "#617783", fontSize: 14, fontWeight: "400" }}>remaining</Text></Text>
+          <Text style={{ color: "#007F95", fontSize: 20, fontWeight: "700" }}>{formatNumber(amountRemaining)}{measurementUnit} <Text style={{ color: "#617783", fontSize: 14, fontWeight: "400" }}>remaining</Text></Text>
         </View>
         <AppIcon name="chevron-forward" size={22} color="#617783" />
       </View>
@@ -93,9 +94,9 @@ const ProductListItem = ({
           <AppIcon name="barbell-outline" size={15} color="#287C3D" />
           <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.badgeText, { color: "#287C3D" }]}>{Math.round(totalProtein * 10) / 10}g</Text>
         </View>
-        <View style={[styles.badge, { flex: 0.8, backgroundColor: "#E3F4F6" }]} accessibilityLabel={quantity === null ? "Quantity unavailable" : formatPantryQuantity(quantity) + " items remaining"}>
+        <View style={[styles.badge, { flex: 0.8, backgroundColor: "#E3F4F6" }]} accessibilityLabel={quantity === null ? "Quantity unavailable" : formatNumber(quantity) + " items remaining"}>
           <AppIcon name="cube" size={15} color="#00556B" />
-          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.badgeText, { color: "#00556B" }]}>{quantity !== null ? "\u00D7" + formatPantryQuantity(quantity) : "\u2014"}</Text>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[styles.badgeText, { color: "#00556B" }]}>{quantity !== null ? "\u00D7" + formatNumber(quantity) : "\u2014"}</Text>
         </View>
       </View>
     </Pressable>

@@ -31,6 +31,7 @@ import {
 } from "@/api/user-settings";
 
 import PantryDashboard from "@/components/pantry/PantryDashboard";
+import SpendingDashboard from "@/components/pantry/SpendingDashboard";
 
 import type {
   PantryNutritionTotals,
@@ -387,6 +388,7 @@ const Pantry = () => {
               </Pressable>
             </View>
 
+            <SpendingDashboard dailyBudget={userSettings?.cost_target_per_day ?? 0} />
             <PantryDashboard
               totals={
                 nutritionTotals

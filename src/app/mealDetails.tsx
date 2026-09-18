@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { usePantryList } from "@/api/products";
 import AvailabilityRing from "@/components/meals/AvailabilityRing";
 import { useCallback } from "react";
@@ -37,7 +38,7 @@ function Ingredient({ item, mealId, progress, checking, unavailable }: { item: M
       <ProductImage thumbnail uri={imageUri} name={product?.product_name ?? "Ingredient"} />
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={s.heading}>{product?.product_name ?? "Unavailable product"}</Text>
-        <Text style={s.text}>{item.amount}{product?.measurement_unit ?? ""}</Text>
+        <Text style={s.text}>{formatNumber(item.amount)}{product?.measurement_unit ?? ""}</Text>
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel={showActions ? "Hide ingredient actions" : "Edit " + (product?.product_name ?? "ingredient")}
         accessibilityState={{ expanded: showActions, disabled: busy }} disabled={busy}

@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import DeletePantryButton from "@/components/pantry/DeletePantryButton";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
@@ -17,7 +18,7 @@ import type { PantryAmountSelection } from "@/utils/pantryAmounts";
 
 const nutrients = ["calories", "protein", "carbs", "fat", "sugars", "salt", "fibre"] as const;
 const labels = { calories: "Calories", protein: "Protein", carbs: "Carbohydrates", fat: "Fat", sugars: "Sugars", salt: "Salt", fibre: "Fibre" };
-const format = (value: number) => value.toLocaleString("en-GB", { maximumFractionDigits: 3 });
+const format = (value: number) => formatNumber(value);
 
 export default function PantryDetails() {
   const { pantryId } = useLocalSearchParams<{ pantryId?: string }>();

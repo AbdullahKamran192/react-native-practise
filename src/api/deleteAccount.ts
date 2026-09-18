@@ -11,12 +11,12 @@ export async function deleteAccount() {
   });
   const result = await response.json().catch(() => ({}));
   if (!response.ok || result.deleted !== true) throw new Error(result.error ?? "Could not delete your account. Please try again.");
-  // Clear this user's locally saved consumption retries; leave other storage alone.
+  // Clear this user's consumption retries and shopping cart; leave other storage alone.
   try {
-    const keys = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(`foodworth:food-log:${session.user.id}:`));
+    const keys = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(`foodworth:food-log:${session.user.id}:`) || key === `shopping-cart:${session.user.id}`);
     if (keys.length) await AsyncStorage.multiRemove(keys);
   } catch {
-    console.warn("Account deleted; local consumption retry cleanup failed.");
+    console.warn("Account deleted; local saved data cleanup failed.");
   }
   await supabase.auth.signOut({ scope: "local" });
 }

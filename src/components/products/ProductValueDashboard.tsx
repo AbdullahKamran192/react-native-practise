@@ -2,7 +2,7 @@ import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet, Text, View } from "react-native";
 import { useUserSettings } from "@/api/user-settings";
 import { brand } from "@/components/brand/theme";
-import { targetCoverage, overallCoverage, coverageGrade, type ValueGrade } from "@/utils/productValue";
+import { targetStatus, targetCoverage, overallCoverage, coverageGrade, type ValueGrade } from "@/utils/productValue";
 export type { ValueGrade } from "@/utils/productValue";
 type ProductValueDashboardProps = { caloriesPerPound: number | null; proteinPerPound: number | null };
 type GradeStyle = {
@@ -91,6 +91,7 @@ export default function ProductValueDashboard({caloriesPerPound,proteinPerPound}
      </View>
      <Text style={styles.valueLabel}>{card.label}</Text>
      <Text style={[styles.value,{color:c.textColor}]}>{card.coverage?format(card.coverage.percentage)+"%":"Unknown"}</Text>
+     {targetStatus(card.coverage?.percentage)&&<Text style={[styles.unit,{color:c.textColor}]}>{targetStatus(card.coverage?.percentage)}</Text>}
      {card.coverage&&<>
       <View style={{height:5,backgroundColor:brand.border,borderRadius:3,overflow:"hidden",marginVertical:8}}
        accessibilityRole="progressbar" accessibilityValue={{min:0,max:100,now:Math.min(card.coverage.percentage,100)}}>
@@ -107,6 +108,7 @@ export default function ProductValueDashboard({caloriesPerPound,proteinPerPound}
    <View style={styles.overallInformation}>
     <Text style={[styles.overallTitle,{color:colours.textColor}]}>Overall grade: {grade??"Unknown"}</Text>
     <Text style={styles.overallDescription}>{overall===null?"Both nutrition values and positive targets are needed.":`${format(overall)}% ? ${colours.description} for your targets`}</Text>
+    {targetStatus(overall)&&<Text style={[styles.unit,{color:colours.textColor}]}>{targetStatus(overall)}</Text>}
    </View>
   </View>
   <View style={styles.explanation}>

@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import NutritionTile from "@/components/brand/NutritionTile";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
@@ -33,7 +34,7 @@ const ProductReadOnlyDashboard = ({
 
   const productAmount =
     product.product_amount.trim()
-      ? `${product.product_amount}${measurementUnit}`
+      ? `${formatNumber(product.product_amount)}${measurementUnit}`
       : "Missing";
 
   return (
@@ -168,7 +169,7 @@ const CompactNutritionItem = ({
   unit,
 }: CompactNutritionItemProps) => {
   const displayValue = value.trim()
-    ? `${value} ${unit}`
+    ? `${formatNumber(value)} ${unit}`
     : "Missing";
 
   return <NutritionTile label={label} value={displayValue} />;

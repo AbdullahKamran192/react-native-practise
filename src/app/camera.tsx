@@ -24,6 +24,7 @@ import {
 } from "react-native";
 
 type CameraIntent =
+  | "shopping"
   | "pantry"
   | "meal"
   | "consume";
@@ -108,7 +109,7 @@ export default function CameraScreen() {
      * back to the existing add-to-pantry flow.
      */
     router.push({
-      pathname: intent === "meal" ? "/mealIngredient" : destination,
+      pathname: intent === "shopping" ? "/shoppingItem" : intent === "meal" ? "/mealIngredient" : destination,
       params: { data, ...(intent === "meal" ? { mealId } : {}) },
     });
   }

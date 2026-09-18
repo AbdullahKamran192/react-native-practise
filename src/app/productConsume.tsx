@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import MealPeriodSelector from "@/components/MealPeriodSelector";
 import { defaultMealPeriod } from "@/utils/mealPeriod";
 import NutritionTile from "@/components/brand/NutritionTile";
@@ -433,13 +434,13 @@ const ProductConsumeScreen = () => {
               accessibilityState={{ disabled: !hasServingAmount }}
               accessibilityLabel={
                 hasServingAmount
-                  ? `Use one whole product, ${servingAmount}${measurementUnit}`
+                  ? `Use one whole product, ${formatNumber(servingAmount)}${measurementUnit}`
                   : "One serving unavailable: product amount missing"
               }
             >
               <Text style={styles.amountPresetText}>
                 {hasServingAmount
-                  ? `1× serving (${servingAmount}${measurementUnit})`
+                  ? `1× serving (${formatNumber(servingAmount)}${measurementUnit})`
                   : "1× serving (unavailable)"}
               </Text>
             </Pressable>
@@ -484,7 +485,7 @@ const ProductConsumeScreen = () => {
                 Swipe to choose servings (1–50)
               </Text>
               <Text style={styles.inputHelpText}>
-                1 serving = {servingAmount}{measurementUnit}
+                1 serving = {formatNumber(servingAmount)}{measurementUnit}
               </Text>
               <ScrollView
                 horizontal
@@ -512,7 +513,7 @@ const ProductConsumeScreen = () => {
                       accessibilityRole="button"
                       accessibilityLabel={
                         `${quantity} ${quantity === 1 ? "serving" : "servings"}, ` +
-                        `${totalAmount}${measurementUnit}`
+                        `${formatNumber(totalAmount)}${measurementUnit}`
                       }
                       accessibilityState={{ selected: isSelected }}
                     >

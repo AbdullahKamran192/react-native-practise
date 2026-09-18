@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { BrandArtwork } from "@/components/brand/Artwork";
 import NutritionTile from "@/components/brand/NutritionTile";
 import { brand, nutrients } from "@/components/brand/theme";
@@ -186,7 +187,7 @@ const PantryDashboard = ({
     }
 
     if (days < 1) {
-      return days.toFixed(1);
+      return formatNumber(days);
     }
 
     return Math.floor(days).toString();
@@ -203,8 +204,8 @@ const PantryDashboard = ({
           </View>
         </View>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
-          <NutritionTile label="Calories" value={totals.calories.toLocaleString() + " kcal"} />
-          <NutritionTile label="Protein" value={totals.protein.toLocaleString() + "g"} />
+          <NutritionTile label="Calories" value={formatNumber(totals.calories) + " kcal"} />
+          <NutritionTile label="Protein" value={formatNumber(totals.protein) + "g"} />
         </View>
       </View>
 
@@ -245,7 +246,7 @@ const PantryDashboard = ({
 
               <Text style={styles.targetLabel}>
                 Daily target:{" "}
-                {nutrition.dailyTarget}
+                {formatNumber(nutrition.dailyTarget)}
                 {nutrition.key === "calories"
                   ? " kcal"
                   : "g"}

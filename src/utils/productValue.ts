@@ -1,7 +1,7 @@
 export type ValueGrade = "A" | "B" | "C" | "D" | "E";
 export function coverageGrade(percentage: number | null): ValueGrade | null {
  if(percentage === null || !Number.isFinite(percentage) || percentage < 0)return null;
- return percentage >= 100 ? "A" : percentage >= 75 ? "B" : percentage >= 50 ? "C" : percentage >= 25 ? "D" : "E";
+ return percentage >= 90 ? "A" : percentage >= 70 ? "B" : percentage >= 50 ? "C" : percentage >= 30 ? "D" : "E";
 }
 export function nutritionPerPound(per100: number | null, amount: number, price: number): number | null {
  if(per100 === null || !Number.isFinite(per100) || per100 < 0 ||
@@ -20,4 +20,9 @@ export function targetCoverage(perPound: number | null, budget: number | null, t
 export function overallCoverage(calories: number | null, protein: number | null): number | null {
  if(coverageGrade(calories) === null || coverageGrade(protein) === null)return null;
  return (Math.min(calories!,100)+Math.min(protein!,100))/2;
+}
+
+export function targetStatus(percentage: number | null | undefined): string | null {
+ if (percentage == null || !Number.isFinite(percentage) || percentage < 100) return null;
+ return percentage === 100 ? "Meets target" : "Exceeds target";
 }

@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import ConsumptionPeriodEditor from "@/components/ConsumptionPeriodEditor";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
@@ -13,7 +14,7 @@ import type { HistoryRow, Nutrient } from "@/utils/consumptionHistory";
 import { MealStatus } from "@/components/meals/ui";
 
 const labels:Record<Nutrient,string>={calories:"Calories",protein:"Protein",carbs:"Carbohydrates",fat:"Fat",sugars:"Sugars",salt:"Salt",fibre:"Fibre"};
-const format=(value:number)=>value.toLocaleString("en-GB",{maximumFractionDigits:3});
+const format=(value:number)=>formatNumber(value);
 
 function Nutrition({rows}:{rows:HistoryRow[]}) {
   const {totals,missing}=summarize(rows);

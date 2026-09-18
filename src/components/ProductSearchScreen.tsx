@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { useQuery } from "@tanstack/react-query";
@@ -23,7 +24,7 @@ import type { ProductSearchResult } from "@/api/products/search/types";
 import SettingsButton from "@/components/SettingsButton";
 import ProductImage from "@/components/products/ProductImage";
 
-const Search = ({ mealId }: { mealId?: string }) => {
+const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: boolean }) => {
   const router = useRouter();
 
   const [page, setPage] = useState(0);
@@ -76,6 +77,10 @@ const Search = ({ mealId }: { mealId?: string }) => {
     product: ProductSearchResult
   ) => {
     Keyboard.dismiss();
+    if (shopping) {
+      router.push({ pathname: "/shoppingItem", params: { source: product.source, productId: product.id } });
+      return;
+    }
     if (mealId) {
       router.push({
         pathname: "/mealIngredient",
@@ -137,7 +142,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
 
     const amountText =
       item.product_amount !== null
-        ? `${item.product_amount}${item.measurement_unit}`
+        ? `${formatNumber(item.product_amount)}${item.measurement_unit}`
         : "Amount unavailable";
 
     return (
@@ -212,16 +217,16 @@ const Search = ({ mealId }: { mealId?: string }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={mealId ? ["left", "right", "bottom"] : ["top", "left", "right", "bottom"]}>
+    <SafeAreaView style={styles.container} edges={mealId || shopping ? ["left", "right", "bottom"] : ["top", "left", "right", "bottom"]}>
       <View style={[styles.header, {flexDirection:"row",alignItems:"center",justifyContent:"space-between"}]}>
         <View>
         <Text style={styles.headerLabel}>
-          {mealId ? "Choose an ingredient" : "Find a food"}
+          {shopping ? "Add a purchase" : mealId ? "Choose an ingredient" : "Find a food"}
         </Text>
 
         <Text style={styles.title}>Search</Text>
         </View>
-        {!mealId && <SettingsButton themed />}
+        {!mealId && !shopping && <SettingsButton themed />}
       </View>
 
       <View style={styles.searchRow}>

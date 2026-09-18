@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { useCallback } from "react";
 import { ScrollView, Text, View } from "react-native";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -25,7 +26,7 @@ export default function MealReplacement() {
   const candidates = replacementCandidates(item, meal.data!.items, stock);
   return <ScrollView style={s.screen} contentContainerStyle={s.content}>
     <Text style={s.title}>Replace ingredient</Text>
-    <Text style={s.text}>{item.product.product_name} · {item.amount}{item.product.measurement_unit} needed</Text>
+    <Text style={s.text}>{item.product.product_name} · {formatNumber(item.amount)}{item.product.measurement_unit} needed</Text>
     <Text style={s.muted}>Choose a product from your pantry. The recipe amount stays the same; stock is only deducted when you consume the meal.</Text>
     {replaceItem.error && <Text style={s.error} accessibilityLiveRegion="polite">{replaceItem.error.message}</Text>}
     {(["equivalent", "similar"] as const).map(section => <View key={section} style={{ gap: 14 }}>
@@ -37,7 +38,7 @@ export default function MealReplacement() {
           <ProductImage thumbnail name={row.product?.product_name ?? "Product"} uri={barcodeProductImageUrl(row.product)} />
           <View style={{ flex: 1 }}>
             <Text style={s.heading}>{row.product?.product_name}</Text>
-            <Text style={s.text}>{row.amount_remaining}{row.product?.measurement_unit} available</Text>
+            <Text style={s.text}>{formatNumber(row.amount_remaining)}{row.product?.measurement_unit} available</Text>
           </View>
         </View>
         {Number(row.amount_remaining) < Number(item.amount) && <Text style={s.muted}>Partial stock: this will not cover the full recipe amount.</Text>}

@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { useState } from "react";
@@ -34,8 +35,8 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
         <View style={styles.summary}>
           <Text style={styles.heading}>{amountLabel}</Text>
           <Text style={styles.summaryText}>
-            Quantity {quantity !== null && quantity > 0 ? formatPantryQuantity(quantity) : "—"}
-            {" · "}{total === null ? "Enter amount" : `${total}${unit}`}
+            Quantity {quantity !== null && quantity > 0 ? formatNumber(quantity) : "—"}
+            {" · "}{total === null ? "Enter amount" : `${formatNumber(total)}${unit}`}
           </Text>
         </View>
         <Pressable

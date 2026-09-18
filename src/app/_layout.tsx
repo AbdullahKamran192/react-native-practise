@@ -87,6 +87,11 @@ export default function RootLayout() {
 
         {/* Available only when signed in */}
         <Stack.Protected guard={!!session}>
+          <Stack.Screen name="shopping" options={{ title: "Shopping", headerBackTitle: "Back" }} />
+          <Stack.Screen name="shoppingSearch" options={{ title: "Find a purchase", headerBackTitle: "Back" }} />
+          <Stack.Screen name="shoppingItem" options={{ title: "Add to cart", headerBackTitle: "Back" }} />
+          <Stack.Screen name="shoppingHistory" options={{ title: "Purchase history", headerBackTitle: "Back" }} />
+          <Stack.Screen name="shoppingTrip" options={{ title: "Shopping details", headerBackTitle: "Back" }} />
           <Stack.Screen
             name="(tabs)"
             options={{

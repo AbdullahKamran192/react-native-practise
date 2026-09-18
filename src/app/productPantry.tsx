@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { brand } from "@/components/brand/theme";
 import { nutritionPerPound } from "@/utils/productValue";
 import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission";
@@ -233,7 +234,7 @@ const ProductPantryScreen = () => {
 
         showStatus(
           "Product added to pantry",
-          `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`,
+          `Your pantry now contains ${formatNumber(result.amount_remaining)}${result.measurement_unit} of this product.`,
           true
         );
       } catch (error) {
@@ -286,7 +287,7 @@ const ProductPantryScreen = () => {
 
       showStatus(
         "Product added to pantry",
-        `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`,
+        `Your pantry now contains ${formatNumber(result.amount_remaining)}${result.measurement_unit} of this product.`,
           true
       );
     } catch (error) {

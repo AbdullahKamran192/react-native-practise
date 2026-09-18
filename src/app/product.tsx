@@ -1,3 +1,4 @@
+import { formatNumber } from "@/utils/formatNumber";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
   useLocalSearchParams,
@@ -532,7 +533,7 @@ const ProductScreen = () => {
 
         Alert.alert(
           "Added to pantry",
-          `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
+          `Your pantry now contains ${formatNumber(result.amount_remaining)}${result.measurement_unit} of this product.`
         );
       } catch (error) {
         const message =
@@ -589,7 +590,7 @@ const ProductScreen = () => {
 
       Alert.alert(
         "Added to pantry",
-        `Your pantry now contains ${result.amount_remaining}${result.measurement_unit} of this product.`
+        `Your pantry now contains ${formatNumber(result.amount_remaining)}${result.measurement_unit} of this product.`
       );
     } catch (error) {
       const message =
