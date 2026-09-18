@@ -126,7 +126,7 @@ export async function replaceMealItem(input: { mealId: string; itemId: number; p
   ]);
   for (const result of results) if (result.error) fail(result.error);
   const pantry = results.flatMap(result => result.data ?? []) as unknown as PantryItem[];
-  if (ingredientAvailability(item, pantry) >= 0.8) throw new Error("This ingredient now has at least 80% available. Refresh the meal.");
+  if (ingredientAvailability(item, pantry) >= 1) throw new Error("This ingredient now has at least 100% available. Refresh the meal.");
   const candidates = replacementCandidates(item, meal.items, pantry);
   const selected = [...candidates.equivalent, ...candidates.similar].find(row => row.id === input.pantryId);
   if (!selected) throw new Error("This replacement is no longer available or is already in the meal. Refresh the page.");

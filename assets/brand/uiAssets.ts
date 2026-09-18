@@ -9,6 +9,8 @@ export type UIIcon =
 // Replace an entry with { kind: "image", source: require('./icons/calories.png') }.
 // Images retain their own colours unless tint: true is supplied.
 export const uiIcons = {
+  googleIcon: { kind: "icon", name: "logo-google" } as UIIcon,
+  appleIcon: { kind: "icon", name: "logo-apple" } as UIIcon,
   packageSizeIcon: { kind: "icon", name: "cube" } as UIIcon,
   addIcon: { kind: "icon", name: "add" } as UIIcon,
   alertCircleOutlineIcon: { kind: "icon", name: "alert-circle-outline" } as UIIcon,
@@ -70,6 +72,8 @@ export const uiIcons = {
 
 // Keeps existing screen icon names connected to the configurable entries.
 export const iconKeys: Partial<Record<IconName, keyof typeof uiIcons>> = {
+  "logo-google": "googleIcon",
+  "logo-apple": "appleIcon",
   "cube": "packageSizeIcon",
   "add": "addIcon",
   "alert-circle-outline": "alertCircleOutlineIcon",

@@ -1,13 +1,10 @@
 import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet, Text, View } from "react-native";
-
-export type ValueGrade = "A" | "B" | "C" | "D" | "E";
-
-type ProductValueDashboardProps = {
-  caloriesPerPound: number;
-  proteinPerPound: number;
-};
-
+import { useUserSettings } from "@/api/user-settings";
+import { brand } from "@/components/brand/theme";
+import { targetCoverage, overallCoverage, coverageGrade, type ValueGrade } from "@/utils/productValue";
+export type { ValueGrade } from "@/utils/productValue";
+type ProductValueDashboardProps = { caloriesPerPound: number | null; proteinPerPound: number | null };
 type GradeStyle = {
   backgroundColor: string;
   borderColor: string;
@@ -52,265 +49,72 @@ const gradeStyles: Record<ValueGrade, GradeStyle> = {
   },
 };
 
-function getCaloriesGrade(
-  caloriesPerPound: number
-): ValueGrade {
-  if (caloriesPerPound >= 2000) return "A";
-  if (caloriesPerPound >= 1250) return "B";
-  if (caloriesPerPound >= 800) return "C";
-  if (caloriesPerPound >= 400) return "D";
 
-  return "E";
+const unknownColours: GradeStyle = {backgroundColor:brand.background,borderColor:brand.border,textColor:brand.muted,description:"Missing information"};
+const format=(value:number)=>value.toLocaleString(undefined,{maximumFractionDigits:1});
+
+export default function ProductValueDashboard({caloriesPerPound,proteinPerPound}:ProductValueDashboardProps) {
+ const settings=useUserSettings();
+ const data=settings.isError?null:settings.data;
+ const budget=data?Number(data.cost_target_per_day):null;
+ const calorieTarget=data?Number(data.calories_target_per_day):null;
+ const proteinTarget=data?Number(data.protein_target_per_day):null;
+ const calories=targetCoverage(caloriesPerPound,budget,calorieTarget);
+ const protein=targetCoverage(proteinPerPound,budget,proteinTarget);
+ const overall=overallCoverage(calories?.percentage??null,protein?.percentage??null);
+ const grade=coverageGrade(overall);
+ const colours=grade?gradeStyles[grade]:unknownColours;
+ const validBudget=budget!==null&&Number.isFinite(budget)&&budget>0;
+ const cards=[
+  {label:"Calories",icon:"flame-outline" as const,coverage:calories,target:calorieTarget,perPound:caloriesPerPound,unit:"kcal"},
+  {label:"Protein",icon:"barbell-outline" as const,coverage:protein,target:proteinTarget,perPound:proteinPerPound,unit:"g"},
+ ];
+ return <View style={styles.container}>
+  <View style={styles.headingRow}>
+   <View style={{flex:1}}>
+    <Text style={styles.title}>Value for your targets</Text>
+    <Text style={styles.subtitle}>{validBudget?`Based on your ?${format(budget!)} daily food budget`:"Set your daily food budget and targets in Settings."}</Text>
+   </View>
+   <View style={styles.poundIcon}><Text style={styles.poundIconText}>?</Text></View>
+  </View>
+  {settings.isLoading&&<Text style={styles.subtitle}>Loading your targets...</Text>}
+  {settings.isError&&<Text style={styles.subtitle}>Could not load your targets. Reopen this page to retry.</Text>}
+  <View style={styles.valueGrid}>
+   {cards.map(card=>{
+    const c=card.coverage?gradeStyles[card.coverage.grade]:unknownColours;
+    return <View key={card.label} style={[styles.valueCard,{backgroundColor:c.backgroundColor,borderColor:c.borderColor}]}>
+     <View style={styles.valueHeader}>
+      <AppIcon name={card.icon} size={22} color={c.textColor}/>
+      <View style={[styles.smallGrade,{backgroundColor:c.textColor}]}>
+       <Text style={styles.smallGradeText}>{card.coverage?.grade??"?"}</Text>
+      </View>
+     </View>
+     <Text style={styles.valueLabel}>{card.label}</Text>
+     <Text style={[styles.value,{color:c.textColor}]}>{card.coverage?format(card.coverage.percentage)+"%":"Unknown"}</Text>
+     {card.coverage&&<>
+      <View style={{height:5,backgroundColor:brand.border,borderRadius:3,overflow:"hidden",marginVertical:8}}
+       accessibilityRole="progressbar" accessibilityValue={{min:0,max:100,now:Math.min(card.coverage.percentage,100)}}>
+       <View style={{height:5,width:`${Math.min(card.coverage.percentage,100)}%`,backgroundColor:c.textColor}}/>
+      </View>
+      <Text style={styles.unit}>{format(card.coverage.withinBudget)} of {format(card.target!)} {card.unit}</Text>
+     </>}
+     <Text style={styles.unit}>{card.perPound===null?"Nutrition unavailable":`${format(card.perPound)} ${card.unit} per ?1`}</Text>
+    </View>;
+   })}
+  </View>
+  <View style={[styles.overallCard,{backgroundColor:colours.backgroundColor,borderColor:colours.borderColor}]}>
+   <View style={[styles.overallGrade,{backgroundColor:colours.textColor}]}><Text style={styles.overallGradeText}>{grade??"?"}</Text></View>
+   <View style={styles.overallInformation}>
+    <Text style={[styles.overallTitle,{color:colours.textColor}]}>Overall grade: {grade??"Unknown"}</Text>
+    <Text style={styles.overallDescription}>{overall===null?"Both nutrition values and positive targets are needed.":`${format(overall)}% ? ${colours.description} for your targets`}</Text>
+   </View>
+  </View>
+  <View style={styles.explanation}>
+   <AppIcon name="information-circle-outline" size={18} color={brand.muted}/>
+   <Text style={styles.explanationText}>Calculated as if your selected daily food budget were spent on this product. Overall coverage averages calories and protein, each capped at 100%. This is an affordability score, not a health rating.</Text>
+  </View>
+ </View>;
 }
-
-function getProteinGrade(
-  proteinPerPound: number
-): ValueGrade {
-  if (proteinPerPound >= 75) return "A";
-  if (proteinPerPound >= 50) return "B";
-  if (proteinPerPound >= 30) return "C";
-  if (proteinPerPound >= 15) return "D";
-
-  return "E";
-}
-
-function getBetterGrade(
-  firstGrade: ValueGrade,
-  secondGrade: ValueGrade
-): ValueGrade {
-  const gradeOrder: ValueGrade[] = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-  ];
-
-  const firstPosition =
-    gradeOrder.indexOf(firstGrade);
-
-  const secondPosition =
-    gradeOrder.indexOf(secondGrade);
-
-  return firstPosition <= secondPosition
-    ? firstGrade
-    : secondGrade;
-}
-
-const ProductValueDashboard = ({
-  caloriesPerPound,
-  proteinPerPound,
-}: ProductValueDashboardProps) => {
-  const caloriesGrade = getCaloriesGrade(
-    caloriesPerPound
-  );
-
-  const proteinGrade = getProteinGrade(
-    proteinPerPound
-  );
-
-  const overallGrade = getBetterGrade(
-    caloriesGrade,
-    proteinGrade
-  );
-
-  const caloriesColours =
-    gradeStyles[caloriesGrade];
-
-  const proteinColours =
-    gradeStyles[proteinGrade];
-
-  const overallColours =
-    gradeStyles[overallGrade];
-
-  return (
-    <View style={styles.container}>
-      <View style={styles.headingRow}>
-        <View>
-          <Text style={styles.title}>
-            Nutrition value
-          </Text>
-
-          <Text style={styles.subtitle}>
-            What you receive for every £1 spent
-          </Text>
-        </View>
-
-        <View style={styles.poundIcon}>
-          <Text style={styles.poundIconText}>£</Text>
-        </View>
-      </View>
-
-      <View style={styles.valueGrid}>
-        <View
-          style={[
-            styles.valueCard,
-            {
-              backgroundColor:
-                caloriesColours.backgroundColor,
-
-              borderColor:
-                caloriesColours.borderColor,
-            },
-          ]}
-        >
-          <View style={styles.valueHeader}>
-            <AppIcon
-              name="flame-outline"
-              size={22}
-              color={caloriesColours.textColor}
-            />
-
-            <View
-              style={[
-                styles.smallGrade,
-                {
-                  backgroundColor:
-                    caloriesColours.textColor,
-                },
-              ]}
-            >
-              <Text style={styles.smallGradeText}>
-                {caloriesGrade}
-              </Text>
-            </View>
-          </View>
-
-          <Text style={styles.valueLabel}>
-            Calories per £
-          </Text>
-
-          <Text
-            style={[
-              styles.value,
-              {
-                color: caloriesColours.textColor,
-              },
-            ]}
-          >
-            {Math.round(caloriesPerPound).toLocaleString()}
-          </Text>
-
-          <Text style={styles.unit}>kcal per £1</Text>
-        </View>
-
-        <View
-          style={[
-            styles.valueCard,
-            {
-              backgroundColor:
-                proteinColours.backgroundColor,
-
-              borderColor:
-                proteinColours.borderColor,
-            },
-          ]}
-        >
-          <View style={styles.valueHeader}>
-            <AppIcon
-              name="barbell-outline"
-              size={22}
-              color={proteinColours.textColor}
-            />
-
-            <View
-              style={[
-                styles.smallGrade,
-                {
-                  backgroundColor:
-                    proteinColours.textColor,
-                },
-              ]}
-            >
-              <Text style={styles.smallGradeText}>
-                {proteinGrade}
-              </Text>
-            </View>
-          </View>
-
-          <Text style={styles.valueLabel}>
-            Protein per £
-          </Text>
-
-          <Text
-            style={[
-              styles.value,
-              {
-                color: proteinColours.textColor,
-              },
-            ]}
-          >
-            {proteinPerPound.toFixed(1)}
-          </Text>
-
-          <Text style={styles.unit}>grams per £1</Text>
-        </View>
-      </View>
-
-      <View
-        style={[
-          styles.overallCard,
-          {
-            backgroundColor:
-              overallColours.backgroundColor,
-
-            borderColor:
-              overallColours.borderColor,
-          },
-        ]}
-      >
-        <View
-          style={[
-            styles.overallGrade,
-            {
-              backgroundColor:
-                overallColours.textColor,
-            },
-          ]}
-        >
-          <Text style={styles.overallGradeText}>
-            {overallGrade}
-          </Text>
-        </View>
-
-        <View style={styles.overallInformation}>
-          <Text
-            style={[
-              styles.overallTitle,
-              {
-                color: overallColours.textColor,
-              },
-            ]}
-          >
-            Overall grade: {overallGrade}
-          </Text>
-
-          <Text style={styles.overallDescription}>
-            {overallColours.description}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.explanation}>
-        <AppIcon
-          name="information-circle-outline"
-          size={18}
-          color="#777"
-        />
-
-        <Text style={styles.explanationText}>
-          Grades are based on how much energy or
-          protein you get for every £1 spent. The
-          overall grade uses the better of the calories
-          and protein grades.
-        </Text>
-      </View>
-    </View>
-  );
-};
-
-export default ProductValueDashboard;
-
 const styles = StyleSheet.create({
   container: {
     marginTop: 18,
@@ -324,13 +128,13 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 19,
     fontWeight: "700",
   },
 
   subtitle: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 12,
     marginTop: 3,
   },
@@ -339,13 +143,13 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 12,
-    backgroundColor: "#EDEDED",
+    backgroundColor: brand.paleTeal,
     justifyContent: "center",
     alignItems: "center",
   },
 
   poundIconText: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 20,
     fontWeight: "700",
   },
@@ -378,13 +182,13 @@ const styles = StyleSheet.create({
   },
 
   smallGradeText: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 14,
     fontWeight: "800",
   },
 
   valueLabel: {
-    color: "#555",
+    color: brand.muted,
     fontSize: 13,
     fontWeight: "600",
     marginTop: 14,
@@ -397,7 +201,7 @@ const styles = StyleSheet.create({
   },
 
   unit: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 11,
     marginTop: 2,
   },
@@ -421,7 +225,7 @@ const styles = StyleSheet.create({
   },
 
   overallGradeText: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 30,
     fontWeight: "800",
   },
@@ -437,7 +241,7 @@ const styles = StyleSheet.create({
   },
 
   overallDescription: {
-    color: "#666",
+    color: brand.muted,
     fontSize: 13,
     marginTop: 4,
   },
@@ -452,7 +256,7 @@ const styles = StyleSheet.create({
 
   explanationText: {
     flex: 1,
-    color: "#777",
+    color: brand.muted,
     fontSize: 12,
     lineHeight: 18,
   },

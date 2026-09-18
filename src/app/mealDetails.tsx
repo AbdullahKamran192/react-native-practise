@@ -46,7 +46,7 @@ function Ingredient({ item, mealId, progress, checking, unavailable }: { item: M
         <AppIcon name={showActions ? "close" : "create-outline"} size={22} color={brand.surface} />
       </Pressable>
     </View>
-    {item.product_barcode && !checking && !unavailable && progress < 0.8 && <MealButton secondary title="Replace" disabled={busy}
+    {item.product_barcode && !checking && !unavailable && progress < 1 && <MealButton secondary title="Replace" disabled={busy}
       onPress={() => router.push({ pathname: "/mealReplacement", params: { mealId, itemId: String(item.id) } })} />}
     {editing && <TextInput accessibilityLabel={`Amount of ${product?.product_name ?? "ingredient"}`} style={s.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" editable={!busy} />}
     {showActions && <View style={s.actionRow}>

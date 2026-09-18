@@ -1,3 +1,5 @@
+import { brand } from "@/components/brand/theme";
+import { nutritionPerPound } from "@/utils/productValue";
 import ProductPhotoSubmission from "@/components/products/ProductPhotoSubmission";
 import ProductImage from "@/components/products/ProductImage";
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -43,8 +45,8 @@ import { resolvePantryAddition } from "@/utils/pantryAmounts";
 import type { PantryAmountSelection } from "@/utils/pantryAmounts";
 
 type CalculatedValue = {
-  caloriesPerPound: number;
-  proteinPerPound: number;
+  caloriesPerPound: number | null;
+  proteinPerPound: number | null;
 };
 
 const ProductPantryScreen = () => {
@@ -179,37 +181,9 @@ const ProductPantryScreen = () => {
       product.nutriments.proteins_100g
     );
 
-    if (
-      caloriesPer100 === null &&
-      proteinPer100 === null
-    ) {
-      showStatus(
-        "Missing nutrition",
-        `Enter calories or protein per 100${measurementUnit} before calculating the value.`
-      );
-
-      return;
-    }
-
-    /*
-     * The same calculation works for grams and
-     * millilitres:
-     *
-     * nutrient per 100 × product amount / 100
-     */
-    const totalCalories =
-      (caloriesPer100 ?? 0) *
-      (productAmount / 100);
-
-    const totalProtein =
-      (proteinPer100 ?? 0) *
-      (productAmount / 100);
-
     setCalculatedValue({
-      caloriesPerPound:
-        totalCalories / enteredPrice,
-      proteinPerPound:
-        totalProtein / enteredPrice,
+      caloriesPerPound: nutritionPerPound(caloriesPer100, productAmount, enteredPrice),
+      proteinPerPound: nutritionPerPound(proteinPer100, productAmount, enteredPrice),
     });
   }
 
@@ -333,7 +307,7 @@ const ProductPantryScreen = () => {
       <SafeAreaView style={styles.centeredContainer}>
         <ActivityIndicator
           size="large"
-          color="#222"
+          color={brand.ink}
         />
 
         <Text style={styles.loadingText}>
@@ -347,7 +321,7 @@ const ProductPantryScreen = () => {
     product ?? createEmptyProduct();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={styles.container}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -374,7 +348,7 @@ const ProductPantryScreen = () => {
                   : "barcode-outline"
               }
               size={24}
-              color="#222"
+              color={brand.ink}
             />
           </View>
         </View>
@@ -486,7 +460,7 @@ const ProductPantryScreen = () => {
               value={price}
               onChangeText={handlePriceChange}
               placeholder="0.00"
-              placeholderTextColor="#999"
+              placeholderTextColor={brand.muted}
               keyboardType="decimal-pad"
             />
           </View>
@@ -502,7 +476,7 @@ const ProductPantryScreen = () => {
           <AppIcon
             name="calculator-outline"
             size={22}
-            color="#222"
+            color={brand.deepTeal}
           />
 
           <Text style={styles.calculateButtonText}>
@@ -533,13 +507,13 @@ const ProductPantryScreen = () => {
           {isAddingToPantry ? (
             <ActivityIndicator
               size="small"
-              color="#fff"
+              color={brand.surface}
             />
           ) : (
             <AppIcon
               name="add"
               size={24}
-              color="#fff"
+              color={brand.surface}
             />
           )}
 
@@ -574,7 +548,7 @@ const styles = StyleSheet.create({
   statusMessage: { fontSize: 14, lineHeight: 21, color: "#354D58" },
   container: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: brand.background,
   },
 
   scrollContent: {
@@ -584,14 +558,14 @@ const styles = StyleSheet.create({
 
   centeredContainer: {
     flex: 1,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: brand.background,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
   },
 
   loadingText: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 14,
     marginTop: 14,
   },
@@ -604,13 +578,13 @@ const styles = StyleSheet.create({
   },
 
   headerLabel: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 14,
     marginBottom: 4,
   },
 
   title: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 26,
     fontWeight: "700",
   },
@@ -619,7 +593,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#EDEDED",
+    backgroundColor: brand.paleTeal,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -679,7 +653,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 19,
     fontWeight: "700",
     marginTop: 28,
@@ -687,13 +661,15 @@ const styles = StyleSheet.create({
   },
 
   priceCard: {
-    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: brand.border,
+    backgroundColor: brand.surface,
     borderRadius: 18,
     padding: 18,
   },
 
   priceLabel: {
-    color: "#666",
+    color: brand.muted,
     fontSize: 14,
     marginBottom: 12,
   },
@@ -701,7 +677,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     height: 52,
     borderWidth: 1,
-    borderColor: "#E2E2E2",
+    borderColor: brand.border,
     borderRadius: 14,
     flexDirection: "row",
     alignItems: "center",
@@ -709,7 +685,7 @@ const styles = StyleSheet.create({
   },
 
   currencySymbol: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 20,
     fontWeight: "700",
     marginRight: 8,
@@ -718,16 +694,16 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: "100%",
-    color: "#222",
+    color: brand.ink,
     fontSize: 18,
   },
 
   calculateButton: {
     height: 52,
     borderRadius: 16,
-    backgroundColor: "#E7E7E7",
+    backgroundColor: brand.paleTeal,
     borderWidth: 1,
-    borderColor: "#D4D4D4",
+    borderColor: brand.border,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -740,7 +716,7 @@ const styles = StyleSheet.create({
   },
 
   calculateButtonText: {
-    color: "#222",
+    color: brand.deepTeal,
     fontSize: 16,
     fontWeight: "700",
   },
@@ -748,7 +724,7 @@ const styles = StyleSheet.create({
   addButton: {
     height: 54,
     borderRadius: 16,
-    backgroundColor: "#222",
+    backgroundColor: brand.teal,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
@@ -761,7 +737,7 @@ const styles = StyleSheet.create({
   },
 
   addButtonText: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 16,
     fontWeight: "700",
   },

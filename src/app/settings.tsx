@@ -1,4 +1,5 @@
 import FoodBudgetCard from "@/components/settings/FoodBudgetCard";
+import DeleteAccountButton from "@/components/settings/DeleteAccountButton";
 import { brand } from "@/components/brand/theme";
 import ProductImageReviewsLink from "@/components/settings/ProductImageReviewsLink";
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -421,6 +422,8 @@ export default function SettingsScreen() {
               : "Sign out"}
           </Text>
         </Pressable>
+
+        <DeleteAccountButton disabled={isSigningOut || isSaving} />
 
         <Text style={styles.versionText}>
           FoodWorth · Version 1.0.0

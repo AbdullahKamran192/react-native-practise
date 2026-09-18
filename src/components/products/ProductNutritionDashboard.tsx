@@ -1,3 +1,4 @@
+import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
   Pressable,
@@ -104,7 +105,7 @@ const ProductTextInput = ({
         <AppIcon
           name="pencil-outline"
           size={14}
-          color="#BDBDBD"
+          color={brand.paleTeal}
         />
       </View>
 
@@ -113,7 +114,7 @@ const ProductTextInput = ({
         value={value}
         onChangeText={handleChange}
         placeholder={placeholder}
-        placeholderTextColor="#888"
+        placeholderTextColor={brand.muted}
         keyboardType={
           numeric
             ? "decimal-pad"
@@ -156,14 +157,14 @@ const NutritionInput = ({
           <AppIcon
             name={icon}
             size={19}
-            color="#222"
+            color={brand.ink}
           />
         </View>
 
         <AppIcon
           name="pencil-outline"
           size={14}
-          color="#888"
+          color={brand.muted}
         />
       </View>
 
@@ -181,7 +182,7 @@ const NutritionInput = ({
           value={value}
           onChangeText={handleChange}
           placeholder="Enter value"
-          placeholderTextColor="#999"
+          placeholderTextColor={brand.muted}
           keyboardType="decimal-pad"
           selectTextOnFocus
         />
@@ -249,7 +250,7 @@ const ProductNutritionDashboard = ({
             <AppIcon
               name="nutrition-outline"
               size={27}
-              color="#fff"
+              color={brand.surface}
             />
           </View>
 
@@ -257,7 +258,7 @@ const ProductNutritionDashboard = ({
             <AppIcon
               name="create-outline"
               size={15}
-              color="#fff"
+              color={brand.surface}
             />
 
             <Text style={styles.editBadgeText}>
@@ -378,7 +379,7 @@ const ProductNutritionDashboard = ({
               <AppIcon
                 name="lock-closed-outline"
                 size={11}
-                color="#BDBDBD"
+                color={brand.paleTeal}
               />
 
               <Text style={styles.lockedText}>
@@ -391,7 +392,7 @@ const ProductNutritionDashboard = ({
             <AppIcon
               name="barcode-outline"
               size={20}
-              color="#BDBDBD"
+              color={brand.paleTeal}
             />
 
             <Text style={styles.barcodeText}>
@@ -416,7 +417,7 @@ const ProductNutritionDashboard = ({
         <AppIcon
           name="pencil-outline"
           size={19}
-          color="#777"
+          color={brand.muted}
         />
       </View>
 
@@ -527,7 +528,7 @@ export default ProductNutritionDashboard;
 
 const styles = StyleSheet.create({
   productCard: {
-    backgroundColor: "#222",
+    backgroundColor: brand.deepTeal,
     borderRadius: 20,
     padding: 22,
   },
@@ -542,7 +543,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 15,
-    backgroundColor: "#3D3D3D",
+    backgroundColor: brand.teal,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -551,20 +552,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "#474747",
+    backgroundColor: brand.teal,
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 6,
   },
 
   editBadgeText: {
-    color: "#fff",
+    color: brand.surface,
     fontSize: 12,
     fontWeight: "600",
   },
 
   instructions: {
-    color: "#BDBDBD",
+    color: brand.paleTeal,
     fontSize: 13,
     lineHeight: 19,
     marginTop: 16,
@@ -583,7 +584,7 @@ const styles = StyleSheet.create({
   },
 
   productFieldLabel: {
-    color: "#BDBDBD",
+    color: brand.paleTeal,
     fontSize: 12,
     fontWeight: "600",
     marginBottom: 7,
@@ -591,12 +592,12 @@ const styles = StyleSheet.create({
 
   productTextInput: {
     minHeight: 48,
-    color: "#fff",
+    color: brand.ink,
     fontSize: 15,
     fontWeight: "600",
-    backgroundColor: "#333",
+    backgroundColor: brand.surface,
     borderWidth: 1,
-    borderColor: "#505050",
+    borderColor: brand.border,
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -611,31 +612,31 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 46,
     borderWidth: 1,
-    borderColor: "#505050",
+    borderColor: brand.border,
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#333",
+    backgroundColor: brand.surface,
   },
 
   unitOptionSelected: {
-    backgroundColor: "#fff",
-    borderColor: "#fff",
+    backgroundColor: brand.paleTeal,
+    borderColor: brand.surface,
   },
 
   unitOptionText: {
-    color: "#BDBDBD",
+    color: brand.deepTeal,
     fontSize: 13,
     fontWeight: "700",
   },
 
   unitOptionTextSelected: {
-    color: "#222",
+    color: brand.ink,
   },
 
   barcodeContainer: {
     borderTopWidth: 1,
-    borderTopColor: "#444",
+    borderTopColor: brand.teal,
     marginTop: 20,
     paddingTop: 16,
   },
@@ -647,7 +648,7 @@ const styles = StyleSheet.create({
   },
 
   barcodeLabel: {
-    color: "#BDBDBD",
+    color: brand.paleTeal,
     fontSize: 12,
     fontWeight: "600",
   },
@@ -659,7 +660,7 @@ const styles = StyleSheet.create({
   },
 
   lockedText: {
-    color: "#999",
+    color: brand.muted,
     fontSize: 11,
   },
 
@@ -668,14 +669,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 9,
-    backgroundColor: "#292929",
+    backgroundColor: brand.teal,
     borderRadius: 12,
     paddingHorizontal: 14,
     marginTop: 7,
   },
 
   barcodeText: {
-    color: "#BDBDBD",
+    color: brand.paleTeal,
     fontSize: 14,
   },
 
@@ -688,13 +689,13 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: "#222",
+    color: brand.ink,
     fontSize: 19,
     fontWeight: "700",
   },
 
   sectionSubtitle: {
-    color: "#888",
+    color: brand.muted,
     fontSize: 12,
     marginTop: 3,
   },
@@ -709,7 +710,7 @@ const styles = StyleSheet.create({
   nutritionItem: {
     width: "48%",
     minHeight: 145,
-    backgroundColor: "#fff",
+    backgroundColor: brand.surface,
     borderRadius: 18,
     padding: 15,
   },
@@ -728,13 +729,13 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 10,
-    backgroundColor: "#EDEDED",
+    backgroundColor: brand.paleTeal,
     justifyContent: "center",
     alignItems: "center",
   },
 
   nutritionLabel: {
-    color: "#555",
+    color: brand.muted,
     fontSize: 13,
     fontWeight: "600",
     marginTop: 11,
@@ -745,23 +746,23 @@ const styles = StyleSheet.create({
     minHeight: 42,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F7F7F7",
+    backgroundColor: brand.background,
     borderWidth: 1,
-    borderColor: "#D7D7D7",
+    borderColor: brand.border,
     borderRadius: 10,
     paddingHorizontal: 10,
   },
 
   nutritionInput: {
     flex: 1,
-    color: "#222",
+    color: brand.ink,
     fontSize: 16,
     fontWeight: "700",
     paddingVertical: 8,
   },
 
   unitText: {
-    color: "#777",
+    color: brand.muted,
     fontSize: 12,
     marginLeft: 4,
   },

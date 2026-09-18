@@ -18,7 +18,7 @@ import {
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { searchProducts, SEARCH_PAGE_SIZE } from "@/api/products/search/searchProducts";
+import { searchProducts } from "@/api/products/search/searchProducts";
 import type { ProductSearchResult } from "@/api/products/search/types";
 import SettingsButton from "@/components/SettingsButton";
 import ProductImage from "@/components/products/ProductImage";
@@ -40,7 +40,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ["product-search", submittedSearch, page],
+    queryKey: ["product-search", "no-count", submittedSearch, page],
 
     queryFn: () => searchProducts(submittedSearch, page),
 
@@ -52,7 +52,7 @@ const Search = ({ mealId }: { mealId?: string }) => {
   });
 
   const searchResults = resultPage?.items ?? [];
-  const totalPages = Math.max(1, Math.ceil((resultPage?.total ?? 0) / SEARCH_PAGE_SIZE));
+  const hasNext = resultPage?.hasNext ?? false;
 
   /*
    * The database search happens when the user
@@ -316,14 +316,14 @@ const Search = ({ mealId }: { mealId?: string }) => {
             ) : null
           }
           ListEmptyComponent={renderEmptyComponent}
-          ListFooterComponent={submittedSearch && (page > 0 || totalPages > 1) ? <View style={styles.pagination}>
+          ListFooterComponent={submittedSearch && (page > 0 || hasNext) ? <View style={styles.pagination}>
             <Pressable accessibilityRole="button" accessibilityLabel="Previous search page" disabled={page === 0}
               style={[styles.pageButton, page === 0 && { opacity: 0.4 }]} onPress={() => setPage(p => p - 1)}>
               <Text style={styles.pageButtonText}>Previous</Text>
             </Pressable>
-            <Text style={styles.pageLabel}>Page {page + 1} of {Math.max(page + 1, totalPages)}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Next search page" disabled={page + 1 >= totalPages}
-              style={[styles.pageButton, page + 1 >= totalPages && { opacity: 0.4 }]} onPress={() => setPage(p => p + 1)}>
+            <Text style={styles.pageLabel}>Page {page + 1}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next search page" disabled={!hasNext}
+              style={[styles.pageButton, !hasNext && { opacity: 0.4 }]} onPress={() => setPage(p => p + 1)}>
               <Text style={styles.pageButtonText}>Next</Text>
             </Pressable>
           </View> : null}

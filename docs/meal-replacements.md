@@ -8,7 +8,7 @@ it does not delete barcode products. Existing assignments start empty.
 Assign links yourself in Supabase. No automated classification or user
 classification screen is included.
 
-The meal details screen offers Replace only for barcode ingredients below 80%
+The meal details screen offers Replace only for barcode ingredients below 100%
 exact-product availability. The separate replacement page lists other barcode
 products in the user's pantry with positive stock and the same g/ml unit:
 

@@ -31,5 +31,13 @@ test('replacement updates only the existing reference and scopes stock to owner'
 });
 test('stale amount or restored stock prevents replacement',async()=>{
  const a=api({...item,amount:150});await assert.rejects(a.replaceMealItem(request),/changed/);assert.equal(a.writes.length,0);
- const b=api(item,[{product_barcode:'123',amount_remaining:80}]);await assert.rejects(b.replaceMealItem(request),/80%/);assert.equal(b.writes.length,0);
+ const b=api(item,[{product_barcode:'123',amount_remaining:100}]);await assert.rejects(b.replaceMealItem(request),/100%/);assert.equal(b.writes.length,0);
+});
+
+test('partially stocked ingredients can be replaced up to but not including 100 percent',async()=>{
+ for(const amount of [80,91,99.9]){
+  const a=api(item,[{product_barcode:'123',amount_remaining:amount}]);
+  await a.replaceMealItem(request);
+  assert.equal(a.writes.length,1);
+ }
 });

@@ -1,3 +1,4 @@
+import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
@@ -45,7 +46,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
           accessibilityLabel={editing ? "Close amount editor" : `Edit ${amountLabel.toLowerCase()}`}
           accessibilityState={{ expanded: editing, disabled }}
         >
-          <AppIcon name={editing ? "checkmark-outline" : "create-outline"} size={20} color="#222" />
+          <AppIcon name={editing ? "checkmark-outline" : "create-outline"} size={20} color={brand.ink} />
           <Text style={styles.buttonText}>{editing ? "Done" : "Edit"}</Text>
         </Pressable>
       </View>
@@ -90,18 +91,18 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: "#fff", borderRadius: 16, padding: 14, marginTop: 20 },
+  card: { borderWidth: 1, borderColor: brand.border, backgroundColor: brand.surface, borderRadius: 16, padding: 14, marginTop: 20 },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   summary: { flex: 1 },
-  heading: { fontSize: 14, color: "#666", marginBottom: 5 },
-  summaryText: { fontSize: 16, fontWeight: "600", color: "#222" },
-  edit: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8 },
-  buttonText: { color: "#222", fontWeight: "600" },
+  heading: { fontSize: 14, color: brand.muted, marginBottom: 5 },
+  summaryText: { fontSize: 16, fontWeight: "600", color: brand.ink },
+  edit: { backgroundColor: brand.paleTeal, borderRadius: 12, minHeight: 44, flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 8 },
+  buttonText: { color: brand.deepTeal, fontWeight: "600" },
   dimmed: { opacity: 0.5 },
   editor: { marginTop: 12 },
   field: { flex: 1 },
-  label: { color: "#666", fontSize: 12, marginBottom: 6 },
-  input: { minHeight: 46, borderWidth: 1, borderColor: "#DDD", borderRadius: 10, paddingHorizontal: 12, fontSize: 16, color: "#222" },
-  help: { color: "#777", fontSize: 12, marginTop: 8 },
-  error: { color: "#B3261E", fontSize: 12, marginTop: 8 },
+  label: { color: brand.muted, fontSize: 12, marginBottom: 6 },
+  input: { minHeight: 46, borderWidth: 1, borderColor: brand.border, borderRadius: 10, paddingHorizontal: 12, fontSize: 16, color: brand.ink },
+  help: { color: brand.muted, fontSize: 12, marginTop: 8 },
+  error: { color: brand.red, fontSize: 12, marginTop: 8 },
 });

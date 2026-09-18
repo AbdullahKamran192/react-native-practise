@@ -150,6 +150,9 @@ export default function RootLayout() {
             }}
           />
         </Stack.Protected>
+        <Stack.Screen name="forgot-password" options={{ title: "Forgot password", headerRight: () => null }} />
+        <Stack.Screen name="reset-password" options={{ title: "Reset password", headerRight: () => null, headerBackVisible: false, gestureEnabled: false }} />
+        <Stack.Screen name="auth-callback" options={{ title: "Sign in", headerRight: () => null, headerBackVisible: false }} />
       </Stack>
     </QueryProvider>
   );

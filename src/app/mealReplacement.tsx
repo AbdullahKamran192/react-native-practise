@@ -21,7 +21,7 @@ export default function MealReplacement() {
   const item = meal.data?.items.find(row => String(row.id) === itemId);
   if (!item?.product_barcode || !item.product) return <MealStatus error="This barcode ingredient is no longer available." />;
   const stock = pantry.data ?? [];
-  if (ingredientAvailability(item, stock) >= 0.8) return <MealStatus error="This ingredient now has at least 80% available. Return to the meal to continue." />;
+  if (ingredientAvailability(item, stock) >= 1) return <MealStatus error="This ingredient now has at least 100% available. Return to the meal to continue." />;
   const candidates = replacementCandidates(item, meal.data!.items, stock);
   return <ScrollView style={s.screen} contentContainerStyle={s.content}>
     <Text style={s.title}>Replace ingredient</Text>

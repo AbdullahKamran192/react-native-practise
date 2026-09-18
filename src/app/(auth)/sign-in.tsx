@@ -1,7 +1,9 @@
+import SocialSignInButtons from "@/components/auth/SocialSignInButtons";
 import { useState } from "react";
 import {
   Alert,
   Button,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +15,7 @@ import Colors from "@/constants/Colors";
 import { supabase } from "@/lib/supabase";
 
 const SignInScreen = () => {
+  const [socialBusy, setSocialBusy] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -48,7 +51,7 @@ const SignInScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: "Sign in" }} />
 
       <Text style={styles.label}>Email</Text>
@@ -82,13 +85,19 @@ const SignInScreen = () => {
       <Button
         title={isLoading ? "Signing in..." : "Sign in"}
         onPress={signInWithEmail}
-        disabled={isLoading}
+        disabled={isLoading || socialBusy}
       />
+
+      <SocialSignInButtons disabled={isLoading} onBusyChange={setSocialBusy} />
+
+      <Link href="/forgot-password" style={styles.textButton}>
+        Forgot password?
+      </Link>
 
       <Link href="/(auth)/sign-up" style={styles.textButton}>
         Create an account
       </Link>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -96,7 +105,7 @@ export default SignInScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     backgroundColor: "#F7F7F7",
     padding: 20,

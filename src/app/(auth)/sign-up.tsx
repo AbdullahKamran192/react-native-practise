@@ -1,7 +1,9 @@
+import SocialSignInButtons from "@/components/auth/SocialSignInButtons";
 import { useState } from "react";
 import {
   Alert,
   Button,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +15,7 @@ import Colors from "@/constants/Colors";
 import { supabase } from "@/lib/supabase";
 
 const SignUpScreen = () => {
+  const [socialBusy, setSocialBusy] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -67,7 +70,7 @@ const SignUpScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
       <Stack.Screen options={{ title: "Sign up" }} />
 
       <Text style={styles.label}>Email</Text>
@@ -101,13 +104,15 @@ const SignUpScreen = () => {
       <Button
         onPress={signUpWithEmail}
         title={isLoading ? "Creating account..." : "Create account"}
-        disabled={isLoading}
+        disabled={isLoading || socialBusy}
       />
+
+      <SocialSignInButtons disabled={isLoading} onBusyChange={setSocialBusy} />
 
       <Link href="/(auth)/sign-in" style={styles.textButton}>
         Already have an account? Sign in
       </Link>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -115,7 +120,7 @@ export default SignUpScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
     backgroundColor: "#F7F7F7",
     padding: 20,
