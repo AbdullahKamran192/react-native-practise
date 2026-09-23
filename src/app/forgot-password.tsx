@@ -1,11 +1,15 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput } from "react-native";
 import { Link } from "expo-router";
 import * as Linking from "expo-linking";
 import { supabase } from "@/lib/supabase";
-import { passwordStyles as s } from "@/components/auth/passwordStyles";
+import { passwordStyles as baseS } from "@/components/auth/passwordStyles";
 
 export default function ForgotPassword() {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
  const [email,setEmail]=useState("");
  const [busy,setBusy]=useState(false);
  const [sent,setSent]=useState(false);
@@ -33,7 +37,7 @@ export default function ForgotPassword() {
     <TextInput accessibilityLabel="Email address" style={s.input} value={email} onChangeText={setEmail} editable={!busy}
      keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" placeholder="you@example.com" />
     <Pressable accessibilityRole="button" disabled={busy} onPress={()=>void send()} style={[s.button,busy&&{opacity:0.6}]}>
-     {busy?<ActivityIndicator color="white"/>:<Text style={s.buttonText}>Send reset link</Text>}
+     {busy?<ActivityIndicator color={appTheme.color("white", "text")}/>:<Text style={s.buttonText}>Send reset link</Text>}
     </Pressable>
    </>}
    {!!error&&<Text style={s.error} accessibilityLiveRegion="polite">{error}</Text>}

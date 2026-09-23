@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import DeletePantryButton from "@/components/pantry/DeletePantryButton";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { useEffect, useRef, useState } from "react";
@@ -43,6 +44,9 @@ import { getPantryAmounts } from "@/utils/pantryAmounts";
 const PAGE_SIZE = 50;
 
 const Pantry = () => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -91,7 +95,7 @@ const Pantry = () => {
         <Pressable accessibilityRole="button" accessibilityLabel="Previous pantry page"
           accessibilityState={{ disabled: currentPage === 1 }} disabled={currentPage === 1}
           onPress={() => goToPage(currentPage - 1)} style={[styles.pageButton, currentPage === 1 && styles.pageDisabled]}>
-          <AppIcon name="chevron-back" size={18} color={brand.teal} />
+          <AppIcon name="chevron-back" size={18} color={appTheme.color(brand.teal, "text")} />
           <Text style={styles.pageText}>Previous</Text>
         </Pressable>
         <Text style={styles.pageSummary}>Page {currentPage} of {pageCount}</Text>
@@ -99,7 +103,7 @@ const Pantry = () => {
           accessibilityState={{ disabled: currentPage === pageCount }} disabled={currentPage === pageCount}
           onPress={() => goToPage(currentPage + 1)} style={[styles.pageButton, currentPage === pageCount && styles.pageDisabled]}>
           <Text style={styles.pageText}>Next</Text>
-          <AppIcon name="chevron-forward" size={18} color={brand.teal} />
+          <AppIcon name="chevron-forward" size={18} color={appTheme.color(brand.teal, "text")} />
         </Pressable>
       </View>
       <View style={styles.pageNumbers}>
@@ -130,7 +134,7 @@ const Pantry = () => {
       >
         <ActivityIndicator
           size="large"
-          color="#222"
+          color={appTheme.color("#222", "text")}
         />
 
         <Text
@@ -156,7 +160,7 @@ const Pantry = () => {
         <AppIcon
           name="alert-circle-outline"
           size={42}
-          color="#C62828"
+          color={appTheme.color("#C62828", "text")}
         />
 
         <Text
@@ -383,7 +387,7 @@ const Pantry = () => {
                 <AppIcon
                   name="add"
                   size={23}
-                  color="#fff"
+                  color={appTheme.color("#fff", "text")}
                 />
               </Pressable>
             </View>
@@ -414,17 +418,17 @@ const Pantry = () => {
 
             <Pressable accessibilityRole="button" accessibilityLabel={editing ? "Stop editing pantry" : "Edit pantry products"}
               accessibilityState={{ selected: editing }} onPress={() => setEditing(value => !value)} style={styles.editButton}>
-              <AppIcon name={editing ? "close" : "create-outline"} size={20} color={brand.surface} />
-              <Text style={{ color: brand.surface, fontWeight: "600" }}>{editing ? "Done" : "Edit"}</Text>
+              <AppIcon name={editing ? "close" : "create-outline"} size={20} color={appTheme.color(brand.surface, "text")} />
+              <Text style={{ color: appTheme.color(brand.surface, "text"), fontWeight: "600" }}>{editing ? "Done" : "Edit"}</Text>
             </Pressable>
             </View>
             <View style={styles.searchBar}>
-              <AppIcon name="search-outline" size={22} color={brand.teal} accessible={false} />
+              <AppIcon name="search-outline" size={22} color={appTheme.color(brand.teal, "text")} accessible={false} />
               <TextInput
                 value={searchText}
                 onChangeText={updateSearch}
                 placeholder="Search your pantry"
-                placeholderTextColor={brand.muted}
+                placeholderTextColor={appTheme.color(brand.muted, "text")}
                 accessibilityLabel="Search pantry products by name"
                 autoCorrect={false}
                 autoCapitalize="none"
@@ -434,7 +438,7 @@ const Pantry = () => {
               {searchText.length > 0 && (
                 <Pressable onPress={() => updateSearch("")} accessibilityRole="button"
                   accessibilityLabel="Clear pantry search" style={styles.clearSearch}>
-                  <AppIcon name="close-circle" size={22} color={brand.muted} />
+                  <AppIcon name="close-circle" size={22} color={appTheme.color(brand.muted, "text")} />
                 </Pressable>
               )}
             </View>
@@ -458,7 +462,7 @@ const Pantry = () => {
             <AppIcon
               name="basket-outline"
               size={40}
-              color="#999"
+              color={appTheme.color("#999", "text")}
             />
 
             <Text
@@ -481,7 +485,7 @@ const Pantry = () => {
 
 export default Pantry;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   editButton: { flexShrink: 0, flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44, paddingHorizontal: 16, borderRadius: 12, backgroundColor: brand.teal },
   searchBar: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: brand.surface, borderWidth: 1, borderColor: brand.border, borderRadius: 16, paddingLeft: 14, paddingRight: 6, marginBottom: 18 },
   searchInput: { flex: 1, minWidth: 0, minHeight: 52, fontSize: 16, color: brand.ink, paddingVertical: 12 },

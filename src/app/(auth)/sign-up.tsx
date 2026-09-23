@@ -1,3 +1,4 @@
+import { useThemeStyles } from "@/theme/AppThemeProvider";
 import SocialSignInButtons from "@/components/auth/SocialSignInButtons";
 import { useState } from "react";
 import {
@@ -15,6 +16,8 @@ import Colors from "@/constants/Colors";
 import { supabase } from "@/lib/supabase";
 
 const SignUpScreen = () => {
+  const styles = useThemeStyles(baseStyles);
+
   const [socialBusy, setSocialBusy] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -118,7 +121,7 @@ const SignUpScreen = () => {
 
 export default SignUpScreen;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: "center",

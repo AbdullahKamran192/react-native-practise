@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { Text, View } from "react-native";
 import Svg, { Line, Polyline, Text as SvgText } from "react-native-svg";
@@ -6,10 +7,13 @@ import { router } from "expo-router";
 import { supabase } from "@/lib/supabase";
 import { shoppingUser, yearlySpending } from "@/api/shopping";
 import { spendingSeries } from "@/utils/shoppingSpending";
-import { MealButton, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, mealStyles as baseS } from "@/components/meals/ui";
 import { brand } from "@/components/brand/theme";
 
 export default function SpendingDashboard({ dailyBudget }: { dailyBudget: number }) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const today = new Date();
   const year = today.getFullYear();
   const query = useQuery({ queryKey: ["shopping-spending", year], queryFn: async () => {
@@ -34,18 +38,18 @@ export default function SpendingDashboard({ dailyBudget }: { dailyBudget: number
       <Text style={s.muted}>Tracked since {new Date(query.data!.first!).toLocaleDateString()}</Text>
       <View accessibilityLabel={`Cumulative spending £${formatNumber(series.spent)}. Budget for this tracked period £${formatNumber(series.expected)}.`}>
         <Svg width="100%" height={180} viewBox="0 0 310 180">
-          <Line x1={50} x2={290} y1={145} y2={145} stroke={brand.border} />
-          <SvgText x={0} y={35} fill={brand.muted} fontSize={11}>£{maximum.toFixed(0)}</SvgText>
-          <SvgText x={15} y={145} fill={brand.muted} fontSize={11}>£0</SvgText>
-          {dailyBudget > 0 && <Line x1={50} y1={145} x2={290} y2={y(series.expected)} stroke="#DC9D2A" strokeWidth={2} strokeDasharray="5 5" />}
-          <Polyline points={series.points.map(p => `${x(p.day)},${y(p.spent)}`).join(" ")} fill="none" stroke={brand.teal} strokeWidth={3} />
-          <SvgText x={50} y={170} fill={brand.muted} fontSize={11}>{series.start.toLocaleDateString(undefined, { day: "numeric", month: "short" })}</SvgText>
-          <SvgText x={290} y={170} textAnchor="end" fill={brand.muted} fontSize={11}>Today</SvgText>
+          <Line x1={50} x2={290} y1={145} y2={145} stroke={appTheme.color(brand.border, "border")} />
+          <SvgText x={0} y={35} fill={appTheme.color(brand.muted, "text")} fontSize={11}>£{maximum.toFixed(0)}</SvgText>
+          <SvgText x={15} y={145} fill={appTheme.color(brand.muted, "text")} fontSize={11}>£0</SvgText>
+          {dailyBudget > 0 && <Line x1={50} y1={145} x2={290} y2={y(series.expected)} stroke={appTheme.color("#DC9D2A", "text")} strokeWidth={2} strokeDasharray="5 5" />}
+          <Polyline points={series.points.map(p => `${x(p.day)},${y(p.spent)}`).join(" ")} fill="none" stroke={appTheme.color(brand.teal, "text")} strokeWidth={3} />
+          <SvgText x={50} y={170} fill={appTheme.color(brand.muted, "text")} fontSize={11}>{series.start.toLocaleDateString(undefined, { day: "numeric", month: "short" })}</SvgText>
+          <SvgText x={290} y={170} textAnchor="end" fill={appTheme.color(brand.muted, "text")} fontSize={11}>Today</SvgText>
         </Svg>
       </View>
       <Text style={s.muted}>Teal: purchases · Dashed gold: budget</Text>
       {dailyBudget > 0 ? <><Text style={s.text}>Budget for this period: £{formatNumber(series.expected)}</Text>
-        <Text style={[s.text, { color: difference > 0 ? brand.red : brand.deepTeal }]}>£{formatNumber(Math.abs(difference))} {difference > 0 ? "over" : "under"} budget</Text>
+        <Text style={[s.text, { color: appTheme.color(difference > 0 ? brand.red : brand.deepTeal, "text") }]}>£{formatNumber(Math.abs(difference))} {difference > 0 ? "over" : "under"} budget</Text>
         <Text style={s.muted}>Uses your current £{formatNumber(dailyBudget)} daily budget, from {series.start.toLocaleDateString()} through today.</Text></>
         : <Text style={s.muted}>Set a food budget in Settings to compare your spending.</Text>}
     </> : <Text style={s.muted}>Complete your first shopping trip to start tracking spending. Quick pantry additions are not counted.</Text>}

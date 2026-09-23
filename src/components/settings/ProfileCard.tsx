@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet, Text, View } from "react-native";
@@ -10,6 +11,9 @@ type ProfileCardProps = {
 export default function ProfileCard({
   user,
 }: ProfileCardProps) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   function getDisplayName() {
     const metadataName =
       user?.user_metadata?.full_name ||
@@ -71,7 +75,7 @@ export default function ProfileCard({
           <AppIcon
             name="checkmark"
             size={18}
-            color="#246B3A"
+            color={appTheme.color("#246B3A", "text")}
           />
         </View>
       )}
@@ -79,7 +83,7 @@ export default function ProfileCard({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   profileCard: {
     flexDirection: "row",
     alignItems: "center",

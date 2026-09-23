@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
@@ -81,6 +82,9 @@ const ProductTextInput = ({
   numeric = false,
   onChangeText,
 }: ProductTextInputProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   function handleChange(value: string) {
     if (!numeric) {
       onChangeText(value);
@@ -105,7 +109,7 @@ const ProductTextInput = ({
         <AppIcon
           name="pencil-outline"
           size={14}
-          color={brand.paleTeal}
+          color={appTheme.color(brand.paleTeal, "text")}
         />
       </View>
 
@@ -114,7 +118,7 @@ const ProductTextInput = ({
         value={value}
         onChangeText={handleChange}
         placeholder={placeholder}
-        placeholderTextColor={brand.muted}
+        placeholderTextColor={appTheme.color(brand.muted, "text")}
         keyboardType={
           numeric
             ? "decimal-pad"
@@ -132,6 +136,9 @@ const NutritionInput = ({
   unit,
   onChangeText,
 }: NutritionInputProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const missing = value === "";
 
   function handleChange(value: string) {
@@ -157,14 +164,14 @@ const NutritionInput = ({
           <AppIcon
             name={icon}
             size={19}
-            color={brand.ink}
+            color={appTheme.color(brand.ink, "text")}
           />
         </View>
 
         <AppIcon
           name="pencil-outline"
           size={14}
-          color={brand.muted}
+          color={appTheme.color(brand.muted, "text")}
         />
       </View>
 
@@ -182,7 +189,7 @@ const NutritionInput = ({
           value={value}
           onChangeText={handleChange}
           placeholder="Enter value"
-          placeholderTextColor={brand.muted}
+          placeholderTextColor={appTheme.color(brand.muted, "text")}
           keyboardType="decimal-pad"
           selectTextOnFocus
         />
@@ -200,6 +207,9 @@ const ProductNutritionDashboard = ({
   myData,
   onProductChange,
 }: ProductNutritionDashboardProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const nutriments = product.nutriments;
 
   const measurementUnit =
@@ -250,7 +260,7 @@ const ProductNutritionDashboard = ({
             <AppIcon
               name="nutrition-outline"
               size={27}
-              color={brand.surface}
+              color={appTheme.color(brand.surface, "text")}
             />
           </View>
 
@@ -258,7 +268,7 @@ const ProductNutritionDashboard = ({
             <AppIcon
               name="create-outline"
               size={15}
-              color={brand.surface}
+              color={appTheme.color(brand.surface, "text")}
             />
 
             <Text style={styles.editBadgeText}>
@@ -379,7 +389,7 @@ const ProductNutritionDashboard = ({
               <AppIcon
                 name="lock-closed-outline"
                 size={11}
-                color={brand.paleTeal}
+                color={appTheme.color(brand.paleTeal, "text")}
               />
 
               <Text style={styles.lockedText}>
@@ -392,7 +402,7 @@ const ProductNutritionDashboard = ({
             <AppIcon
               name="barcode-outline"
               size={20}
-              color={brand.paleTeal}
+              color={appTheme.color(brand.paleTeal, "text")}
             />
 
             <Text style={styles.barcodeText}>
@@ -417,7 +427,7 @@ const ProductNutritionDashboard = ({
         <AppIcon
           name="pencil-outline"
           size={19}
-          color={brand.muted}
+          color={appTheme.color(brand.muted, "text")}
         />
       </View>
 
@@ -526,7 +536,7 @@ const ProductNutritionDashboard = ({
 
 export default ProductNutritionDashboard;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   productCard: {
     backgroundColor: brand.deepTeal,
     borderRadius: 20,

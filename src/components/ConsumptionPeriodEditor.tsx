@@ -1,3 +1,4 @@
+import { useAppTheme } from "@/theme/AppThemeProvider";
 import { useRef, useState } from "react";
 import { Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -8,6 +9,8 @@ import type { MealPeriod } from "@/utils/mealPeriod";
 import { brand } from "@/components/brand/theme";
 
 export default function ConsumptionPeriodEditor({ row }: { row: HistoryRow }) {
+  const appTheme = useAppTheme();
+
   const client = useQueryClient();
   const lock = useRef(false);
   const [saving, setSaving] = useState(false);
@@ -27,7 +30,7 @@ export default function ConsumptionPeriodEditor({ row }: { row: HistoryRow }) {
   }
   return <View style={{ gap: 10 }}>
     <MealPeriodSelector value={row.meal_period ?? "Snack"} disabled={saving} onChange={period => void change(period)} />
-    {saving && <Text accessibilityLiveRegion="polite" style={{ color: brand.muted }}>Saving meal period…</Text>}
-    {!!error && <Text accessibilityLiveRegion="polite" style={{ color: brand.red }}>{error}</Text>}
+    {saving && <Text accessibilityLiveRegion="polite" style={{ color: appTheme.color(brand.muted, "text") }}>Saving meal period…</Text>}
+    {!!error && <Text accessibilityLiveRegion="polite" style={{ color: appTheme.color(brand.red, "text") }}>{error}</Text>}
   </View>;
 }

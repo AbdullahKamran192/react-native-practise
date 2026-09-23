@@ -34,5 +34,9 @@ export async function signInWithProvider(provider: SocialProvider) {
   return;
  }
  const result=await WebBrowser.openAuthSessionAsync(data.url,redirectTo);
- if(result.type==="success")await completeSocialSignIn(result.url);
+ if(result.type==="success") {
+  await completeSocialSignIn(result.url);
+  return true;
+ }
+ return false;
 }

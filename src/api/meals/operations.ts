@@ -22,7 +22,7 @@ async function userId() {
 
 export async function getMeals(): Promise<MealListItem[]> {
   const user = await userId();
-  const { data, error } = await supabase.from("meals").select("*, items:meal_items(product_barcode,generic_product_id,amount)").eq("user_id", user).order("created_at", { ascending: false });
+  const { data, error } = await supabase.from("meals").select("*, items:meal_items(*, product:products(*, generic_product:generic_products(food_group_id,food_family_id,is_active,food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active))), generic_product:generic_products(*, food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active)))").eq("user_id", user).order("created_at", { ascending: false });
   if (error) fail(error);
   return data as unknown as MealListItem[];
 }
@@ -31,7 +31,7 @@ export async function getMeal(id: string): Promise<MealWithItems> {
   validateMealId(id);
   const user = await userId();
   const { data, error } = await supabase.from("meals")
-    .select("*, items:meal_items(*, product:products(*), generic_product:generic_products(*))")
+    .select("*, items:meal_items(*, product:products(*, generic_product:generic_products(food_group_id,food_family_id,is_active,food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active))), generic_product:generic_products(*, food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active)))")
     .eq("id", id).eq("user_id", user).maybeSingle();
   if (error) fail(error);
   if (!data) throw new Error("This meal is no longer available.");
@@ -112,29 +112,57 @@ export async function removeMealItem(mealId: string, itemId: number) {
   if (error) fail(error);
 }
 
-export async function replaceMealItem(input: { mealId: string; itemId: number; pantryId: number; originalBarcode: string; originalAmount: number }) {
+export async function replaceMealItem(input: { mealId: string; itemId: number; pantryId: number; originalBarcode: string | null; originalGenericId?: number | null; originalAmount: number }) {
   const user = await userId();
   const meal = await getMeal(input.mealId);
   const item = meal.items.find(row => row.id === input.itemId);
-  if (!item || item.product_barcode !== input.originalBarcode || Number(item.amount) !== Number(input.originalAmount)) {
+  if (!item || item.product_barcode !== input.originalBarcode || (item.generic_product_id ?? null) !== (input.originalGenericId ?? null) || Number(item.amount) !== Number(input.originalAmount)) {
     throw new Error("This ingredient changed. Reopen the replacement page.");
   }
   if (!Number.isSafeInteger(input.pantryId) || input.pantryId <= 0) throw new Error("Choose a pantry product.");
   const results = await Promise.all([
-    supabase.from("pantry").select("*, product:products(*)").eq("user_id", user).eq("id", input.pantryId),
-    supabase.from("pantry").select("*, product:products(*)").eq("user_id", user).eq("product_barcode", item.product_barcode),
+    supabase.from("pantry").select("*, product:products(*, generic_product:generic_products(food_group_id,food_family_id,is_active,food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active))), generic_product:generic_products(*, food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active))").eq("user_id", user).eq("id", input.pantryId),
+    supabase.from("pantry").select("*, product:products(*, generic_product:generic_products(food_group_id,food_family_id,is_active,food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active))), generic_product:generic_products(*, food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active))").eq("user_id", user).eq(item.product_barcode ? "product_barcode" : "generic_product_id", item.product_barcode ?? item.generic_product_id),
   ]);
   for (const result of results) if (result.error) fail(result.error);
   const pantry = results.flatMap(result => result.data ?? []) as unknown as PantryItem[];
   if (ingredientAvailability(item, pantry) >= 1) throw new Error("This ingredient now has at least 100% available. Refresh the meal.");
   const candidates = replacementCandidates(item, meal.items, pantry);
-  const selected = [...candidates.equivalent, ...candidates.similar].find(row => row.id === input.pantryId);
+  const selected = [...candidates.equivalent, ...candidates.compatible, ...candidates.sameGroup, ...candidates.similar].find(row => row.id === input.pantryId);
   if (!selected) throw new Error("This replacement is no longer available or is already in the meal. Refresh the page.");
-  const { data, error } = await supabase.from("meal_items")
-    .update({ product_barcode: selected.product_barcode, generic_product_id: null })
+  let update = supabase.from("meal_items")
+    .update({ product_barcode: selected.product_barcode, generic_product_id: selected.generic_product_id ?? null })
     .eq("id", item.id).eq("meal_id", input.mealId)
-    .eq("product_barcode", input.originalBarcode).eq("amount", input.originalAmount)
-    .select("id").maybeSingle();
+    .eq("amount", input.originalAmount);
+  update = input.originalBarcode ? update.eq("product_barcode", input.originalBarcode) : update.is("product_barcode", null).eq("generic_product_id", input.originalGenericId);
+  const { data, error } = await update.select("id").maybeSingle();
+  if (error) fail(error);
+  if (!data) throw new Error("This ingredient changed. Reopen the replacement page.");
+}
+
+export async function replaceMealProduct(input: {
+  mealId: string; itemId: number; originalBarcode: string | null; originalGenericId: number | null;
+  originalAmount: number; product_barcode: string | null; generic_product_id: number | null;
+}) {
+  const meal = await getMeal(input.mealId); // Owner-scoped lookup.
+  const item = meal.items.find(row => row.id === input.itemId);
+  if (!item || item.product_barcode !== input.originalBarcode || item.generic_product_id !== input.originalGenericId || Number(item.amount) !== Number(input.originalAmount))
+    throw new Error("This ingredient changed. Reopen the replacement page.");
+  if ((input.product_barcode === null) === (input.generic_product_id === null)) throw new Error("Choose one replacement product.");
+  if (meal.items.some(row => row.id !== item.id && (input.product_barcode !== null ? row.product_barcode === input.product_barcode : row.generic_product_id === input.generic_product_id)))
+    throw new Error("That product is already in this meal. Choose a different replacement.");
+  const result = input.product_barcode !== null
+    ? await supabase.from("products").select("measurement_unit").eq("barcode_number", input.product_barcode).maybeSingle()
+    : await supabase.from("generic_products").select("measurement_unit").eq("id", input.generic_product_id).maybeSingle();
+  if (result.error) fail(result.error);
+  const originalUnit = (item.product ?? item.generic_product)?.measurement_unit;
+  if (!result.data || !originalUnit || result.data.measurement_unit !== originalUnit)
+    throw new Error("Choose a replacement using the same measurement unit as the recipe ingredient.");
+  let update = supabase.from("meal_items").update({ product_barcode: input.product_barcode, generic_product_id: input.generic_product_id })
+    .eq("id", item.id).eq("meal_id", input.mealId).eq("amount", input.originalAmount);
+  update = input.originalBarcode !== null ? update.eq("product_barcode", input.originalBarcode)
+    : update.is("product_barcode", null).eq("generic_product_id", input.originalGenericId);
+  const { data, error } = await update.select("id").maybeSingle();
   if (error) fail(error);
   if (!data) throw new Error("This ingredient changed. Reopen the replacement page.");
 }

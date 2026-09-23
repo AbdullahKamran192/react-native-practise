@@ -1,3 +1,4 @@
+import { useThemeStyles } from "@/theme/AppThemeProvider";
 import { useRef, useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -12,9 +13,11 @@ import ProductValueDashboard from "@/components/products/ProductValueDashboard";
 import AmountToAdd from "@/components/pantry/AmountToAdd";
 import { resolvePantryAddition, type PantryAmountSelection } from "@/utils/pantryAmounts";
 import { nutritionPerPound } from "@/utils/productValue";
-import { MealButton, MealStatus, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, MealStatus, mealStyles as baseS } from "@/components/meals/ui";
 
 export default function ShoppingItem() {
+  const s = useThemeStyles(baseS);
+
   const params = useLocalSearchParams<{ data?: string; source?: ProductSource; productId?: string }>();
   const selected = useSelectedProduct(params);
   const cart = useCart();

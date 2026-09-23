@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import MealPeriodSelector from "@/components/MealPeriodSelector";
 import { defaultMealPeriod } from "@/utils/mealPeriod";
@@ -36,7 +37,7 @@ import ProductReadOnlyDashboard from "@/components/products/ProductReadOnlyDashb
 import useSelectedProduct from "@/hooks/products/useSelectedProduct";
 import type { ProductSource } from "@/hooks/products/useSelectedProduct";
 
-import { productScreenStyles as styles } from "@/styles/productScreen/styles";
+import { productScreenStyles as baseStyles } from "@/styles/productScreen/styles";
 import { localDate } from "@/api/consumption";
 import { useConsumptionLog } from "@/hooks/useConsumptionLog";
 import { createProductSubmission } from "@/utils/productSubmission";
@@ -62,6 +63,9 @@ const EMPTY_NUTRITION: ConsumedNutrition = {
 };
 
 const ProductConsumeScreen = () => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const {
     data,
     source,
@@ -261,7 +265,7 @@ const ProductConsumeScreen = () => {
       <SafeAreaView style={styles.centeredContainer}>
         <ActivityIndicator
           size="large"
-          color="#222"
+          color={appTheme.color("#222", "text")}
         />
 
         <Text style={styles.loadingText}>
@@ -307,7 +311,7 @@ const ProductConsumeScreen = () => {
             <AppIcon
               name="information-circle-outline"
               size={23}
-              color="#7A5413"
+              color={appTheme.color("#7A5413", "text")}
             />
 
             <View style={styles.noticeContent}>
@@ -328,7 +332,7 @@ const ProductConsumeScreen = () => {
             <AppIcon
               name="cloud-offline-outline"
               size={23}
-              color="#7A5413"
+              color={appTheme.color("#7A5413", "text")}
             />
 
             <View style={styles.noticeContent}>
@@ -353,7 +357,7 @@ const ProductConsumeScreen = () => {
             <AppIcon
               name="lock-closed-outline"
               size={21}
-              color="#365A40"
+              color={appTheme.color("#365A40", "text")}
             />
 
             <View style={styles.noticeContent}>
@@ -388,7 +392,7 @@ const ProductConsumeScreen = () => {
               <AppIcon
                 name="checkmark-outline"
                 size={21}
-                color="#222"
+                color={appTheme.color("#222", "text")}
               />
 
               <Text style={styles.secondaryButtonText}>
@@ -474,7 +478,7 @@ const ProductConsumeScreen = () => {
                 expanded: showQuantityPicker,
               }}
             >
-              <AppIcon name="options-outline" size={20} color="#222" />
+              <AppIcon name="options-outline" size={20} color={appTheme.color("#222", "text")} />
               <Text style={styles.amountPresetText}></Text>
             </Pressable>
           </View>
@@ -539,7 +543,7 @@ const ProductConsumeScreen = () => {
                 value={consumedAmount}
                 onChangeText={setConsumedAmount}
                 placeholder="0"
-                placeholderTextColor="#999"
+                placeholderTextColor={appTheme.color("#999", "text")}
                 keyboardType="decimal-pad"
               />
             </View>
@@ -572,7 +576,7 @@ const ProductConsumeScreen = () => {
             <AppIcon
               name="calendar-outline"
               size={20}
-              color="#222"
+              color={appTheme.color("#222", "text")}
             />
           </View>
 
@@ -589,12 +593,13 @@ const ProductConsumeScreen = () => {
           <AppIcon
             name="chevron-forward"
             size={19}
-            color="#999"
+            color={appTheme.color("#999", "text")}
           />
         </Pressable>
 
         {showDatePicker && (
           <DateTimePicker
+            themeVariant={appTheme.isDark ? "dark" : "light"}
             value={consumedAt}
             mode="date"
             display={Platform.OS === "ios" ? "inline" : "default"}
@@ -631,7 +636,7 @@ const ProductConsumeScreen = () => {
               <AppIcon
                 name="checkmark"
                 size={17}
-                color="#fff"
+                color={appTheme.color("#fff", "text")}
               />
             )}
           </View>
@@ -713,8 +718,8 @@ const ProductConsumeScreen = () => {
         {log.pending && <Text style={styles.inputHelpText}>
           A previous log for {log.pending.input.consumedOn} needs confirmation. Retry uses its original amount and pantry choice.
         </Text>}
-        {!!log.error && <Text>{log.error}</Text>}
-        {!!log.storageError && <Pressable onPress={log.refresh}><Text>{log.storageError} Tap to check again.</Text></Pressable>}
+        {!!log.error && <Text style={{color:appTheme.color("#000", "text")}}>{log.error}</Text>}
+        {!!log.storageError && <Pressable onPress={log.refresh}><Text style={{color:appTheme.color("#000", "text")}}>{log.storageError} Tap to check again.</Text></Pressable>}
         <Pressable
           style={({ pressed }) => [
             styles.primaryButton,
@@ -726,7 +731,7 @@ const ProductConsumeScreen = () => {
           <AppIcon
             name="checkmark-circle-outline"
             size={23}
-            color="#fff"
+            color={appTheme.color("#fff", "text")}
           />
 
           <Text style={styles.primaryButtonText}>
@@ -747,6 +752,7 @@ function SummaryItem({
   label,
   value,
 }: SummaryItemProps) {
+
   return <NutritionTile label={label} value={value} />;
 }
 

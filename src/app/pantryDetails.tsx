@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import DeletePantryButton from "@/components/pantry/DeletePantryButton";
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -21,6 +22,7 @@ const labels = { calories: "Calories", protein: "Protein", carbs: "Carbohydrates
 const format = (value: number) => formatNumber(value);
 
 export default function PantryDetails() {
+
   const { pantryId } = useLocalSearchParams<{ pantryId?: string }>();
   const query = useQuery({ queryKey: ["pantry", "detail", pantryId], queryFn: () => getPantryItem(pantryId ?? "") });
   if (query.isPending) return <MealStatus loading />;
@@ -30,6 +32,9 @@ export default function PantryDetails() {
 }
 
 function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const client = useQueryClient();
   // Keep the editing baseline stable even if the query refreshes in the background.
   const [item, setItem] = useState(initialItem);
@@ -103,7 +108,7 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
           const per100 = product?.[`${nutrient}_per_100`];
           return <View key={nutrient} style={s.row}>
             <View style={s.nutrientLabel}>
-              <AppIcon name={nutrientTheme[nutrient].icon} size={20} color={nutrientTheme[nutrient].color} accessible={false} />
+              <AppIcon name={nutrientTheme[nutrient].icon} size={20} color={appTheme.color(nutrientTheme[nutrient].color, "text")} accessible={false} />
               <Text style={[s.text, s.labelText]}>{labels[nutrient]}</Text>
             </View>
             <Text style={s.value}>{per100 == null ? "Not recorded" : amount === null ? "—" : `${format(Number(per100) * amount / 100)} ${nutrient === "calories" ? "kcal" : "g"}`}</Text>
@@ -116,7 +121,7 @@ function PantryEditor({ initialItem }: { initialItem: PantryItem }) {
   </SafeAreaView>;
 }
 
-const s = StyleSheet.create({
+const baseS = StyleSheet.create({
   nutrientLabel: { flexDirection: "row", alignItems: "center", gap: 8, flexShrink: 1 },
   labelText: { flexShrink: 1 },
   screen: { flex: 1, backgroundColor: brand.background }, content: { padding: 20, paddingBottom: 40 },

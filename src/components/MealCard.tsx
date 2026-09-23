@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { View, Text, StyleSheet } from "react-native";
 import { AppIcon } from "@/components/brand/AppIcon";
 
@@ -15,10 +16,13 @@ const MealCard = ({
   calories,
   icon,
 }: MealCardProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   return (
     <View style={styles.mealCard}>
       <View style={styles.mealIcon}>
-        <AppIcon name={icon} size={24} color="#444" />
+        <AppIcon name={icon} size={24} color={appTheme.color("#444", "text")} />
       </View>
 
       <View style={styles.mealInfo}>
@@ -34,7 +38,7 @@ const MealCard = ({
 
 export default MealCard
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
     // Meals
     mealCard: {
         backgroundColor: "#fff",

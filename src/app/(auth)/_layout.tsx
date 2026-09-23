@@ -1,17 +1,20 @@
+import { useAppTheme } from "@/theme/AppThemeProvider";
 import { Stack } from "expo-router";
 
 export default function AuthLayout() {
+  const appTheme = useAppTheme();
+
   return (
     <Stack
       initialRouteName="sign-in"
       screenOptions={{
         headerShadowVisible: false,
         headerStyle: {
-          backgroundColor: "#F7F7F7",
+          backgroundColor: appTheme.color("#F7F7F7", "surface"),
         },
-        headerTintColor: "#222",
+        headerTintColor: appTheme.color("#222", "text"),
         contentStyle: {
-          backgroundColor: "#F7F7F7",
+          backgroundColor: appTheme.color("#F7F7F7", "surface"),
         },
       }}
     >

@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { usePantryList } from "@/api/products";
 import AvailabilityRing from "@/components/meals/AvailabilityRing";
@@ -19,9 +20,12 @@ import type { MealItem } from "@/api/meals";
 import { getMealNutrition, nutrientKeys } from "@/api/meals/validation";
 import { toNumber } from "@/api/products/productLookup/utils";
 import MealForm from "@/components/meals/MealForm";
-import { MealButton, MealStatus, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, MealStatus, mealStyles as baseS } from "@/components/meals/ui";
 
 function Ingredient({ item, mealId, progress, checking, unavailable }: { item: MealItem; mealId: string; progress: number; checking: boolean; unavailable: boolean }) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const [editing, setEditing] = useState(false);
   const [showActions, setShowActions] = useState(false);
   const [amount, setAmount] = useState(String(item.amount));
@@ -43,11 +47,11 @@ function Ingredient({ item, mealId, progress, checking, unavailable }: { item: M
       <Pressable accessibilityRole="button" accessibilityLabel={showActions ? "Hide ingredient actions" : "Edit " + (product?.product_name ?? "ingredient")}
         accessibilityState={{ expanded: showActions, disabled: busy }} disabled={busy}
         onPress={() => { setShowActions(value => !value); setEditing(false); }}
-        style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, backgroundColor: brand.teal, alignItems: "center", justifyContent: "center" }}>
-        <AppIcon name={showActions ? "close" : "create-outline"} size={22} color={brand.surface} />
+        style={{ width: 44, height: 44, flexShrink: 0, borderRadius: 12, backgroundColor: appTheme.color(brand.teal, "surface"), alignItems: "center", justifyContent: "center" }}>
+        <AppIcon name={showActions ? "close" : "create-outline"} size={22} color={appTheme.color(brand.surface, "text")} />
       </Pressable>
     </View>
-    {item.product_barcode && !checking && !unavailable && progress < 1 && <MealButton secondary title="Replace" disabled={busy}
+    {(item.product_barcode || item.generic_product_id) && !checking && !unavailable && progress < 1 && <MealButton secondary title="Replace" disabled={busy}
       onPress={() => router.push({ pathname: "/mealReplacement", params: { mealId, itemId: String(item.id) } })} />}
     {editing && <TextInput accessibilityLabel={`Amount of ${product?.product_name ?? "ingredient"}`} style={s.input} value={amount} onChangeText={setAmount} keyboardType="decimal-pad" editable={!busy} />}
     {showActions && <View style={s.actionRow}>
@@ -66,6 +70,8 @@ function Ingredient({ item, mealId, progress, checking, unavailable }: { item: M
 }
 
 export default function MealDetailsScreen() {
+  const s = useThemeStyles(baseS);
+
   const { mealId = "" } = useLocalSearchParams<{ mealId: string }>();
   const query = useMeal(mealId);
   const pantry = usePantryList();

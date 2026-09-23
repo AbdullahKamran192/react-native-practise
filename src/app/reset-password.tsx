@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput } from "react-native";
 import { Link, useLocalSearchParams } from "expo-router";
@@ -5,9 +6,12 @@ import * as Linking from "expo-linking";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { startPasswordRecovery, saveRecoveredPassword } from "@/api/passwordRecovery";
-import { passwordStyles as s } from "@/components/auth/passwordStyles";
+import { passwordStyles as baseS } from "@/components/auth/passwordStyles";
 
 export default function ResetPassword() {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
  const url=Linking.useURL();
  const params=useLocalSearchParams<{token_hash?:string;type?:string}>();
  const [password,setPassword]=useState("");
@@ -57,7 +61,7 @@ export default function ResetPassword() {
      secureTextEntry autoCapitalize="none" autoCorrect={false} autoComplete="new-password" textContentType="newPassword" />
     {!!error&&<Text style={s.error} accessibilityLiveRegion="polite">{error}</Text>}
     <Pressable accessibilityRole="button" disabled={busy} onPress={()=>void reset()} style={[s.button,busy&&{opacity:0.6}]}>
-     {busy?<ActivityIndicator color="white"/>:<Text style={s.buttonText}>Update password</Text>}
+     {busy?<ActivityIndicator color={appTheme.color("white", "text")}/>:<Text style={s.buttonText}>Update password</Text>}
     </Pressable>
     {!busy&&<Link href="/forgot-password" replace style={s.link}>Request a new reset link</Link>}
    </>}

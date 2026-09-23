@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -6,6 +7,9 @@ import { AppIcon } from "@/components/brand/AppIcon";
 import { brand } from "@/components/brand/theme";
 
 export default function DeleteAccountButton({ disabled }: { disabled?: boolean }) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const client = useQueryClient();
   const [open, setOpen] = useState(false);
   const [confirmation, setConfirmation] = useState("");
@@ -27,7 +31,7 @@ export default function DeleteAccountButton({ disabled }: { disabled?: boolean }
   return <>
     <Pressable accessibilityRole="button" disabled={disabled || busy} style={[styles.trigger, disabled && styles.disabled]}
       onPress={() => { setConfirmation(""); setError(""); setOpen(true); }}>
-      <AppIcon name="trash-outline" size={21} color={brand.red} />
+      <AppIcon name="trash-outline" size={21} color={appTheme.color(brand.red, "text")} />
       <Text style={styles.red}>Delete account</Text>
     </Pressable>
     <Modal visible={open} transparent animationType="fade" onRequestClose={() => { if (!busy) setOpen(false); }}>
@@ -42,7 +46,7 @@ export default function DeleteAccountButton({ disabled }: { disabled?: boolean }
           {!!error && <Text style={styles.red} accessibilityLiveRegion="polite">{error}</Text>}
           <Pressable accessibilityRole="button" disabled={busy || confirmation !== "DELETE"} onPress={() => void remove()}
             style={[styles.confirm, (busy || confirmation !== "DELETE") && styles.disabled]}>
-            {busy ? <ActivityIndicator color={brand.surface} /> : <Text style={styles.white}>Permanently delete account</Text>}
+            {busy ? <ActivityIndicator color={appTheme.color(brand.surface, "text")} /> : <Text style={styles.white}>Permanently delete account</Text>}
           </Pressable>
           <Pressable accessibilityRole="button" disabled={busy} onPress={() => setOpen(false)} style={styles.cancel}>
             <Text style={styles.text}>Cancel</Text>
@@ -52,7 +56,7 @@ export default function DeleteAccountButton({ disabled }: { disabled?: boolean }
     </Modal>
   </>;
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   trigger: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 54, marginTop: 12, borderRadius: 16, borderWidth: 1, borderColor: brand.red },
   red: { color: brand.red, fontSize: 15, fontWeight: "600" },
   backdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.45)", alignItems: "center", justifyContent: "center", padding: 24 },

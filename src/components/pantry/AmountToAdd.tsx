@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -17,6 +18,9 @@ type Props = {
 };
 
 export default function AmountToAdd({ selection, onChange, packageSize, unit, disabled, purpose = "add" }: Props) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const amountLabel = purpose === "recipe" ? "Amount in this recipe" : purpose === "remaining" ? "Amount remaining" : "Amount to add";
   const [editing, setEditing] = useState(purpose === "recipe");
   const total = resolvePantryAddition(selection, packageSize);
@@ -47,7 +51,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
           accessibilityLabel={editing ? "Close amount editor" : `Edit ${amountLabel.toLowerCase()}`}
           accessibilityState={{ expanded: editing, disabled }}
         >
-          <AppIcon name={editing ? "checkmark-outline" : "create-outline"} size={20} color={brand.ink} />
+          <AppIcon name={editing ? "checkmark-outline" : "create-outline"} size={20} color={appTheme.color(brand.ink, "text")} />
           <Text style={styles.buttonText}>{editing ? "Done" : "Edit"}</Text>
         </Pressable>
       </View>
@@ -91,7 +95,7 @@ export default function AmountToAdd({ selection, onChange, packageSize, unit, di
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { borderWidth: 1, borderColor: brand.border, backgroundColor: brand.surface, borderRadius: 16, padding: 14, marginTop: 20 },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   summary: { flex: 1 },

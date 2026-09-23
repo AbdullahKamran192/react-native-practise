@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
   CameraType,
@@ -24,16 +25,23 @@ import {
 } from "react-native";
 
 type CameraIntent =
+  | "public-meal"
   | "shopping"
   | "pantry"
   | "meal"
   | "consume";
 
 export default function CameraScreen() {
-  const { intent, mealId } =
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
+  const { intent, mealId, replaceItemId, publicMealId, ingredientId } =
     useLocalSearchParams<{
       intent?: CameraIntent;
       mealId?: string;
+      replaceItemId?: string;
+      publicMealId?: string;
+      ingredientId?: string;
     }>();
 
   const [facing, setFacing] =
@@ -109,8 +117,8 @@ export default function CameraScreen() {
      * back to the existing add-to-pantry flow.
      */
     router.push({
-      pathname: intent === "shopping" ? "/shoppingItem" : intent === "meal" ? "/mealIngredient" : destination,
-      params: { data, ...(intent === "meal" ? { mealId } : {}) },
+      pathname: intent === "public-meal" ? "/publicMealProduct" : intent === "shopping" ? "/shoppingItem" : intent === "meal" ? "/mealIngredient" : destination,
+      params: { data, ...(intent === "meal" ? { mealId, replaceItemId } : {}), ...(intent === "public-meal" ? { publicMealId, ingredientId } : {}) },
     });
   }
 
@@ -119,7 +127,7 @@ export default function CameraScreen() {
       <View style={styles.loadingContainer}>
         <ActivityIndicator
           size="large"
-          color="#222"
+          color={appTheme.color("#222", "text")}
         />
 
         <Text style={styles.loadingText}>
@@ -136,7 +144,7 @@ export default function CameraScreen() {
           <AppIcon
             name="camera-outline"
             size={36}
-            color="#222"
+            color={appTheme.color("#222", "text")}
           />
         </View>
 
@@ -157,7 +165,7 @@ export default function CameraScreen() {
           <AppIcon
             name="camera-outline"
             size={21}
-            color="#fff"
+            color={appTheme.color("#fff", "text")}
           />
 
           <Text style={styles.permissionButtonText}>
@@ -231,7 +239,7 @@ export default function CameraScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",

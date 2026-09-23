@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import ConsumptionPeriodEditor from "@/components/ConsumptionPeriodEditor";
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -17,13 +18,16 @@ const labels:Record<Nutrient,string>={calories:"Calories",protein:"Protein",carb
 const format=(value:number)=>formatNumber(value);
 
 function Nutrition({rows}:{rows:HistoryRow[]}) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const {totals,missing}=summarize(rows);
   return <View>
     {nutrients.map(n=>{
       const known=rows.some(row=>row[`${n}_consumed`]!==null && row[`${n}_consumed`]!==undefined);
       return <View key={n} style={s.nutrientRow}>
         <View style={s.nutrientLabel}>
-          <AppIcon name={nutrientTheme[n].icon} size={20} color={nutrientTheme[n].color} accessible={false} />
+          <AppIcon name={nutrientTheme[n].icon} size={20} color={appTheme.color(nutrientTheme[n].color, "text")} accessible={false} />
           <Text style={[s.text, s.labelText]}>{labels[n]}</Text>
         </View>
         <Text style={s.value}>{known?format(totals[n])+(n==="calories"?" kcal":" g")+(missing[n]?"*":""):"Not recorded"}</Text>
@@ -33,6 +37,8 @@ function Nutrition({rows}:{rows:HistoryRow[]}) {
   </View>;
 }
 export default function ConsumptionDetails(){
+  const s = useThemeStyles(baseS);
+
   const {groupId}=useLocalSearchParams<{groupId?:string}>();
   const query=useQuery({
     queryKey:["food-consumption","detail",groupId],
@@ -77,7 +83,7 @@ export default function ConsumptionDetails(){
     </ScrollView>
   </SafeAreaView>;
 }
-const s=StyleSheet.create({
+const baseS=StyleSheet.create({
   nutrientLabel:{flexDirection:"row",alignItems:"center",gap:8,flexShrink:1},
   labelText:{flexShrink:1},
   screen:{flex:1,backgroundColor:brand.background},content:{padding:20,paddingBottom:40,gap:18},

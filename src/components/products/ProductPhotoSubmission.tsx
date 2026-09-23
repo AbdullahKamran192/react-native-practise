@@ -1,3 +1,4 @@
+import { useThemeStyles } from "@/theme/AppThemeProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -11,9 +12,11 @@ import { chooseMealPhoto, readMealPhoto } from "@/utils/mealPhoto";
 import { productImageRequest, rejectionReasons } from "@/api/products/images";
 import type { OwnProductImage } from "@/api/products/images";
 import ProductImage from "./ProductImage";
-import { MealButton, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, mealStyles as baseS } from "@/components/meals/ui";
 
 export default function ProductPhotoSubmission({barcode,product,disabled=false}:{barcode:string;product:LookupProduct;disabled?:boolean}) {
+  const s = useThemeStyles(baseS);
+
  const client=useQueryClient();
  const [draft,setDraft]=useState<string|null>(null);
  const [editingPhoto,setEditingPhoto]=useState(false);

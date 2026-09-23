@@ -1,8 +1,11 @@
+import { useThemeStyles } from "@/theme/AppThemeProvider";
 import React, { useState } from 'react'
 import { Alert, StyleSheet, View, Text, TextInput, TouchableOpacity } from 'react-native'
 import { supabase } from '../lib/supabase'
 
 export default function Auth() {
+  const styles = useThemeStyles(baseStyles);
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -78,7 +81,7 @@ export default function Auth() {
   )
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     marginTop: 40,
     padding: 12,

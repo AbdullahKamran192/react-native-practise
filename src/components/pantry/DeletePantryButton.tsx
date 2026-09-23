@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { useRef, useState } from "react";
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
@@ -10,6 +11,9 @@ export default function DeletePantryButton({ item, fullWidth = false, disabled =
   item: PantryItem; fullWidth?: boolean; disabled?: boolean;
   onDeleted?: () => void; onBusyChange?: (busy: boolean) => void;
 }) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const client = useQueryClient();
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -37,7 +41,7 @@ export default function DeletePantryButton({ item, fullWidth = false, disabled =
       disabled={disabled || saving} accessibilityState={{ disabled: disabled || saving }}
       onPress={() => { setError(""); setOpen(true); }}
       style={[s.trigger, fullWidth && s.fullWidth, (disabled || saving) && { opacity: 0.45 }]}>
-      <AppIcon name="trash-outline" size={23} color={brand.red} />
+      <AppIcon name="trash-outline" size={23} color={appTheme.color(brand.red, "text")} />
       {fullWidth && <Text style={s.deleteText}>Delete from pantry</Text>}
     </Pressable>
     <Modal visible={open} transparent animationType="fade" onRequestClose={() => { if (!saving) setOpen(false); }}>
@@ -48,14 +52,14 @@ export default function DeletePantryButton({ item, fullWidth = false, disabled =
         <View style={s.actions}>
           <Pressable accessibilityRole="button" disabled={saving} onPress={() => setOpen(false)} style={s.cancel}><Text style={s.description}>Cancel</Text></Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Confirm pantry deletion" disabled={saving} onPress={() => void remove()} style={s.confirm}>
-            {saving ? <ActivityIndicator color={brand.surface} /> : <Text style={s.white}>Delete</Text>}
+            {saving ? <ActivityIndicator color={appTheme.color(brand.surface, "text")} /> : <Text style={s.white}>Delete</Text>}
           </Pressable>
         </View>
       </View></View>
     </Modal>
   </>;
 }
-const s = StyleSheet.create({
+const baseS = StyleSheet.create({
   trigger: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center", backgroundColor: brand.paleRed, borderRadius: 12 },
   fullWidth: { flexDirection: "row", gap: 10, padding: 16, marginTop: 20 },
   deleteText: { color: brand.red, fontSize: 15, fontWeight: "600" },

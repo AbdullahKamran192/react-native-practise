@@ -1,3 +1,4 @@
+import { foodMatchTier } from "./foodMatch";
 import type { PantryItem } from "@/api/products";
 import type { MealItem } from "@/api/meals";
 
@@ -7,18 +8,29 @@ function words(name: string) {
     .filter(word => word.length > 2 && !/\d/.test(word) && !ignored.has(word)));
 }
 export function replacementCandidates(item: MealItem, items: MealItem[], pantry: PantryItem[]) {
-  const equivalent: PantryItem[] = [], similar: PantryItem[] = [];
-  if (!item.product_barcode || !item.product) return { equivalent, similar };
-  const used = new Set(items.map(row => row.product_barcode).filter(Boolean));
-  const originalWords = words(item.product.product_name ?? "");
-  const link = item.product.generic_product_id;
+  const equivalent: PantryItem[] = [], compatible: PantryItem[] = [], sameGroup: PantryItem[] = [], similar: PantryItem[] = [];
+  const original = item.product ?? item.generic_product;
+  if ((!item.product_barcode && item.generic_product_id == null) || !original) return { equivalent, compatible, sameGroup, similar };
+  const key = (row: { product_barcode: string | null; generic_product_id: number | null }) => row.product_barcode ? `barcode:${row.product_barcode}` : `generic:${row.generic_product_id}`;
+  const used = new Set(items.map(key));
+  const seen = new Set<string>();
+  const originalWords = words(original.product_name ?? "");
+  const link = item.generic_product_id ?? item.product?.generic_product_id;
+  const classification = item.generic_product ?? item.product?.generic_product;
   for (const row of pantry) {
-    if (!row.product_barcode || !row.product || used.has(row.product_barcode) ||
+    const product = row.product ?? row.generic_product;
+    const candidateClassification = row.generic_product ?? row.product?.generic_product;
+    const candidateLink = row.generic_product_id ?? row.product?.generic_product_id;
+    if (!product || (!row.product_barcode && row.generic_product_id == null) || used.has(key(row)) || seen.has(key(row)) || candidateClassification?.is_active === false ||
       !Number.isFinite(Number(row.amount_remaining)) || Number(row.amount_remaining) <= 0 ||
-      row.product.measurement_unit !== item.product.measurement_unit) continue;
-    if (link != null && row.product.generic_product_id != null && String(link) === String(row.product.generic_product_id)) equivalent.push(row);
-    else if ([...words(row.product.product_name ?? "")].some(word => originalWords.has(word))) similar.push(row);
+      product.measurement_unit !== original.measurement_unit) continue;
+    seen.add(key(row));
+    const tier = foodMatchTier(link, classification, candidateLink, candidateClassification);
+    if (tier === "exact_generic") equivalent.push(row);
+    else if (tier === "same_family") compatible.push(row);
+    else if ([...words(product.product_name ?? "")].some(word => originalWords.has(word))) similar.push(row);
+    else if (tier === "same_group") sameGroup.push(row);
   }
-  const sort = (a: PantryItem, b: PantryItem) => (a.product?.product_name ?? "").localeCompare(b.product?.product_name ?? "") || a.id - b.id;
-  return { equivalent: equivalent.sort(sort), similar: similar.sort(sort) };
+  const sort = (a: PantryItem, b: PantryItem) => ((a.product ?? a.generic_product)?.product_name ?? "").localeCompare((b.product ?? b.generic_product)?.product_name ?? "") || a.id - b.id;
+  return { equivalent: equivalent.sort(sort), compatible: compatible.sort(sort), sameGroup: sameGroup.sort(sort), similar: similar.sort(sort) };
 }

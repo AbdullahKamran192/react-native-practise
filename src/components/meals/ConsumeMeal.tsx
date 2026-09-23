@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import MealPeriodSelector from "@/components/MealPeriodSelector";
 import { defaultMealPeriod } from "@/utils/mealPeriod";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -6,20 +7,23 @@ import { useState } from "react";
 import { Alert, Platform, Pressable, Text, View } from "react-native";
 import { localDate } from "@/api/consumption";
 import { useConsumptionLog } from "@/hooks/useConsumptionLog";
-import { MealButton, mealStyles as s } from "./ui";
+import { MealButton, mealStyles as baseS } from "./ui";
 
-export default function ConsumeMeal({ mealId, disabled }: { mealId: string; disabled: boolean }) {
+export default function ConsumeMeal({ mealId, disabled, publicSelection }: { mealId: string; disabled: boolean; publicSelection?: { items: { ingredient_id: number; product_barcode: string | null; generic_product_id: number | null; amount: number }[] } }) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const [mealPeriod, setMealPeriod] = useState(defaultMealPeriod);
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState(new Date());
   const [showDate, setShowDate] = useState(false);
   const [removeFromPantry, setRemoveFromPantry] = useState(true);
-  const log = useConsumptionLog("meal:" + mealId);
+  const log = useConsumptionLog((publicSelection ? "public-meal:" : "meal:") + mealId);
   const busy = log.saving || log.checking || !!log.storageError;
 
   async function consume() {
     const rows = await log.submit(log.pending ? undefined : {
-      mealId, consumedOn: localDate(date), mealPeriod, removeFromPantry,
+      ...(publicSelection ? { publicMealId: mealId, ...publicSelection } : { mealId }), consumedOn: localDate(date), mealPeriod, removeFromPantry,
     });
     if (rows) {
       setOpen(false);
@@ -30,12 +34,12 @@ export default function ConsumeMeal({ mealId, disabled }: { mealId: string; disa
   }
 
   return <View style={open || log.pending ? s.card : { gap: 12 }}>
-    {!open && !log.pending ? <MealButton icon="restaurant-outline" title="Consume meal" disabled={disabled || busy} onPress={() => { setMealPeriod(defaultMealPeriod()); setOpen(true); }} /> : <>
+    {!open && !log.pending ? <MealButton icon="restaurant-outline" title={publicSelection ? "Cook and log" : "Consume meal"} disabled={disabled || busy} onPress={() => { setMealPeriod(defaultMealPeriod()); setOpen(true); }} /> : <>
       <Text style={s.heading}>Log meal</Text>
       <MealPeriodSelector value={log.pending?.input.mealPeriod ?? mealPeriod} onChange={setMealPeriod} disabled={busy || !!log.pending} />
       {log.pending ? <Text style={s.muted}>Retry the previous log for {log.pending.input.consumedOn}. Its original pantry choice will be used without logging twice.</Text> : <>
         <MealButton title={"Date consumed: " + date.toLocaleDateString("en-GB")} secondary disabled={busy} onPress={() => setShowDate(!showDate)} />
-        {showDate && <DateTimePicker value={date} mode="date" maximumDate={new Date()} disabled={busy}
+        {showDate && <DateTimePicker themeVariant={appTheme.isDark ? "dark" : "light"} value={date} mode="date" maximumDate={new Date()} disabled={busy}
           display={Platform.OS === "ios" ? "inline" : "default"}
           onDismiss={() => setShowDate(false)} onValueChange={(_event, selected) => {
           if (Platform.OS === "android") setShowDate(false);
@@ -44,7 +48,7 @@ export default function ConsumeMeal({ mealId, disabled }: { mealId: string; disa
         <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: removeFromPantry, disabled: busy }}
           disabled={busy} onPress={() => setRemoveFromPantry(!removeFromPantry)}
           style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 12 }}>
-          <AppIcon name={removeFromPantry ? "checkbox" : "square-outline"} size={25} color="#222" />
+          <AppIcon name={removeFromPantry ? "checkbox" : "square-outline"} size={25} color={appTheme.color("#222", "text")} />
           <Text style={[s.text, { flex: 1 }]}>Remove available ingredients from my pantry</Text>
         </Pressable>
         <Text style={s.muted}>All ingredients will be logged. When checked, available pantry amounts are reduced and exhausted items removed.</Text>

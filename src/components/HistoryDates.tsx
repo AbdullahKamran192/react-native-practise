@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -6,6 +7,9 @@ import { dateKey, parseDay, dayColours } from "@/utils/consumptionHistory";
 
 type Props = { dates: string[]; selected: string; onSelect: (date:string)=>void; scores: Record<string,keyof typeof dayColours> };
 export default function HistoryDates({ dates, selected, onSelect, scores }: Props) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const strip = useRef<ScrollView>(null);
   const stripWidth = useRef(0);
   const [open,setOpen] = useState(false);
@@ -37,28 +41,28 @@ export default function HistoryDates({ dates, selected, onSelect, scores }: Prop
           return <Pressable key={day} onPress={()=>onSelect(day)} accessibilityRole="button"
             accessibilityLabel={date.toLocaleDateString("en-GB",{dateStyle:"full"})+", "+colour.label}
             accessibilityState={{selected:day===selected}}
-            style={[s.day,{backgroundColor:colour.background},day===selected && s.selected]}>
-            <Text style={[s.small,{color:colour.text}]}>{day===dates[0] ? "Today" : date.toLocaleDateString("en-GB",{weekday:"short"})}</Text>
-            <Text style={[s.number,{color:colour.text}]}>{date.getDate()}</Text>
-            <Text style={[s.small,{color:colour.text}]}>{date.toLocaleDateString("en-GB",{month:"short"})}</Text>
+            style={[s.day,{backgroundColor:appTheme.color(colour.background, "surface")},day===selected && s.selected]}>
+            <Text style={[s.small,{color:appTheme.color(colour.text, "text")}]}>{day===dates[0] ? "Today" : date.toLocaleDateString("en-GB",{weekday:"short"})}</Text>
+            <Text style={[s.number,{color:appTheme.color(colour.text, "text")}]}>{date.getDate()}</Text>
+            <Text style={[s.small,{color:appTheme.color(colour.text, "text")}]}>{date.toLocaleDateString("en-GB",{month:"short"})}</Text>
           </Pressable>;
         })}
       </ScrollView>
       <Pressable accessibilityRole="button" accessibilityLabel="Choose date from calendar" accessibilityState={{expanded:open}}
         style={s.calendarButton} onPress={()=>{setMonth(selected.slice(0,7));setOpen(!open);}}>
-        <AppIcon name="calendar-outline" size={23} color={brand.deepTeal}/>
+        <AppIcon name="calendar-outline" size={23} color={appTheme.color(brand.deepTeal, "text")}/>
       </Pressable>
     </View>
     {open && <View style={s.calendar}>
       <View style={s.monthRow}>
         <Pressable accessibilityRole="button" accessibilityLabel="Previous month" disabled={month<=dates[dates.length-1].slice(0,7)}
           onPress={()=>setMonth(dateKey(previous).slice(0,7))} style={s.arrow}>
-          <AppIcon name="chevron-back" size={22} color={month<=dates[dates.length-1].slice(0,7) ? "#CCC" : brand.deepTeal}/>
+          <AppIcon name="chevron-back" size={22} color={appTheme.color(month<=dates[dates.length-1].slice(0,7) ? "#CCC" : brand.deepTeal, "text")}/>
         </Pressable>
         <Text style={s.month}>{first.toLocaleDateString("en-GB",{month:"long",year:"numeric"})}</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Next month" disabled={month>=dates[0].slice(0,7)}
           onPress={()=>setMonth(dateKey(next).slice(0,7))} style={s.arrow}>
-          <AppIcon name="chevron-forward" size={22} color={month>=dates[0].slice(0,7) ? "#CCC" : brand.deepTeal}/>
+          <AppIcon name="chevron-forward" size={22} color={appTheme.color(month>=dates[0].slice(0,7) ? "#CCC" : brand.deepTeal, "text")}/>
         </Pressable>
       </View>
       <View style={s.grid}>{["M","T","W","T","F","S","S"].map((label,i)=><Text key={i} style={s.weekday}>{label}</Text>)}</View>
@@ -70,8 +74,8 @@ export default function HistoryDates({ dates, selected, onSelect, scores }: Prop
         return <View key={i} style={s.cell}><Pressable disabled={!allowed} accessibilityRole="button"
           accessibilityLabel={day+", "+colour.label} accessibilityState={{disabled:!allowed,selected:day===selected}}
           onPress={()=>{onSelect(day);setOpen(false);}}
-          style={[s.calendarDay,{backgroundColor:allowed?colour.background:"transparent"},day===selected&&s.selected]}>
-          <Text style={{color:allowed?colour.text:"#BBB",fontWeight:day===selected?"700":"400"}}>{number}</Text>
+          style={[s.calendarDay,{backgroundColor:appTheme.color(allowed?colour.background:"transparent", "surface")},day===selected&&s.selected]}>
+          <Text style={{color:appTheme.color(allowed?colour.text:"#BBB", "text"),fontWeight:day===selected?"700":"400"}}>{number}</Text>
         </Pressable></View>;
       })}</View>
       <Text style={s.help}>Today and the previous 29 days</Text>
@@ -79,7 +83,7 @@ export default function HistoryDates({ dates, selected, onSelect, scores }: Prop
     <Text style={s.help}>Calorie + protein targets: green 100%+ · yellow 75%+ · orange 50%+ · red below 50%. Grey: no logs, missing nutrition or no target.</Text>
   </View>;
 }
-const s=StyleSheet.create({
+const baseS=StyleSheet.create({
   container:{marginBottom:18},row:{flexDirection:"row",alignItems:"center",gap:8},
   strip:{gap:8,paddingVertical:4},day:{width:64,minHeight:82,borderRadius:16,borderWidth:2,borderColor:"transparent",alignItems:"center",justifyContent:"center",gap:2},
   selected:{borderColor:brand.teal,borderWidth:2},small:{fontSize:11},number:{fontSize:23,fontWeight:"700"},

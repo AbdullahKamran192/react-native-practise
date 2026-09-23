@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { brand } from "@/components/brand/theme";
@@ -5,11 +6,14 @@ import { brand } from "@/components/brand/theme";
 type Props = { value: string; onChangeText: (value: string) => void };
 
 export default function FoodBudgetCard({ value, onChangeText }: Props) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   return (
     <View style={styles.card}>
       <View style={styles.heading}>
         <View style={styles.icon}>
-          <AppIcon name="wallet-outline" size={26} color={brand.deepTeal} />
+          <AppIcon name="wallet-outline" size={26} color={appTheme.color(brand.deepTeal, "text")} />
         </View>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Daily food budget</Text>
@@ -25,7 +29,7 @@ export default function FoodBudgetCard({ value, onChangeText }: Props) {
           onChangeText={onChangeText}
           keyboardType="decimal-pad"
           selectTextOnFocus
-          selectionColor={brand.teal}
+          selectionColor={appTheme.color(brand.teal, "text")}
         />
         <Text style={styles.description}>per day</Text>
       </View>
@@ -34,7 +38,7 @@ export default function FoodBudgetCard({ value, onChangeText }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   card: { backgroundColor: brand.surface, borderWidth: 1, borderColor: brand.border,
     borderTopWidth: 4, borderTopColor: brand.teal, borderRadius: 22, padding: 20, marginBottom: 24, gap: 18 },
   heading: { flexDirection: "row", alignItems: "center", gap: 12 },

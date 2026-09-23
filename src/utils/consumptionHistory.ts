@@ -5,7 +5,7 @@ export type HistoryRow = {
   meal_period: MealPeriod;
   product?: { image_url: string | null; image_path?: string | null } | null;
   generic_product?: { image_path: string | null } | null;
-  meal?: { id: number; user_id: string; image_path: string | null } | null;
+  meal?: { public_image_path?: string | null; id: number; user_id: string; image_path: string | null } | null;
   id: number; consumption_group_id: string; consumed_on: string; created_at: string;
   meal_name_snapshot: string | null; product_name_snapshot: string;
   brand_snapshot: string | null; amount_consumed: number; measurement_unit: string;

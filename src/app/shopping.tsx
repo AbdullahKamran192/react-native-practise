@@ -1,10 +1,11 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { useRef, useState } from "react";
 import { ScrollView, Text, TextInput, View } from "react-native";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { completeShopping, priceNumber, shoppingId, useCart, type CartItem } from "@/api/shopping";
-import { MealButton, MealStatus, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, MealStatus, mealStyles as baseS } from "@/components/meals/ui";
 import ProductImage from "@/components/products/ProductImage";
 import AmountToAdd from "@/components/pantry/AmountToAdd";
 import { resolvePantryAddition, type PantryAmountSelection } from "@/utils/pantryAmounts";
@@ -24,6 +25,9 @@ const gradeColours = {
 function CartLine({ item, locked, update, remove }: {
   item: CartItem; locked: boolean; update: (patch: Partial<CartItem>) => void; remove: () => void;
 }) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const [price, setPrice] = useState(item.price);
   const [amount, setAmount] = useState<PantryAmountSelection>({ mode: "amount", value: String(item.amount) });
   const settings = useUserSettings().data;
@@ -49,14 +53,14 @@ function CartLine({ item, locked, update, remove }: {
         ["Overall", overallCoverage(calories, protein)]] as const).map(([label, percentage]) => {
         const value = coverageGrade(percentage);
         const percentageText = percentage === null ? "—" : `${formatNumber(percentage)}%`;
-        const colours = value ? gradeColours[value] : { backgroundColor: brand.background, color: brand.muted };
+        const colours = value ? gradeColours[value] : { backgroundColor: appTheme.color(brand.background, "surface"), color: appTheme.color(brand.muted, "text") };
         return <View key={label} accessible accessibilityLabel={`${label} value: ${value ?? "Unknown"}${percentage === null ? "" : `, ${percentageText} budget-based target coverage`}`}
           style={{ flex: 1, minWidth: 0, paddingHorizontal: 6, paddingVertical: 10, borderRadius: 12,
-            alignItems: "center", justifyContent: "center", gap: 4, backgroundColor: colours.backgroundColor }}>
-          <Text style={{ fontSize: 12, fontWeight: "600", textAlign: "center", color: colours.color }}>{label}</Text>
-          <Text style={{ fontSize: value ? 24 : 12, fontWeight: "800", textAlign: "center", color: colours.color }}>{value ?? "Unknown"}</Text>
-          <Text style={{ fontSize: 12, fontWeight: "600", textAlign: "center", color: colours.color }}>{percentageText}</Text>
-          {targetStatus(percentage) && <Text style={{ fontSize: 11, textAlign: "center", color: colours.color }}>{targetStatus(percentage)}</Text>}
+            alignItems: "center", justifyContent: "center", gap: 4, backgroundColor: appTheme.color(colours.backgroundColor, "surface") }}>
+          <Text style={{ fontSize: 12, fontWeight: "600", textAlign: "center", color: appTheme.color(colours.color, "text") }}>{label}</Text>
+          <Text style={{ fontSize: value ? 24 : 12, fontWeight: "800", textAlign: "center", color: appTheme.color(colours.color, "text") }}>{value ?? "Unknown"}</Text>
+          <Text style={{ fontSize: 12, fontWeight: "600", textAlign: "center", color: appTheme.color(colours.color, "text") }}>{percentageText}</Text>
+          {targetStatus(percentage) && <Text style={{ fontSize: 11, textAlign: "center", color: appTheme.color(colours.color, "text") }}>{targetStatus(percentage)}</Text>}
         </View>;
       })}
     </View>
@@ -65,6 +69,9 @@ function CartLine({ item, locked, update, remove }: {
 }
 
 export default function Shopping() {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const cart = useCart();
   const client = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -123,7 +130,7 @@ export default function Shopping() {
       <MealButton title="Search food" icon="search-outline" equalWidth secondary disabled={locked} onPress={() => router.push("/shoppingSearch")} />
     </View>
     {cart.data.attempted && <Text style={s.muted}>Checkout is awaiting confirmation. Retry below; items will not be added twice.</Text>}
-    {!!success && <Text accessibilityRole="alert" style={[s.text, { color: "#247440" }]}>✓ {success}</Text>}
+    {!!success && <Text accessibilityRole="alert" style={[s.text, { color: appTheme.color("#247440", "text") }]}>✓ {success}</Text>}
     {!cart.data.items.length && <Text style={s.muted}>Your cart is empty. Scan or search to add a product.</Text>}
     {cart.data.items.map(item => <CartLine key={`${item.id}:${revision}`} item={item} locked={locked || saveFailed}
       update={patch => { void edit(item.id, patch); }} remove={() => { void edit(item.id); }} />)}

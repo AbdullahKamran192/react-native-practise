@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -9,9 +10,12 @@ import type { Meal, MealInput } from "@/api/meals";
 import { mealImageRequest } from "@/api/meals/images";
 import { chooseMealPhoto, readMealPhoto } from "@/utils/mealPhoto";
 import MealForm from "@/components/meals/MealForm";
-import { MealButton, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, mealStyles as baseS } from "@/components/meals/ui";
 
 export default function CreateMealScreen() {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const { create } = useMealActions();
   const client = useQueryClient();
   const [photo, setPhoto] = useState<string | null>(null);
@@ -61,8 +65,8 @@ export default function CreateMealScreen() {
     <View style={s.card}>
       <Text style={s.heading}>Meal photo (optional)</Text>
       {photo ? <Image source={{ uri: photo }} style={{ width: "100%", height: 220, borderRadius: 14 }} contentFit="cover" accessibilityLabel="Selected meal photo preview" />
-        : <View style={{ height: 120, borderRadius: 14, backgroundColor: "#EDEDED", alignItems: "center", justifyContent: "center", gap: 8 }}>
-          <AppIcon name="image-outline" size={36} color="#999" />
+        : <View style={{ height: 120, borderRadius: 14, backgroundColor: appTheme.color("#EDEDED", "surface"), alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <AppIcon name="image-outline" size={36} color={appTheme.color("#999", "text")} />
           <Text style={s.muted}>No photo selected</Text>
         </View>}
       <View style={s.row}>

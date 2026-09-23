@@ -20,7 +20,7 @@ function setup(results = [], store = new Map(), options = {}) {
     "@/lib/supabase": { supabase: {
       auth: { getUser: async () => ({ data: { user: options.signedOut ? null : { id: options.user ?? "owner" } }, error: null }) },
       rpc: async (name, args) => {
-        assert.equal(name, "log_food_consumption");
+        assert.equal(name, options.publicMeal ? "log_public_meal" : "log_food_consumption");
         assert.ok(store.size > 0, "Persist retry request before sending");
         calls.push(args);
         return results.shift();
@@ -127,4 +127,16 @@ test("invalid meal period is rejected before logging", async () => {
   const db = setup([]);
   await assert.rejects(db.api.logConsumption('generic:1', {...food, mealPeriod: 'Brunch'}), /meal period/);
   assert.equal(db.calls.length, 0);
+});
+
+test("public recipe retry preserves selections, date and pantry choice", async () => {
+  const input={publicMealId:'8',items:[{ingredient_id:1,product_barcode:'123',generic_product_id:null,amount:30},{ingredient_id:2,product_barcode:null,generic_product_id:4,amount:100}],consumedOn:food.consumedOn,mealPeriod:'Lunch',removeFromPantry:true};
+  const first=setup([{error:{message:'Timeout',code:'network'}}],new Map(),{publicMeal:true});
+  await assert.rejects(first.api.logConsumption('public-meal:8',input),/Timeout/);
+  const second=setup([success()],first.store,{publicMeal:true});
+  await second.api.logConsumption('public-meal:8',{...input,items:[],removeFromPantry:false});
+  assert.deepEqual(second.calls[0],first.calls[0]);
+  assert.equal("p_servings" in second.calls[0],false);
+  assert.deepEqual(second.calls[0].p_items,input.items);
+  assert.equal(second.submissions.length,0);
 });

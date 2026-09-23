@@ -1,4 +1,6 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import FoodBudgetCard from "@/components/settings/FoodBudgetCard";
+import AppearanceSection from "@/components/settings/AppearanceSection";
 import DeleteAccountButton from "@/components/settings/DeleteAccountButton";
 import { brand } from "@/components/brand/theme";
 import ProductImageReviewsLink from "@/components/settings/ProductImageReviewsLink";
@@ -39,6 +41,9 @@ const defaultSettings: SettingsFormValues = {
 };
 
 export default function SettingsScreen() {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const queryClient = useQueryClient();
 
   const [user, setUser] = useState<User | null>(null);
@@ -317,7 +322,7 @@ export default function SettingsScreen() {
       <SafeAreaView edges={["left", "right", "bottom"]} style={styles.centeredContainer}>
         <ActivityIndicator
           size="large"
-          color={brand.ink}
+          color={appTheme.color(brand.ink, "text")}
         />
 
         <Text style={styles.loadingText}>
@@ -333,7 +338,7 @@ export default function SettingsScreen() {
         <AppIcon
           name="alert-circle-outline"
           size={44}
-          color={brand.red}
+          color={appTheme.color(brand.red, "text")}
         />
 
         <Text style={styles.errorTitle}>
@@ -388,6 +393,7 @@ export default function SettingsScreen() {
           isSaving={isSaving}
         />
 
+        <AppearanceSection />
         <ProductImageReviewsLink />
 
         <PolicySection />
@@ -406,13 +412,13 @@ export default function SettingsScreen() {
           {isSigningOut ? (
             <ActivityIndicator
               size="small"
-              color={brand.red}
+              color={appTheme.color(brand.red, "text")}
             />
           ) : (
             <AppIcon
               name="log-out-outline"
               size={21}
-              color={brand.red}
+              color={appTheme.color(brand.red, "text")}
             />
           )}
 
@@ -433,7 +439,7 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: brand.background,

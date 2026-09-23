@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import NutritionTile from "@/components/brand/NutritionTile";
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -8,7 +9,7 @@ import {
 } from "react-native";
 
 import type { LookupProduct } from "@/api/products/productLookup";
-import { productScreenStyles as styles } from "@/styles/productScreen/styles";
+import { productScreenStyles as baseStyles } from "@/styles/productScreen/styles";
 
 type ProductReadOnlyDashboardProps = {
   product: LookupProduct;
@@ -21,6 +22,9 @@ const ProductReadOnlyDashboard = ({
   isGenericProduct = false,
   onEdit,
 }: ProductReadOnlyDashboardProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const productName =
     product.product_name.trim() ||
     "Missing product name";
@@ -60,7 +64,7 @@ const ProductReadOnlyDashboard = ({
             <AppIcon
               name="lock-closed-outline"
               size={15}
-              color="#666"
+              color={appTheme.color("#666", "text")}
             />
 
             <Text style={styles.editProductButtonText}>
@@ -80,7 +84,7 @@ const ProductReadOnlyDashboard = ({
             <AppIcon
               name="pencil-outline"
               size={16}
-              color="#222"
+              color={appTheme.color("#222", "text")}
             />
 
             <Text style={styles.editProductButtonText}>
@@ -168,6 +172,7 @@ const CompactNutritionItem = ({
   value,
   unit,
 }: CompactNutritionItemProps) => {
+
   const displayValue = value.trim()
     ? `${formatNumber(value)} ${unit}`
     : "Missing";

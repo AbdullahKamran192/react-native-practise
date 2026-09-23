@@ -1,11 +1,14 @@
+import { useThemeStyles } from "@/theme/AppThemeProvider";
 import { useState } from "react";
 import { Text, TextInput, View } from "react-native";
 import type { MealInput } from "@/api/meals";
-import { MealButton, mealStyles as s } from "./ui";
+import { MealButton, mealStyles as baseS } from "./ui";
 
 export default function MealForm({ initial, onSave, onCancel, saving, error }: {
   initial?: MealInput; onSave: (values: MealInput) => void; onCancel?: () => void; saving: boolean; error?: string;
 }) {
+  const s = useThemeStyles(baseS);
+
   const [values, setValues] = useState<MealInput>(initial ?? { meal_name: "", description: "", instructions: "" });
   const fields = [
     { key: "meal_name", label: "Meal name", max: 100 },

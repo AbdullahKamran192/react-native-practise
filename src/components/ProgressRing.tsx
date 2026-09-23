@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
@@ -12,6 +13,9 @@ export default function ProgressRing({
   progress, size=72, strokeWidth=6, colour="#5A9D79", trackColour="#E9EEEB",
   animationKey, label, children,
 }: Props) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const value = useRef(new Animated.Value(0)).current;
   const [reduceMotion,setReduceMotion] = useState<boolean|null>(null);
   const fraction = Number.isFinite(progress) ? Math.min(1,Math.max(0,progress)) : 0;
@@ -37,8 +41,8 @@ export default function ProgressRing({
   return <View style={{width:size,height:size}} accessible accessibilityRole="progressbar"
     accessibilityLabel={label} accessibilityValue={{min:0,max:100,now:Math.round(fraction*100)}}>
     <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} accessible={false}>
-      <Circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={trackColour} strokeWidth={strokeWidth}/>
-      <AnimatedCircle cx={size/2} cy={size/2} r={radius} fill="none" stroke={colour} strokeWidth={strokeWidth}
+      <Circle cx={size/2} cy={size/2} r={radius} fill="none" stroke={appTheme.color(trackColour, "surface")} strokeWidth={strokeWidth}/>
+      <AnimatedCircle cx={size/2} cy={size/2} r={radius} fill="none" stroke={appTheme.color(colour, "text")} strokeWidth={strokeWidth}
         strokeLinecap="round" strokeDasharray={[circumference,circumference]}
         strokeDashoffset={value.interpolate({inputRange:[0,1],outputRange:[circumference,0]})}
         opacity={value.interpolate({inputRange:[0,0.001,1],outputRange:[0,1,1],extrapolate:"clamp"})}
@@ -47,4 +51,4 @@ export default function ProgressRing({
     <View pointerEvents="none" style={styles.center}>{children}</View>
   </View>;
 }
-const styles=StyleSheet.create({center:{position:"absolute",top:0,right:0,bottom:0,left:0,alignItems:"center",justifyContent:"center",padding:12}});
+const baseStyles=StyleSheet.create({center:{position:"absolute",top:0,right:0,bottom:0,left:0,alignItems:"center",justifyContent:"center",padding:12}});

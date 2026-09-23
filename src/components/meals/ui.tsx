@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { brand } from "@/components/brand/theme";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
@@ -5,21 +6,26 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 export function MealButton({ title, onPress, disabled = false, secondary = false, destructive = false, icon, equalWidth = false }: {
   title: string; onPress: () => void; disabled?: boolean; secondary?: boolean; destructive?: boolean; icon?: keyof typeof AppIcon.glyphMap; equalWidth?: boolean;
 }) {
+  const appTheme = useAppTheme();
+  const mealStyles = useThemeStyles(baseMealStyles);
+
   return <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled}
     onPress={onPress} style={({ pressed }) => [mealStyles.button, equalWidth && { flex: 1, minWidth: 0, paddingHorizontal: 8, gap: 6 }, secondary && mealStyles.secondary, destructive && mealStyles.destructive, (disabled || pressed) && { opacity: 0.5 }]}>
-    {icon && <AppIcon name={icon} size={22} color={destructive ? brand.red : secondary ? brand.deepTeal : "#fff"} />}
-    <Text numberOfLines={equalWidth ? 1 : undefined} adjustsFontSizeToFit={equalWidth} style={[mealStyles.buttonText, secondary && { color: brand.deepTeal }, destructive && { color: brand.red }]}>{title}</Text>
+    {icon && <AppIcon name={icon} size={22} color={appTheme.color(destructive ? brand.red : secondary ? brand.deepTeal : "#fff", "text")} />}
+    <Text numberOfLines={equalWidth ? 1 : undefined} adjustsFontSizeToFit={equalWidth} style={[mealStyles.buttonText, secondary && { color: appTheme.color(brand.deepTeal, "text") }, destructive && { color: appTheme.color(brand.red, "text") }]}>{title}</Text>
   </Pressable>;
 }
 
 export function MealStatus({ loading, error, retry }: { loading?: boolean; error?: string; retry?: () => void }) {
+  const mealStyles = useThemeStyles(baseMealStyles);
+
   return <View style={mealStyles.content}>
     {loading ? <ActivityIndicator size="large" /> : <Text style={mealStyles.error}>{error}</Text>}
     {retry && <MealButton title="Try again" onPress={retry} secondary />}
   </View>;
 }
 
-export const mealStyles = StyleSheet.create({
+export const baseMealStyles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: brand.background },
   content: { padding: 20, gap: 20, paddingBottom: 48 },
   title: { fontSize: 30, fontWeight: "700", color: brand.ink },
@@ -36,3 +42,5 @@ export const mealStyles = StyleSheet.create({
   destructive: { backgroundColor: brand.paleRed, borderWidth: 1, borderColor: "#F5CCD2" },
   error: { color: "#B3261E", fontSize: 14, lineHeight: 20 },
 });
+
+export { baseMealStyles as mealStyles };

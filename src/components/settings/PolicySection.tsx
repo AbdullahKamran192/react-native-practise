@@ -1,7 +1,8 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
+import { router } from "expo-router";
 import {
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -19,8 +20,12 @@ const PolicyItem = ({
   icon,
   onPress,
 }: PolicyItemProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   return (
     <Pressable
+      accessibilityRole="button"
       style={({ pressed }) => [
         styles.policyRow,
         pressed && styles.policyRowPressed,
@@ -31,7 +36,7 @@ const PolicyItem = ({
         <AppIcon
           name={icon}
           size={21}
-          color={brand.deepTeal}
+          color={appTheme.color(brand.deepTeal, "text")}
         />
       </View>
 
@@ -42,19 +47,14 @@ const PolicyItem = ({
       <AppIcon
         name="chevron-forward"
         size={20}
-        color={brand.muted}
+        color={appTheme.color(brand.muted, "text")}
       />
     </Pressable>
   );
 };
 
 export default function PolicySection() {
-  function openDummyPage(title: string) {
-    Alert.alert(
-      title,
-      "This section will be available later."
-    );
-  }
+  const styles = useThemeStyles(baseStyles);
 
   return (
     <View>
@@ -67,7 +67,7 @@ export default function PolicySection() {
           label="Privacy Policy"
           icon="shield-checkmark-outline"
           onPress={() =>
-            openDummyPage("Privacy Policy")
+            router.push("/privacy-policy")
           }
         />
 
@@ -77,7 +77,7 @@ export default function PolicySection() {
           label="Terms and Conditions"
           icon="document-text-outline"
           onPress={() =>
-            openDummyPage("Terms and Conditions")
+            router.push("/terms-and-conditions")
           }
         />
 
@@ -87,7 +87,7 @@ export default function PolicySection() {
           label="Help and Support"
           icon="help-circle-outline"
           onPress={() =>
-            openDummyPage("Help and Support")
+            router.push("/support")
           }
         />
 
@@ -97,7 +97,7 @@ export default function PolicySection() {
           label="About FoodWorth"
           icon="information-circle-outline"
           onPress={() =>
-            openDummyPage("About FoodWorth")
+            router.push("/about")
           }
         />
       </View>
@@ -105,7 +105,7 @@ export default function PolicySection() {
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   sectionTitle: {
     color: brand.ink,
     fontSize: 19,

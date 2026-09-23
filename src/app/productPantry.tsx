@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { brand } from "@/components/brand/theme";
 import { nutritionPerPound } from "@/utils/productValue";
@@ -51,6 +52,9 @@ type CalculatedValue = {
 };
 
 const ProductPantryScreen = () => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const {
     data,
     source,
@@ -308,7 +312,7 @@ const ProductPantryScreen = () => {
       <SafeAreaView style={styles.centeredContainer}>
         <ActivityIndicator
           size="large"
-          color={brand.ink}
+          color={appTheme.color(brand.ink, "text")}
         />
 
         <Text style={styles.loadingText}>
@@ -349,7 +353,7 @@ const ProductPantryScreen = () => {
                   : "barcode-outline"
               }
               size={24}
-              color={brand.ink}
+              color={appTheme.color(brand.ink, "text")}
             />
           </View>
         </View>
@@ -359,7 +363,7 @@ const ProductPantryScreen = () => {
             <AppIcon
               name="information-circle-outline"
               size={23}
-              color="#7A5413"
+              color={appTheme.color("#7A5413", "text")}
             />
 
             <View style={styles.noticeContent}>
@@ -381,7 +385,7 @@ const ProductPantryScreen = () => {
             <AppIcon
               name="cloud-offline-outline"
               size={23}
-              color="#7A5413"
+              color={appTheme.color("#7A5413", "text")}
             />
 
             <View style={styles.noticeContent}>
@@ -405,7 +409,7 @@ const ProductPantryScreen = () => {
             <AppIcon
               name="lock-closed-outline"
               size={21}
-              color="#365A40"
+              color={appTheme.color("#365A40", "text")}
             />
 
             <View style={styles.noticeContent}>
@@ -461,7 +465,7 @@ const ProductPantryScreen = () => {
               value={price}
               onChangeText={handlePriceChange}
               placeholder="0.00"
-              placeholderTextColor={brand.muted}
+              placeholderTextColor={appTheme.color(brand.muted, "text")}
               keyboardType="decimal-pad"
             />
           </View>
@@ -477,7 +481,7 @@ const ProductPantryScreen = () => {
           <AppIcon
             name="calculator-outline"
             size={22}
-            color={brand.deepTeal}
+            color={appTheme.color(brand.deepTeal, "text")}
           />
 
           <Text style={styles.calculateButtonText}>
@@ -508,13 +512,13 @@ const ProductPantryScreen = () => {
           {isAddingToPantry ? (
             <ActivityIndicator
               size="small"
-              color={brand.surface}
+              color={appTheme.color(brand.surface, "text")}
             />
           ) : (
             <AppIcon
               name="add"
               size={24}
-              color={brand.surface}
+              color={appTheme.color(brand.surface, "text")}
             />
           )}
 
@@ -529,9 +533,9 @@ const ProductPantryScreen = () => {
         accessible accessibilityLiveRegion="polite"
         accessibilityLabel={status.title + ". " + status.message}
         style={[styles.statusBanner, status.success ? styles.statusSuccess : styles.statusError]}>
-        <AppIcon name={status.success ? "checkmark-circle" : "alert-circle-outline"} size={28} color={status.success ? "#23733D" : "#A62B36"} />
+        <AppIcon name={status.success ? "checkmark-circle" : "alert-circle-outline"} size={28} color={appTheme.color(status.success ? "#23733D" : "#A62B36", "text")} />
         <View style={{ flex: 1, gap: 4 }}>
-          <Text style={[styles.statusTitle, { color: status.success ? "#23733D" : "#A62B36" }]}>{status.title}</Text>
+          <Text style={[styles.statusTitle, { color: appTheme.color(status.success ? "#23733D" : "#A62B36", "text") }]}>{status.title}</Text>
           <Text style={styles.statusMessage}>{status.message}</Text>
         </View>
       </View>}
@@ -541,7 +545,7 @@ const ProductPantryScreen = () => {
 
 export default ProductPantryScreen;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   statusBanner: { flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 20, marginBottom: 12, padding: 16, borderRadius: 18, borderWidth: 1 },
   statusSuccess: { backgroundColor: "#EAF7EC", borderColor: "#BDDFC5" },
   statusError: { backgroundColor: "#FFF0F1", borderColor: "#F0C8CE" },

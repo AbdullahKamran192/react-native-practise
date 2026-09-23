@@ -1,7 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import type { HistoryRow } from "@/utils/consumptionHistory";
 
-const imageRelations = "product:products(image_url,image_path),generic_product:generic_products(image_path),meal:meals(id,user_id,image_path)";
+const imageRelations = "product:products(image_url,image_path),generic_product:generic_products(image_path),meal:meals(id,user_id,image_path,public_image_path)";
 
 export async function getConsumptionDetails(groupId: string): Promise<HistoryRow[]> {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(groupId)) {

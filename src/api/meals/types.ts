@@ -1,6 +1,7 @@
 import type { ProductRow, GenericProductRow } from "@/api/products";
 
 export type Meal = {
+  public_image_path?: string | null;
   image_path?: string | null;
   id: number;
   user_id: string;
@@ -24,7 +25,7 @@ export type MealItem = {
 };
 
 export type MealWithItems = Meal & { items: MealItem[] };
-export type MealListItem = Meal & { items: Pick<MealItem, "product_barcode" | "generic_product_id" | "amount">[] };
+export type MealListItem = MealWithItems;
 export type MealInput = Pick<Meal, "meal_name" | "description" | "instructions">;
 export type MealProduct =
   | { product_barcode: string; generic_product_id: null }

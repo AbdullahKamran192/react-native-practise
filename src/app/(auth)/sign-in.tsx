@@ -1,3 +1,4 @@
+import { useThemeStyles } from "@/theme/AppThemeProvider";
 import SocialSignInButtons from "@/components/auth/SocialSignInButtons";
 import { useState } from "react";
 import {
@@ -9,12 +10,14 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Link, Stack } from "expo-router";
+import { Link, Stack, router } from "expo-router";
 
 import Colors from "@/constants/Colors";
 import { supabase } from "@/lib/supabase";
 
 const SignInScreen = () => {
+  const styles = useThemeStyles(baseStyles);
+
   const [socialBusy, setSocialBusy] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,6 +42,8 @@ const SignInScreen = () => {
 
       if (error) {
         Alert.alert("Sign-in failed", error.message);
+      } else {
+        router.replace("/(tabs)");
       }
     } catch {
       Alert.alert(
@@ -103,7 +108,7 @@ const SignInScreen = () => {
 
 export default SignInScreen;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flexGrow: 1,
     justifyContent: "center",

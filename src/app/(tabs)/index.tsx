@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { mealPeriods } from "@/utils/mealPeriod";
 import { brand, nutrients as nutrientTheme } from "@/components/brand/theme";
 import ConsumptionImage from "@/components/ConsumptionImage";
@@ -26,6 +27,9 @@ const icons: Record<Nutrient,keyof typeof AppIcon.glyphMap> = {
 const format=(value:number)=>Number(value.toFixed(1)).toLocaleString("en-GB");
 
 export default function Home() {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const router=useRouter();
   const [today,setToday]=useState(()=>dateKey(new Date()));
   const [selected,setSelected]=useState(today);
@@ -78,8 +82,8 @@ export default function Home() {
       <SettingsButton themed />
     </View>
     <HistoryDates dates={dates} selected={selected} scores={scores} onSelect={day=>{setSelected(day);setExpanded(null);}}/>
-    {(history.isPending||settings.isPending)&&<View style={s.message}><ActivityIndicator color={brand.deepTeal}/><Text>Loading your consumption…</Text></View>}
-    {error&&<View style={s.message}><Text>{error.message}</Text><Pressable onPress={refresh} accessibilityRole="button"><Text style={s.link}>Try again</Text></Pressable></View>}
+    {(history.isPending||settings.isPending)&&<View style={s.message}><ActivityIndicator color={appTheme.color(brand.deepTeal, "text")}/><Text style={{color:appTheme.color("#000", "text")}}>Loading your consumption…</Text></View>}
+    {error&&<View style={s.message}><Text style={{color:appTheme.color("#000", "text")}}>{error.message}</Text><Pressable onPress={refresh} accessibilityRole="button"><Text style={s.link}>Try again</Text></Pressable></View>}
     {ready&&<>
       <View style={s.calorieCard}>
         <View style={s.calorieRing}>
@@ -110,13 +114,13 @@ export default function Home() {
       <Pressable style={({pressed})=>[s.consumeFoodButton,pressed&&s.buttonPressed]}
         onPress={()=>router.push({pathname:"/camera",params:{intent:"consume"}})}
         accessibilityRole="button" accessibilityLabel="Consume food">
-        <AppIcon name="restaurant-outline" size={22} color="#fff"/>
+        <AppIcon name="restaurant-outline" size={22} color={appTheme.color("#fff", "text")}/>
         <Text style={s.consumeFoodText}>Consume Food</Text>
       </Pressable>
       <Pressable style={({pressed})=>[s.addFoodButton,pressed&&s.buttonPressed]}
         onPress={()=>router.push({pathname:"/camera",params:{intent:"pantry"}})}
         accessibilityRole="button" accessibilityLabel="Add food to pantry">
-        <AppIcon name="basket-outline" size={22} color={brand.deepTeal}/>
+        <AppIcon name="basket-outline" size={22} color={appTheme.color(brand.deepTeal, "text")}/>
         <Text style={s.addFoodText}>Add Food to Pantry</Text>
       </Pressable>
     </View>
@@ -125,8 +129,8 @@ export default function Home() {
       <Pressable onPress={()=>setEditing(value=>!value)} style={s.editButton}
         accessibilityRole="button" accessibilityLabel={editing?"Stop editing food logs":"Edit food logs"}
         accessibilityState={{selected:editing}}>
-        <AppIcon name={editing?"close":"create-outline"} size={21} color="#fff"/>
-        <Text style={{fontWeight:"700",color:"#fff"}}>{editing?"Done":"Edit"}</Text>
+        <AppIcon name={editing?"close":"create-outline"} size={21} color={appTheme.color("#fff", "text")}/>
+        <Text style={{fontWeight:"700",color:appTheme.color("#fff", "text")}}>{editing?"Done":"Edit"}</Text>
       </Pressable>
     </View>
   </View>;
@@ -154,18 +158,18 @@ export default function Home() {
         {item.isMeal&&<Pressable onPress={()=>setExpanded(expanded===item.id?null:item.id)}
           accessibilityRole="button" accessibilityLabel={(expanded===item.id?"Hide":"Show")+" ingredients for "+item.name}
           accessibilityState={{expanded:expanded===item.id}} style={{width:44,height:44,alignItems:"center",justifyContent:"center"}}>
-          <AppIcon name={expanded===item.id?"chevron-up":"chevron-down"} size={20} color={brand.muted}/>
+          <AppIcon name={expanded===item.id?"chevron-up":"chevron-down"} size={20} color={appTheme.color(brand.muted, "text")}/>
         </Pressable>}
         {editing&&<DeleteFoodLogButton groupId={item.items[0].consumption_group_id} name={item.name}/>}
         </View>
         {item.isMeal&&expanded===item.id&&item.items.map(ingredient=><View key={ingredient.id} style={s.ingredient}>
-          <Text style={{flex:1,color:brand.muted}}>{ingredient.product_name_snapshot}</Text>
-          <Text style={{color:brand.muted}}>{format(Number(ingredient.amount_consumed))}{ingredient.measurement_unit}</Text>
+          <Text style={{flex:1,color:appTheme.color(brand.muted, "text")}}>{ingredient.product_name_snapshot}</Text>
+          <Text style={{color:appTheme.color(brand.muted, "text")}}>{format(Number(ingredient.amount_consumed))}{ingredient.measurement_unit}</Text>
         </View>)}
       </View>}/>
   </SafeAreaView>;
 }
-const s=StyleSheet.create({
+const baseS=StyleSheet.create({
   mealsHeading:{flexDirection:"row",alignItems:"center",gap:12,marginBottom:14},
   editButton:{minWidth:84,minHeight:44,paddingHorizontal:14,borderRadius:12,backgroundColor:brand.teal,flexDirection:"row",gap:7,alignItems:"center",justifyContent:"center"},
   container:{flex:1,backgroundColor:brand.background},scrollContent:{padding:20,paddingBottom:40},

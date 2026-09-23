@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
@@ -185,6 +186,9 @@ async function lookupGenericProduct(
 }
 
 const ProductScreen = () => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const {
     data,
     source,
@@ -614,7 +618,7 @@ const ProductScreen = () => {
       >
         <ActivityIndicator
           size="large"
-          color="#222"
+          color={appTheme.color("#222", "text")}
         />
 
         <Text
@@ -671,7 +675,7 @@ const ProductScreen = () => {
                   : "barcode-outline"
               }
               size={24}
-              color="#222"
+              color={appTheme.color("#222", "text")}
             />
           </View>
         </View>
@@ -686,7 +690,7 @@ const ProductScreen = () => {
             <AppIcon
               name="information-circle-outline"
               size={23}
-              color="#7A5413"
+              color={appTheme.color("#7A5413", "text")}
             />
 
             <View
@@ -719,7 +723,7 @@ const ProductScreen = () => {
             <AppIcon
               name="cloud-offline-outline"
               size={23}
-              color="#7A5413"
+              color={appTheme.color("#7A5413", "text")}
             />
 
             <View
@@ -785,7 +789,7 @@ const ProductScreen = () => {
                 handlePriceChange
               }
               placeholder="0.00"
-              placeholderTextColor="#999"
+              placeholderTextColor={appTheme.color("#999", "text")}
               keyboardType="decimal-pad"
             />
           </View>
@@ -805,7 +809,7 @@ const ProductScreen = () => {
           <AppIcon
             name="calculator-outline"
             size={22}
-            color="#222"
+            color={appTheme.color("#222", "text")}
           />
 
           <Text
@@ -848,13 +852,13 @@ const ProductScreen = () => {
           {isAddingToPantry ? (
             <ActivityIndicator
               size="small"
-              color="#fff"
+              color={appTheme.color("#fff", "text")}
             />
           ) : (
             <AppIcon
               name="add"
               size={24}
-              color="#fff"
+              color={appTheme.color("#fff", "text")}
             />
           )}
 
@@ -875,7 +879,7 @@ const ProductScreen = () => {
 
 export default ProductScreen;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F7F7F7",

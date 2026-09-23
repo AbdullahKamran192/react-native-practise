@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
 import {
@@ -52,13 +53,16 @@ const PreferenceInput = ({
   icon,
   onChangeText,
 }: PreferenceInputProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   return (
     <View style={styles.preferenceRow}>
       <View style={styles.preferenceIcon}>
         <AppIcon
           name={icon}
           size={21}
-          color={brand.deepTeal}
+          color={appTheme.color(brand.deepTeal, "text")}
         />
       </View>
 
@@ -94,6 +98,9 @@ export default function PreferenceSection({
   onSave,
   isSaving,
 }: PreferenceSectionProps) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   return (
     <View>
       <View style={styles.sectionHeader}>
@@ -210,13 +217,13 @@ export default function PreferenceSection({
         {isSaving ? (
           <ActivityIndicator
             size="small"
-            color={brand.surface}
+            color={appTheme.color(brand.surface, "text")}
           />
         ) : (
           <AppIcon
             name="checkmark-outline"
             size={21}
-            color={brand.surface}
+            color={appTheme.color(brand.surface, "text")}
           />
         )}
 
@@ -230,7 +237,7 @@ export default function PreferenceSection({
   );
 }
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   sectionHeader: {
     marginTop: 28,
     marginBottom: 13,

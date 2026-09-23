@@ -10,6 +10,7 @@ export type LogInput = {
   removeFromPantry: boolean;
 } & (
   | { mealId: string }
+  | { publicMealId: string; items: { ingredient_id: number; product_barcode: string | null; generic_product_id: number | null; amount: number }[] }
   | { amount: number; unit: MeasurementUnit; barcode: string; brand?: string; submission: ProductSubmission }
   | { amount: number; unit: MeasurementUnit; genericProductId: string }
 );
@@ -30,6 +31,8 @@ export function validateInput(input: LogInput) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(input.consumedOn)) throw new Error("Choose a consumption date.");
   if ("mealId" in input) {
     if (!/^[1-9]\d*$/.test(input.mealId)) throw new Error("Choose a valid meal.");
+  } else if ("publicMealId" in input) {
+    if (!/^[1-9]\d*$/.test(input.publicMealId) || !input.items.length || input.items.length > 50) throw new Error("Choose a public meal and ingredients.");
   } else {
     if (!Number.isFinite(input.amount) || input.amount <= 0 || input.amount >= 1e9 ||
       Math.round(input.amount * 1000) <= 0 || Math.round(input.amount * 1000) >= 1e12) {
@@ -90,7 +93,11 @@ async function execute(user: string, key: string, input?: LogInput): Promise<Con
   }
   if (await userId() !== user) throw new Error("Your account changed. Sign in again before logging.");
   const saved = pending.input;
-  const { data, error } = await supabase.rpc("log_food_consumption", {
+  const { data, error } = "publicMealId" in saved ? await supabase.rpc("log_public_meal", {
+    p_meal_id: saved.publicMealId, p_items: saved.items,
+    p_group_id: pending.groupId, p_consumed_on: saved.consumedOn, p_time_zone: pending.timeZone,
+    p_remove_from_pantry: saved.removeFromPantry, p_meal_period: saved.mealPeriod ?? null,
+  }) : await supabase.rpc("log_food_consumption", {
     p_meal_period: saved.mealPeriod ?? null,
     p_group_id: pending.groupId, p_consumed_on: saved.consumedOn,
     p_time_zone: pending.timeZone, p_remove_from_pantry: saved.removeFromPantry,
@@ -106,6 +113,7 @@ async function execute(user: string, key: string, input?: LogInput): Promise<Con
     if (error.code?.startsWith("22") || error.code?.startsWith("23") ||
       ["42501", "42P01", "PGRST202"].includes(error.code)) await AsyncStorage.removeItem(key);
     if (["PGRST202", "42P01"].includes(error.code)) {
+      if ("publicMealId" in saved) throw new Error("Run 20260919_public_meal_types.sql after the original public meals migration before logging public recipes.");
       throw new Error("Run the consumption logging migrations, including 20260916_consumption_meal_period.sql, in Supabase first.");
     }
     throw new Error(error.message);

@@ -1,11 +1,14 @@
+import { useThemeStyles } from "@/theme/AppThemeProvider";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Text, View } from "react-native";
 import { Link, router } from "expo-router";
 import * as Linking from "expo-linking";
 import { completeSocialSignIn } from "@/api/socialAuth";
-import { passwordStyles as s } from "@/components/auth/passwordStyles";
+import { passwordStyles as baseS } from "@/components/auth/passwordStyles";
 
 export default function AuthCallback(){
+  const s = useThemeStyles(baseS);
+
  const url=Linking.useURL();
  const [error,setError]=useState("");
  useEffect(()=>{
@@ -15,7 +18,7 @@ export default function AuthCallback(){
   completeSocialSignIn(callback).then(()=>{
    if(!active)return;
    if(Platform.OS==="web")window.history.replaceState(null,"",window.location.pathname);
-   router.replace("/");
+   router.replace("/(tabs)");
   }).catch(e=>{if(active)setError(e instanceof Error?e.message:"Could not complete sign-in.");});
   return ()=>{active=false;};
  },[url]);

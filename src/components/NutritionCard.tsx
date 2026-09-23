@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { brand } from "@/components/brand/theme";
 import { View, Text } from 'react-native'
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -25,11 +26,14 @@ const NutritionCard = ({
   colour = brand.teal,
   backgroundColour = brand.surface,
 }: NutritionCardProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   return (
-    <View style={[styles.nutritionCard, { backgroundColor: backgroundColour }]}>
+    <View style={[styles.nutritionCard, { backgroundColor: appTheme.color(backgroundColour, "surface") }]}>
       <ProgressRing progress={progress} animationKey={animationKey} colour={colour} trackColour={brand.border}
         label={label + ": " + value + " of " + goal}>
-        <AppIcon name={icon} size={22} color={colour} />
+        <AppIcon name={icon} size={22} color={appTheme.color(colour, "text")} />
       </ProgressRing>
 
       <Text style={styles.nutritionLabel}>{label}</Text>
@@ -43,7 +47,7 @@ const NutritionCard = ({
 
 export default NutritionCard
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   // Nutrition
   nutritionRow: {
     flexDirection: "row",

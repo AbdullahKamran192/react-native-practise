@@ -16,7 +16,16 @@ export type MeasurementUnit =
   | "g"
   | "ml";
 
+export type FoodClassification = {
+  food_family_id?: number | null;
+  food_family?: { id: number; family_name: string; food_group_id: number; is_active: boolean } | null;
+  is_active?: boolean;
+  food_group_id?: number | null;
+  food_group?: { id: number; is_active: boolean } | null;
+};
+
 export type ProductRow = {
+  generic_product?: FoodClassification | null;
   generic_product_id?: number | null;
   image_path?: string | null;
   image_url?: string | null;
@@ -34,7 +43,7 @@ export type ProductRow = {
   fibre_per_100: number | null;
 };
 
-export type GenericProductRow = {
+export type GenericProductRow = FoodClassification & {
   image_path?: string | null;
   id: number;
   product_name: string;
@@ -176,10 +185,10 @@ export const usePantryList = () => {
             generic_product_id,
             amount_remaining,
             product:products (
-              *
+              *, generic_product:generic_products(food_group_id,food_family_id,is_active,food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active))
             ),
             generic_product:generic_products (
-              *
+              *, food_group:food_groups(id,is_active),food_family:food_families(id,family_name,food_group_id,is_active)
             )
           `)
           .eq("user_id", user.id)

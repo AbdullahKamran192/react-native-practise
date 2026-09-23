@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 ﻿import { useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -5,7 +6,7 @@ import { useLocalSearchParams } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteShoppingItem, purchaseDetails, type Purchase } from "@/api/shopping";
 import { targetStatus, overallCoverage, coverageGrade, type ValueGrade } from "@/utils/productValue";
-import { MealButton, MealStatus, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, MealStatus, mealStyles as baseS } from "@/components/meals/ui";
 import ProductImage from "@/components/products/ProductImage";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { brand } from "@/components/brand/theme";
@@ -18,15 +19,22 @@ const gradeColours: Record<ValueGrade, { background: string; text: string }> = {
   E: { background: "#FFD6D6", text: "#A12F2F" },
 };
 function GradeBadge({ label, grade, percentage }: { label: string; grade: ValueGrade | null; percentage?: number | null }) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const colour = grade ? gradeColours[grade] : { background: brand.background, text: brand.muted };
-  return <View style={[styles.grade, { backgroundColor: colour.background }]}>
-    <Text style={[styles.gradeLabel, { color: colour.text }]}>{label}</Text>
-    <Text style={[styles.letter, { color: colour.text }]}>{grade ?? "—"}</Text>
-    <Text style={[styles.gradeCaption, { color: colour.text }]}>{!grade ? "Unknown" : percentage != null ? `${percentage.toLocaleString(undefined, { maximumFractionDigits: 1 })}%` : "Value"}</Text>
-    {targetStatus(percentage) && <Text style={[styles.gradeCaption, { color: colour.text }]}>{targetStatus(percentage)}</Text>}
+  return <View style={[styles.grade, { backgroundColor: appTheme.color(colour.background, "surface") }]}>
+    <Text style={[styles.gradeLabel, { color: appTheme.color(colour.text, "text") }]}>{label}</Text>
+    <Text style={[styles.letter, { color: appTheme.color(colour.text, "text") }]}>{grade ?? "—"}</Text>
+    <Text style={[styles.gradeCaption, { color: appTheme.color(colour.text, "text") }]}>{!grade ? "Unknown" : percentage != null ? `${percentage.toLocaleString(undefined, { maximumFractionDigits: 1 })}%` : "Value"}</Text>
+    {targetStatus(percentage) && <Text style={[styles.gradeCaption, { color: appTheme.color(colour.text, "text") }]}>{targetStatus(percentage)}</Text>}
   </View>;
 }
 export default function ShoppingTrip() {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+  const styles = useThemeStyles(baseStyles);
+
   const { id = "" } = useLocalSearchParams<{ id: string }>();
   const query = useQuery({ queryKey: ["shopping-history", "detail", id], queryFn: () => purchaseDetails(id) });
   const client = useQueryClient();
@@ -79,7 +87,7 @@ export default function ShoppingTrip() {
           </View>
           {editing && <Pressable accessibilityRole="button" accessibilityLabel={`Delete ${item.product_name_snapshot} from purchase history`}
             disabled={busy} style={styles.bin} onPress={() => { setError(""); setSelected(item); }}>
-            <AppIcon name="trash-outline" size={23} color={brand.red} />
+            <AppIcon name="trash-outline" size={23} color={appTheme.color(brand.red, "text")} />
           </Pressable>}
         </View>
         <View style={styles.purchaseRow}>
@@ -108,7 +116,7 @@ export default function ShoppingTrip() {
     </Modal>
   </ScrollView>;
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: 12 },
   summary: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 16, padding: 20, borderRadius: 22, backgroundColor: brand.paleTeal },
   total: { fontSize: 28, fontWeight: "700", color: brand.deepTeal },

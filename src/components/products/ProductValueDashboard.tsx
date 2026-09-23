@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { StyleSheet, Text, View } from "react-native";
 import { useUserSettings } from "@/api/user-settings";
@@ -54,6 +55,9 @@ const unknownColours: GradeStyle = {backgroundColor:brand.background,borderColor
 const format=(value:number)=>value.toLocaleString(undefined,{maximumFractionDigits:1});
 
 export default function ProductValueDashboard({caloriesPerPound,proteinPerPound}:ProductValueDashboardProps) {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
  const settings=useUserSettings();
  const data=settings.isError?null:settings.data;
  const budget=data?Number(data.cost_target_per_day):null;
@@ -82,20 +86,20 @@ export default function ProductValueDashboard({caloriesPerPound,proteinPerPound}
   <View style={styles.valueGrid}>
    {cards.map(card=>{
     const c=card.coverage?gradeStyles[card.coverage.grade]:unknownColours;
-    return <View key={card.label} style={[styles.valueCard,{backgroundColor:c.backgroundColor,borderColor:c.borderColor}]}>
+    return <View key={card.label} style={[styles.valueCard,{backgroundColor:appTheme.color(c.backgroundColor, "surface"),borderColor:appTheme.color(c.borderColor, "border")}]}>
      <View style={styles.valueHeader}>
-      <AppIcon name={card.icon} size={22} color={c.textColor}/>
-      <View style={[styles.smallGrade,{backgroundColor:c.textColor}]}>
+      <AppIcon name={card.icon} size={22} color={appTheme.color(c.textColor, "text")}/>
+      <View style={[styles.smallGrade,{backgroundColor:appTheme.color(c.textColor, "surface")}]}>
        <Text style={styles.smallGradeText}>{card.coverage?.grade??"?"}</Text>
       </View>
      </View>
      <Text style={styles.valueLabel}>{card.label}</Text>
-     <Text style={[styles.value,{color:c.textColor}]}>{card.coverage?format(card.coverage.percentage)+"%":"Unknown"}</Text>
-     {targetStatus(card.coverage?.percentage)&&<Text style={[styles.unit,{color:c.textColor}]}>{targetStatus(card.coverage?.percentage)}</Text>}
+     <Text style={[styles.value,{color:appTheme.color(c.textColor, "text")}]}>{card.coverage?format(card.coverage.percentage)+"%":"Unknown"}</Text>
+     {targetStatus(card.coverage?.percentage)&&<Text style={[styles.unit,{color:appTheme.color(c.textColor, "text")}]}>{targetStatus(card.coverage?.percentage)}</Text>}
      {card.coverage&&<>
-      <View style={{height:5,backgroundColor:brand.border,borderRadius:3,overflow:"hidden",marginVertical:8}}
+      <View style={{height:5,backgroundColor:appTheme.color(brand.border, "surface"),borderRadius:3,overflow:"hidden",marginVertical:8}}
        accessibilityRole="progressbar" accessibilityValue={{min:0,max:100,now:Math.min(card.coverage.percentage,100)}}>
-       <View style={{height:5,width:`${Math.min(card.coverage.percentage,100)}%`,backgroundColor:c.textColor}}/>
+       <View style={{height:5,width:`${Math.min(card.coverage.percentage,100)}%`,backgroundColor:appTheme.color(c.textColor, "surface")}}/>
       </View>
       <Text style={styles.unit}>{format(card.coverage.withinBudget)} of {format(card.target!)} {card.unit}</Text>
      </>}
@@ -103,21 +107,21 @@ export default function ProductValueDashboard({caloriesPerPound,proteinPerPound}
     </View>;
    })}
   </View>
-  <View style={[styles.overallCard,{backgroundColor:colours.backgroundColor,borderColor:colours.borderColor}]}>
-   <View style={[styles.overallGrade,{backgroundColor:colours.textColor}]}><Text style={styles.overallGradeText}>{grade??"?"}</Text></View>
+  <View style={[styles.overallCard,{backgroundColor:appTheme.color(colours.backgroundColor, "surface"),borderColor:appTheme.color(colours.borderColor, "border")}]}>
+   <View style={[styles.overallGrade,{backgroundColor:appTheme.color(colours.textColor, "surface")}]}><Text style={styles.overallGradeText}>{grade??"?"}</Text></View>
    <View style={styles.overallInformation}>
-    <Text style={[styles.overallTitle,{color:colours.textColor}]}>Overall grade: {grade??"Unknown"}</Text>
+    <Text style={[styles.overallTitle,{color:appTheme.color(colours.textColor, "text")}]}>Overall grade: {grade??"Unknown"}</Text>
     <Text style={styles.overallDescription}>{overall===null?"Both nutrition values and positive targets are needed.":`${format(overall)}% ? ${colours.description} for your targets`}</Text>
-    {targetStatus(overall)&&<Text style={[styles.unit,{color:colours.textColor}]}>{targetStatus(overall)}</Text>}
+    {targetStatus(overall)&&<Text style={[styles.unit,{color:appTheme.color(colours.textColor, "text")}]}>{targetStatus(overall)}</Text>}
    </View>
   </View>
   <View style={styles.explanation}>
-   <AppIcon name="information-circle-outline" size={18} color={brand.muted}/>
+   <AppIcon name="information-circle-outline" size={18} color={appTheme.color(brand.muted, "text")}/>
    <Text style={styles.explanationText}>Calculated as if your selected daily food budget were spent on this product. Overall coverage averages calories and protein, each capped at 100%. This is an affordability score, not a health rating.</Text>
   </View>
  </View>;
 }
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   container: {
     marginTop: 18,
   },

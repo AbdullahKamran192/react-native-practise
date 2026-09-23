@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { brand } from "@/components/brand/theme";
 import { AppIcon } from "@/components/brand/AppIcon";
@@ -24,7 +25,10 @@ import type { ProductSearchResult } from "@/api/products/search/types";
 import SettingsButton from "@/components/SettingsButton";
 import ProductImage from "@/components/products/ProductImage";
 
-const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: boolean }) => {
+const Search = ({ mealId, replaceItemId, shopping = false, publicMealId, ingredientId }: { mealId?: string; replaceItemId?: string; shopping?: boolean; publicMealId?: string; ingredientId?: string }) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   const router = useRouter();
 
   const [page, setPage] = useState(0);
@@ -77,6 +81,10 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
     product: ProductSearchResult
   ) => {
     Keyboard.dismiss();
+    if (publicMealId) {
+      router.push({ pathname: "/publicMealProduct", params: { publicMealId, ingredientId, source: product.source, productId: product.id } });
+      return;
+    }
     if (shopping) {
       router.push({ pathname: "/shoppingItem", params: { source: product.source, productId: product.id } });
       return;
@@ -84,7 +92,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
     if (mealId) {
       router.push({
         pathname: "/mealIngredient",
-        params: { mealId, source: product.source, productId: product.id },
+        params: { mealId, replaceItemId, source: product.source, productId: product.id },
       });
       return;
     }
@@ -182,7 +190,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
           <AppIcon
             name="search-outline"
             size={42}
-            color={brand.muted}
+            color={appTheme.color(brand.muted, "text")}
           />
 
           <Text style={styles.emptyTitle}>
@@ -201,7 +209,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
         <AppIcon
           name="basket-outline"
           size={42}
-          color={brand.muted}
+          color={appTheme.color(brand.muted, "text")}
         />
 
         <Text style={styles.emptyTitle}>
@@ -217,7 +225,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={mealId || shopping ? ["left", "right", "bottom"] : ["top", "left", "right", "bottom"]}>
+    <SafeAreaView style={styles.container} edges={mealId || shopping || publicMealId ? ["left", "right", "bottom"] : ["top", "left", "right", "bottom"]}>
       <View style={[styles.header, {flexDirection:"row",alignItems:"center",justifyContent:"space-between"}]}>
         <View>
         <Text style={styles.headerLabel}>
@@ -226,7 +234,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
 
         <Text style={styles.title}>Search</Text>
         </View>
-        {!mealId && !shopping && <SettingsButton themed />}
+        {!mealId && !shopping && !publicMealId && <SettingsButton themed />}
       </View>
 
       <View style={styles.searchRow}>
@@ -234,7 +242,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
           <AppIcon
             name="search-outline"
             size={20}
-            color={brand.muted}
+            color={appTheme.color(brand.muted, "text")}
           />
 
           <TextInput
@@ -243,7 +251,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
             onChangeText={setSearchInput}
             onSubmitEditing={handleSearch}
             placeholder="Search for a food"
-            placeholderTextColor={brand.muted}
+            placeholderTextColor={appTheme.color(brand.muted, "text")}
             returnKeyType="search"
             autoCapitalize="none"
             autoCorrect={false}
@@ -254,7 +262,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
               <AppIcon
                 name="close-circle"
                 size={20}
-                color={brand.muted}
+                color={appTheme.color(brand.muted, "text")}
               />
             </Pressable>
           )}
@@ -267,7 +275,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
           <AppIcon
             name="search"
             size={21}
-            color="#fff"
+            color={appTheme.color("#fff", "text")}
           />
         </Pressable>
       </View>
@@ -276,7 +284,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
         <View style={styles.messageContainer}>
           <ActivityIndicator
             size="large"
-            color={brand.deepTeal}
+            color={appTheme.color(brand.deepTeal, "text")}
           />
 
           <Text style={styles.messageText}>
@@ -288,7 +296,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
           <AppIcon
             name="alert-circle-outline"
             size={42}
-            color="#C62828"
+            color={appTheme.color("#C62828", "text")}
           />
 
           <Text style={styles.errorTitle}>
@@ -380,7 +388,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
                 <AppIcon
                   name="restaurant-outline"
                   size={21}
-                  color="#fff"
+                  color={appTheme.color("#fff", "text")}
                 />
               </View>
 
@@ -397,7 +405,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
               <AppIcon
                 name="chevron-forward"
                 size={20}
-                color="#fff"
+                color={appTheme.color("#fff", "text")}
               />
             </Pressable>
 
@@ -414,7 +422,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
                 <AppIcon
                   name="basket-outline"
                   size={21}
-                  color={brand.deepTeal}
+                  color={appTheme.color(brand.deepTeal, "text")}
                 />
               </View>
 
@@ -431,7 +439,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
               <AppIcon
                 name="chevron-forward"
                 size={20}
-                color={brand.muted}
+                color={appTheme.color(brand.muted, "text")}
               />
             </Pressable>
 
@@ -452,7 +460,7 @@ const Search = ({ mealId, shopping = false }: { mealId?: string; shopping?: bool
 
 export default Search;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   pagination: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10, paddingVertical: 16 },
   pageButton: { minHeight: 48, paddingHorizontal: 16, paddingVertical: 12, borderRadius: 14, backgroundColor: brand.paleTeal, justifyContent: "center" },
   pageButtonText: { color: brand.deepTeal, fontWeight: "600", fontSize: 15 },

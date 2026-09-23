@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, Text, View } from "react-native";
@@ -6,8 +7,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { deleteShoppingTrip, shoppingHistory, type Trip } from "@/api/shopping";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { brand } from "@/components/brand/theme";
-import { MealButton, MealStatus, mealStyles as s } from "@/components/meals/ui";
+import { MealButton, MealStatus, mealStyles as baseS } from "@/components/meals/ui";
 export default function ShoppingHistory() {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const [page, setPage] = useState(0);
   const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<Trip | null>(null);
@@ -51,7 +55,7 @@ export default function ShoppingHistory() {
         disabled={busy} onPress={() => setEditing(value => !value)} />
     </View>
     <Text style={s.muted}>View your purchases, or use Edit to delete a shopping trip and optionally remove its purchased amounts from your pantry.</Text>
-    {!!success && <Text style={[s.text, { color: brand.deepTeal }]} accessibilityRole="alert">✓ {success}</Text>}
+    {!!success && <Text style={[s.text, { color: appTheme.color(brand.deepTeal, "text") }]} accessibilityRole="alert">✓ {success}</Text>}
     {!query.data?.length && <Text style={s.text}>No shopping trips yet.</Text>}
     {query.data?.slice(0, 20).map(trip => <View style={s.card} key={trip.id}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
@@ -59,8 +63,8 @@ export default function ShoppingHistory() {
         {editing && <Pressable accessibilityRole="button"
           accessibilityLabel={`Delete purchase from ${new Date(trip.completed_at).toLocaleDateString()}`}
           disabled={busy} onPress={() => { setError(""); setSuccess(""); setRemoveFromPantry(false); setSelected(trip); }}
-          style={{ minWidth: 48, minHeight: 48, borderRadius: 12, backgroundColor: brand.paleRed, alignItems: "center", justifyContent: "center" }}>
-          <AppIcon name="trash-outline" size={24} color={brand.red} />
+          style={{ minWidth: 48, minHeight: 48, borderRadius: 12, backgroundColor: appTheme.color(brand.paleRed, "surface"), alignItems: "center", justifyContent: "center" }}>
+          <AppIcon name="trash-outline" size={24} color={appTheme.color(brand.red, "text")} />
         </Pressable>}
       </View>
       <Text style={s.text}>{new Date(trip.completed_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · £{formatNumber(trip.total_spent)}</Text>
@@ -72,7 +76,7 @@ export default function ShoppingHistory() {
     </View>
     <Text style={s.muted}>Page {page + 1}</Text>
     <Modal visible={selected !== null} transparent animationType="fade" onRequestClose={() => { if (!busy) setSelected(null); }}>
-      <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.4)", justifyContent: "center", alignItems: "center", padding: 24 }}>
+      <View style={{ flex: 1, backgroundColor: appTheme.color("rgba(0,0,0,0.4)", "surface"), justifyContent: "center", alignItems: "center", padding: 24 }}>
         <ScrollView style={{ width: "100%", maxWidth: 420, maxHeight: "90%", flexGrow: 0, borderRadius: 24 }} contentContainerStyle={s.card} accessibilityViewIsModal>
           <Text style={s.heading}>Delete shopping trip?</Text>
           {selected && <Text style={s.text}>{new Date(selected.completed_at).toLocaleDateString()} · £{formatNumber(selected.total_spent)}</Text>}
@@ -80,7 +84,7 @@ export default function ShoppingHistory() {
           <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: removeFromPantry, disabled: busy }}
             disabled={busy} onPress={() => setRemoveFromPantry(value => !value)}
             style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 }}>
-            <AppIcon name={removeFromPantry ? "checkbox" : "square-outline"} size={26} color={brand.teal} />
+            <AppIcon name={removeFromPantry ? "checkbox" : "square-outline"} size={26} color={appTheme.color(brand.teal, "text")} />
             <Text style={[s.text, { flex: 1 }]}>Also remove these purchased amounts from my pantry</Text>
           </Pressable>
           <Text style={s.muted}>Only available amounts will be removed; exhausted products will leave the pantry. Pantry stock is combined, so this may include amounts from later purchases.</Text>

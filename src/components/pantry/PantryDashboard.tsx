@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { formatNumber } from "@/utils/formatNumber";
 import { BrandArtwork } from "@/components/brand/Artwork";
 import NutritionTile from "@/components/brand/NutritionTile";
@@ -56,6 +57,9 @@ const PantryDashboard = ({
   totals,
   userSettings,
 }: PantryDashboardProps) => {
+  const appTheme = useAppTheme();
+  const styles = useThemeStyles(baseStyles);
+
   /*
    * Use the signed-in user's saved daily targets.
    *
@@ -199,8 +203,8 @@ const PantryDashboard = ({
         <View style={{ flexDirection: "row", alignItems: "center", gap: 16, marginBottom: 20 }}>
           <BrandArtwork name="pantryBasket" size={64} />
           <View style={{ flex: 1, gap: 6 }}>
-            <Text style={{ fontSize: 21, fontWeight: "700", color: brand.ink }}>Pantry nutrition</Text>
-            <Text style={{ fontSize: 15, lineHeight: 22, color: brand.muted }}>Nutrition available from your stored items</Text>
+            <Text style={{ fontSize: 21, fontWeight: "700", color: appTheme.color(brand.ink, "text") }}>Pantry nutrition</Text>
+            <Text style={{ fontSize: 15, lineHeight: 22, color: appTheme.color(brand.muted, "text") }}>Nutrition available from your stored items</Text>
           </View>
         </View>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -226,13 +230,13 @@ const PantryDashboard = ({
           return (
             <View
               key={nutrition.key}
-              style={[styles.daysCard, { backgroundColor: nutrients[nutrition.key].background }]}
+              style={[styles.daysCard, { backgroundColor: appTheme.color(nutrients[nutrition.key].background, "surface") }]}
             >
               <View style={styles.daysIcon}>
                 <AppIcon
                   name={nutrition.icon}
                   size={21}
-                  color={nutrients[nutrition.key].color}
+                  color={appTheme.color(nutrients[nutrition.key].color, "text")}
                 />
               </View>
 
@@ -261,7 +265,7 @@ const PantryDashboard = ({
 
 export default PantryDashboard;
 
-const styles = StyleSheet.create({
+const baseStyles = StyleSheet.create({
   dashboard: {
     backgroundColor: "#fff",
     borderRadius: 24,

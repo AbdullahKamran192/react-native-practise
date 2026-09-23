@@ -1,3 +1,4 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { router, useFocusEffect } from "expo-router";
@@ -7,9 +8,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { productImageRequest,rejectionReasons } from "@/api/products/images";
 import type { PendingProductImage,RejectionReason } from "@/api/products/images";
 import ProductImage from "@/components/products/ProductImage";
-import { MealButton,MealStatus,mealStyles as s } from "@/components/meals/ui";
+import { MealButton,MealStatus,mealStyles as baseS } from "@/components/meals/ui";
 
 export default function ProductImageReviews(){
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
  const client=useQueryClient();
  const admin=useQuery({queryKey:["product-image-admin"],queryFn:()=>productImageRequest<{isAdmin:boolean}>("admin-status"),retry:false});
  const list=useQuery({queryKey:["product-image-pending"],queryFn:()=>productImageRequest<{items:PendingProductImage[];count:number}>("list-pending"),enabled:!!admin.data?.isAdmin,retry:false,refetchInterval:240000,gcTime:0});
@@ -57,12 +61,12 @@ export default function ProductImageReviews(){
     </View>
    </View>}/>
   <Modal visible={!!rejecting} transparent animationType="fade" onRequestClose={()=>{if(!busy)setRejecting(null);}}>
-   <View style={{flex:1,backgroundColor:"rgba(0,0,0,0.45)",justifyContent:"center",padding:20}}>
+   <View style={{flex:1,backgroundColor:appTheme.color("rgba(0,0,0,0.45)", "surface"),justifyContent:"center",padding:20}}>
     <View style={s.card} accessibilityViewIsModal>
      <Text style={s.heading}>Why are you rejecting this image?</Text>
      {(Object.keys(rejectionReasons) as RejectionReason[]).map(value=><Pressable key={value} disabled={busy} onPress={()=>setReason(value)}
        accessibilityRole="radio" accessibilityLabel={rejectionReasons[value]} accessibilityState={{checked:reason===value,disabled:busy}} style={{paddingVertical:10,flexDirection:"row",alignItems:"center",gap:10}}>
-       <AppIcon name={reason===value?"radio-button-on":"radio-button-off"} size={22} color="#222" />
+       <AppIcon name={reason===value?"radio-button-on":"radio-button-off"} size={22} color={appTheme.color("#222", "text")} />
        <Text style={s.text}>{rejectionReasons[value]}</Text>
       </Pressable>)}
      {(reason==="offensive"||reason==="abusive")&&<Text style={s.error}>This adds one violation. Three violations block further product photo submissions.</Text>}

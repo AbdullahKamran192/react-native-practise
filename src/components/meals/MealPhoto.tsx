@@ -1,3 +1,6 @@
+import { useAppTheme, useThemeStyles } from "@/theme/AppThemeProvider";
+import { genericProductImageUrl } from "@/utils/productImage";
+import { supabase } from "@/lib/supabase";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Image } from "expo-image";
 import { chooseMealPhoto, readMealPhoto } from "@/utils/mealPhoto";
@@ -6,9 +9,12 @@ import { Text, View } from "react-native";
 import { AppIcon } from "@/components/brand/AppIcon";
 import { mealImageRequest } from "@/api/meals/images";
 import type { Meal } from "@/api/meals";
-import { MealButton, mealStyles as s } from "./ui";
+import { MealButton, mealStyles as baseS } from "./ui";
 
 export default function MealPhoto({ meal, editable = false }: { meal: Meal; editable?: boolean }) {
+  const appTheme = useAppTheme();
+  const s = useThemeStyles(baseS);
+
   const client = useQueryClient();
   const [draft, setDraft] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -21,7 +27,7 @@ export default function MealPhoto({ meal, editable = false }: { meal: Meal; edit
     enabled: !!meal.image_path,
     staleTime: 600000, refetchInterval: 600000, gcTime: 0,
   });
-  const uri = draft ?? (meal.image_path ? query.data?.url : null);
+  const uri = draft ?? (meal.image_path ? query.data?.url : genericProductImageUrl(meal.public_image_path));
   async function choose(camera: boolean) {
     if (lock.current) return;
     lock.current = true; setBusy(true); setError(null);
@@ -36,7 +42,11 @@ export default function MealPhoto({ meal, editable = false }: { meal: Meal; edit
     lock.current = true; setBusy(true); setError(null);
     try {
       const bytes = remove ? undefined : await readMealPhoto(draft!);
-      const result = await mealImageRequest(remove ? "remove" : "upload", String(meal.id), bytes);
+      const result = remove && !meal.image_path ? { image_path: null, url: null } : await mealImageRequest(remove ? "remove" : "upload", String(meal.id), bytes);
+      if (meal.public_image_path) {
+        const { error } = await supabase.from("meals").update({ public_image_path: null }).eq("id", meal.id).eq("user_id", meal.user_id);
+        if (error) throw error;
+      }
       client.setQueryData(["meal-photo", meal.user_id, String(meal.id), result.image_path], { url: result.url });
       setFailed(null);
       setDraft(null);
@@ -47,8 +57,8 @@ export default function MealPhoto({ meal, editable = false }: { meal: Meal; edit
   const photoStyle = editable ? { width: "100%" as const, height: 220, borderRadius: 14 } : { width: 64, height: 64, borderRadius: 12 };
   return <View style={editable ? s.card : undefined}>
     {uri && failed !== uri ? <Image key={uri} source={{ uri }} style={photoStyle} contentFit="cover" cachePolicy="none" accessibilityLabel={`Photo of ${meal.meal_name}`} onError={() => setFailed(uri)} />
-      : <View style={[photoStyle, { backgroundColor: "#EDEDED", alignItems: "center", justifyContent: "center" }]}>
-        <AppIcon name="image-outline" size={editable ? 40 : 26} color="#999" />
+      : <View style={[photoStyle, { backgroundColor: appTheme.color("#EDEDED", "surface"), alignItems: "center", justifyContent: "center" }]}>
+        <AppIcon name="image-outline" size={editable ? 40 : 26} color={appTheme.color("#999", "text")} />
         {editable && <Text style={s.muted}>{query.isFetching ? "Loading photo..." : "No photo available"}</Text>}
       </View>}
     {editable && <>
@@ -59,7 +69,7 @@ export default function MealPhoto({ meal, editable = false }: { meal: Meal; edit
       {draft ? <View style={s.actionRow}>
         <MealButton equalWidth disabled={busy} title={busy ? "Saving..." : "Save photo"} onPress={() => void save()} />
         <MealButton equalWidth secondary disabled={busy} title="Cancel" onPress={() => setDraft(null)} />
-      </View> : meal.image_path ? <MealButton destructive icon="trash-outline" disabled={busy} title={busy ? "Please wait..." : "Remove photo"} onPress={() => void save(true)} /> : null}
+      </View> : (meal.image_path || meal.public_image_path) ? <MealButton destructive icon="trash-outline" disabled={busy} title={busy ? "Please wait..." : "Remove photo"} onPress={() => void save(true)} /> : null}
       {(error || query.error) && <Text style={s.error}>{error ?? query.error?.message}</Text>}
       {(query.error || (uri && failed === uri)) && <MealButton secondary title="Reload photo" onPress={() => { setFailed(null); void query.refetch(); }} />}
     </>}
